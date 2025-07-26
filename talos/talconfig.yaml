@@ -21,7 +21,7 @@ cniConfig:
 nodes:
   - hostname: "hp-elitedesk-800-g6-1"
     ipAddress: "192.168.1.55"
-    installDisk: "/dev/nvme0n1"
+    installDisk: "/dev/nvme1n1"
     machineSpec:
       secureboot: false
     talosImageURL: factory.talos.dev/installer/376567988ad370138ad8b2698212367b8edcb69b5fd68c80be1f2ec7d603b4ba
