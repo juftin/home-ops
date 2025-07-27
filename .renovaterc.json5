@@ -99,7 +99,7 @@
     },
     {
       matchUpdateTypes: ["digest"],
-      semanticCommitType: "🔒 ",
+      semanticCommitType: "📌 ",
       commitMessageExtra: "( {{currentDigestShort}} → {{newDigestShort}} )",
     },
     {
