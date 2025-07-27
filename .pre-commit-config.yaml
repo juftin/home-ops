@@ -1,3 +1,4 @@
+---
 # yaml-language-server: $schema=https://json.schemastore.org/pre-commit-config.json
 
 repos:
@@ -7,6 +8,7 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
+        args: ["--allow-multiple-documents"]
       - id: check-ast
       - id: check-docstring-first
       - id: check-merge-conflict
@@ -17,7 +19,6 @@ repos:
     rev: v0.17.2
     hooks:
       - id: yamlfmt
-        args: ["-formatter", "retain_line_breaks_single=true"]
 
   - repo: https://github.com/hukkin/mdformat
     rev: 0.7.22

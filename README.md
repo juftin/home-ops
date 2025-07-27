@@ -43,7 +43,7 @@ ______________________________________________________________________
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f52e/512.gif" alt="🔮" width="20" height="20"> Hardware
 
 | Device                   | Num | Processor | Cores | OS Disk   | Data Disk | Memory | OS    | Function   |
-|--------------------------|-----|-----------|-------|-----------|-----------|--------|-------|------------|
+| ------------------------ | --- | --------- | ----- | --------- | --------- | ------ | ----- | ---------- |
 | HP EliteDesk 800 G6 Mini | 1   | i5-10500T | 6     | 256GB SSD | 1TB       | 32GB   | Talos | Kubernetes |
 
 \*\* more nodes to be added soon
