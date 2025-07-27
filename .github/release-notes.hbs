@@ -1,0 +1,65 @@
+{{#if compareUrl}}
+# [v{{nextRelease.version}}]({{compareUrl}}) ({{datetime "UTC:yyyy-mm-dd"}})
+{{else}}
+# v{{nextRelease.version}} ({{datetime "UTC:yyyy-mm-dd"}})
+{{/if}}
+
+{{#with commits}}
+
+{{#if boom}}
+## 💥 Breaking Changes
+{{#each boom}}
+- {{> commitTemplate}}
+{{/each}}
+{{/if}}
+
+{{#if sparkles}}
+## ✨ New Features
+{{#each sparkles}}
+- {{> commitTemplate}}
+{{/each}}
+{{/if}}
+
+{{#if bug}}
+## 🐛 Bug Fixes
+{{#each bug}}
+- {{> commitTemplate}}
+{{/each}}
+{{/if}}
+
+{{#if ambulance}}
+## 🚑 Critical Hotfixes
+{{#each ambulance}}
+- {{> commitTemplate}}
+{{/each}}
+{{/if}}
+
+{{#if lock}}
+## 🔒 Security Issues
+{{#each lock}}
+- {{> commitTemplate}}
+{{/each}}
+{{/if}}
+
+{{#if pushpin}}
+## 📌️ Dependency Pinning
+{{#each pushpin}}
+- {{> commitTemplate}}
+{{/each}}
+{{/if}}
+
+{{#if memo}}
+## 📝️ Documentation
+{{#each memo}}
+- {{> commitTemplate}}
+{{/each}}
+{{/if}}
+
+{{#if construction_worker}}
+## 👷 CI/CD
+{{#each construction_worker}}
+- {{> commitTemplate}}
+{{/each}}
+{{/if}}
+
+{{/with}}
