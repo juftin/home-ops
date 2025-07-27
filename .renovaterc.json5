@@ -84,23 +84,22 @@
     },
     {
       matchUpdateTypes: ["major"],
-      semanticCommitType: "feat",
-      commitMessagePrefix: "{{semanticCommitType}}({{semanticCommitScope}})!:",
+      semanticCommitType: "💥 ",
       commitMessageExtra: "( {{currentVersion}} → {{newVersion}} )",
     },
     {
       matchUpdateTypes: ["minor"],
-      semanticCommitType: "feat",
+      semanticCommitType: "✨ ",
       commitMessageExtra: "( {{currentVersion}} → {{newVersion}} )",
     },
     {
       matchUpdateTypes: ["patch"],
-      semanticCommitType: "fix",
+      semanticCommitType: "🐛 ",
       commitMessageExtra: "( {{currentVersion}} → {{newVersion}} )",
     },
     {
       matchUpdateTypes: ["digest"],
-      semanticCommitType: "chore",
+      semanticCommitType: "🔒 ",
       commitMessageExtra: "( {{currentDigestShort}} → {{newDigestShort}} )",
     },
     {
@@ -115,7 +114,7 @@
     },
     {
       matchManagers: ["github-actions"],
-      semanticCommitType: "ci",
+      semanticCommitType: "👷 ",
       semanticCommitScope: "github-action",
       commitMessageTopic: "action {{depName}}",
     },
