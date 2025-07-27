@@ -1,11 +1,12 @@
 ---
-name: lint
+name: Lint
 
 on:
   pull_request:
 
 jobs:
   lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -15,7 +16,7 @@ jobs:
         with:
           activate-environment: true
           enable-cache: false
-      - name: install-pip
-        run: uv pip install pip
+      - name: install-deps
+        run: uv pip install pip pre-commit
       - name: pre-commit
         uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
