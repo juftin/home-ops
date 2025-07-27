@@ -26,7 +26,6 @@ releases:
     values: ['../kubernetes/apps/kube-system/coredns/app/helm/values.yaml']
     needs: ['kube-system/cilium']
 
-
   - name: cert-manager
     namespace: cert-manager
     atomic: true
