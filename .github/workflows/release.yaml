@@ -17,6 +17,6 @@ jobs:
         with:
           fetch-depth: 2
       - name: Semantic Release
-        uses: juftin/actions/semantic-release@82baff2e7a774020dfa3ba19ad1cdebae57c6df1 # v1.2.5
+        uses: juftin/actions/semantic-release@7b8585ae6df4c74881ffc490ca60006b4f2fac6d # v1.3.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
