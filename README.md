@@ -28,10 +28,13 @@ ______________________________________________________________________
   routes.
 - **[sops](https://github.com/getsops/sops)**: Managed secrets for Kubernetes and Terraform which
   are commited to Git.
+- **[external-secrets](https://github.com/external-secrets/external-secrets)**: Integrates external
+  secret management systems (
+  particularly [1Password](https://external-secrets.io/main/provider/1password-automation/)) with
+  Kubernetes Secrets.
 - **[cilium](https://github.com/cilium/cilium)**: eBPF-based networking for my workloads.
 - **[external-dns](https://github.com/kubernetes-sigs/external-dns)**: Automatically syncs ingress
   DNS records to a DNS provider.
-- **[spegel](https://github.com/spegel-org/spegel)**: Stateless cluster OCI image caching.
 - **[reloader](https://github.com/stakater/Reloader)**: Automatic reloading of Kubernetes resources
   when ConfigMaps or Secrets change.
 
@@ -39,12 +42,13 @@ ______________________________________________________________________
 
 - **[echo](https://github.com/mendhak/docker-http-https-echo)**: Simple HTTP/HTTPS echo server for
   testing.
+- **[headlamp](https://github.com/headlamp-k8s/headlamp)**: Web-based Kubernetes dashboard.
 
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f52e/512.gif" alt="🔮" width="20" height="20"> Hardware
 
-| Device                   | Num | Processor | Cores | OS Disk   | Data Disk | Memory | OS    | Function   |
-| ------------------------ | --- | --------- | ----- | --------- | --------- | ------ | ----- | ---------- |
-| HP EliteDesk 800 G6 Mini | 1   | i5-10500T | 6     | 256GB SSD | 1TB       | 32GB   | Talos | Kubernetes |
+| Device                   | Num | Processor | Cores | OS Disk    | Data Disk | Memory | OS    | Function   |
+| ------------------------ | --- | --------- | ----- | ---------- | --------- | ------ | ----- | ---------- |
+| HP EliteDesk 800 G6 Mini | 1   | i5-10500T | 6     | 256GB NVMe | 1TB NVMe  | 32GB   | Talos | Kubernetes |
 
 \*\* more nodes to be added soon
 
