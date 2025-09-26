@@ -26,7 +26,7 @@ spec:
         containers:
           app:
             image:
-              repository: juftin/camply-backend
+              repository: docker.io/juftin/camply-backend
               tag: latest
             env:
               GUNICORN_PORT: &port 8000
@@ -45,7 +45,7 @@ spec:
               readiness: *probes
             securityContext:
               allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
+              readOnlyRootFilesystem: false
               capabilities: {drop: ["ALL"]}
             resources:
               requests:
