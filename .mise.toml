@@ -6,7 +6,7 @@ _.python.venv = {path = "{{config_root}}/.venv", create = true}
 
 [tools]
 "python" = "3.14.0"
-"pipx:makejinja" = "2.8.1"
+"pipx:makejinja" = "2.8.2"
 "pipx:flux-local" = "7.11.0"
 "aqua:budimanjojo/talhelper" = "3.0.41"
 "aqua:cilium/cilium-cli" = "0.18.9"
