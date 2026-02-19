@@ -4,12 +4,18 @@
 *.decrypted~*.yaml
 /age.key
 /cloudflare-tunnel.json
+!/cloudflare-tunnel.enc.json
 /github-deploy.key
+!/github-deploy.key.enc.json
 /github-deploy.key.pub
+!/github-deploy.key.pub.enc.json
 /github-push-token.txt
+!/github-push-token.txt.enc.json
 # Template config files
 /cluster.yaml
+!/cluster.enc.yaml
 /nodes.yaml
+!/nodes.enc.yaml
 # Kubernetes
 kubeconfig
 talosconfig

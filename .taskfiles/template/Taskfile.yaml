@@ -5,6 +5,37 @@ vars:
   TEMPLATE_RESOURCES_DIR: '{{.ROOT_DIR}}/.taskfiles/template/resources'
   TEMPLATE_CONFIG_FILE: '{{.ROOT_DIR}}/cluster.yaml'
   TEMPLATE_NODE_CONFIG_FILE: '{{.ROOT_DIR}}/nodes.yaml'
+  SECRETS_DIR: '{{.ROOT_DIR}}/secrets'
+  ENCRYPTION_MAP:
+    map:
+      cluster.yaml:
+        file_type: yaml
+        output_type: yaml
+        output_file: "{{.SECRETS_DIR}}/cluster.enc.yaml"
+      nodes.yaml:
+        file_type: yaml
+        output_type: yaml
+        output_file: "{{.SECRETS_DIR}}/nodes.enc.yaml"
+      cloudflare-tunnel.json:
+        file_type: json
+        output_type: json
+        output_file: "{{.SECRETS_DIR}}/cloudflare-tunnel.enc.json"
+      github-deploy.key:
+        file_type: binary
+        output_type: binary
+        output_file: "{{.SECRETS_DIR}}/github-deploy.key.enc.json"
+      github-deploy.key.pub:
+        file_type: binary
+        output_type: binary
+        output_file: "{{.SECRETS_DIR}}/github-deploy.key.pub.enc.json"
+      github-push-token.txt:
+        file_type: binary
+        output_type: binary
+        output_file: "{{.SECRETS_DIR}}/github-push-token.txt.enc.json"
+      kubeconfig:
+        file_type: yaml
+        output_type: yaml
+        output_file: "{{.SECRETS_DIR}}/kubeconfig.enc.yaml"
 tasks:
   :init:
     desc: Initialize configuration files
@@ -154,3 +185,33 @@ tasks:
       - rm -rf {{.KUBERNETES_DIR}}
       - rm -rf {{.TALOS_DIR}}
       - rm -rf {{.ROOT_DIR}}/.sops.yaml
+  :encrypt:
+    desc: Encrypt secrets with SOPS
+    cmds:
+      - for: {var: ENCRYPTION_MAP}
+        silent: true
+        cmd: |
+          if [[ -f "{{.KEY}}" ]]; then
+              echo "Encrypting {{.KEY}}..."
+              mise exec -- sops encrypt --input-type {{.ITEM.file_type}} --output-type {{.ITEM.output_type}} "{{.ROOT_DIR}}/{{.KEY}}" > "{{.ITEM.output_file}}"
+              echo "Encrypted: {{.ITEM.output_file}}"
+          else
+              echo "Encrypted file for {{.KEY}} not found, skipping decryption."
+          fi
+    preconditions:
+      - which mise
+  :decrypt:
+    desc: Decrypt secrets with SOPS
+    cmds:
+      - for: {var: ENCRYPTION_MAP}
+        silent: true
+        cmd: |
+          if [[ -f "{{.ITEM.output_file}}" ]]; then
+              echo "Decrypting {{.ITEM.output_file}}..."
+              mise exec -- sops decrypt --input-type {{.ITEM.output_type}} --output-type {{.ITEM.file_type}} "{{.ITEM.output_file}}" > "{{.ROOT_DIR}}/{{.KEY}}"
+              echo "Decrypted: {{.ROOT_DIR}}/{{.KEY}}"
+          else
+              echo "Encrypted file for {{.KEY}} not found, skipping decryption."
+          fi
+    preconditions:
+      - which mise
