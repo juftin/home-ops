@@ -55,7 +55,7 @@ Always work in a git worktree to keep the main checkout on `main` and isolate fe
 git worktree add ../home-ops-my-change -b feature/my-change
 cd ../home-ops-my-change
 
-# Symlink gitignored files required by dev tasks
+# Symlink gitignored files required by dev tasks (Taskfile resolves these from ROOT_DIR)
 ln -s ../home-ops/age.key age.key
 ln -s ../home-ops/kubeconfig kubeconfig
 
@@ -119,10 +119,9 @@ Replicate CI locally with `task dev:validate` before opening a PR.
 - **`yamlfmt` reformats indentation and multiline strings** — do not manually fight its style;
   always let `task lint` normalize files before committing.
 - **Worktrees share the `.git` directory but not gitignored files** — `age.key` and `kubeconfig`
-  exist only in the main working tree. Always symlink them into a new worktree before running
-  `dev:` tasks (`ln -s ../home-ops/age.key age.key`, same for `kubeconfig`).
-- **`git worktree remove` must be run from outside the worktree** — `cd` to the main checkout
-  first, then remove.
+  exist only in the main working tree. Symlink them into the worktree before running `dev:` tasks —
+  the Taskfile resolves these from `ROOT_DIR` so env var overrides won't work:
+  `ln -s ../home-ops/age.key age.key && ln -s ../home-ops/kubeconfig kubeconfig`.
 
 ## Resources
 

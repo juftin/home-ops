@@ -100,7 +100,7 @@ Defined in `.taskfiles/dev/Taskfile.yaml`. Enables testing changes against the l
 git worktree add ../home-ops-my-change -b feature/my-change
 cd ../home-ops-my-change
 
-# Symlink gitignored files required by dev tasks
+# Symlink gitignored files required by dev tasks (Taskfile resolves these from ROOT_DIR)
 ln -s ../home-ops/age.key age.key
 ln -s ../home-ops/kubeconfig kubeconfig
 
