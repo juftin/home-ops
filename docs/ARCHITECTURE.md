@@ -140,6 +140,7 @@ kubernetes/apps/<namespace>/
 | `external-secrets` | external-secrets operator, 1Password Connect                                   |
 | `flux-system`      | Flux itself                                                                    |
 | `default`          | General applications (e.g. `echo` test server)                                 |
+| `observability`    | headlamp Kubernetes dashboard with Flux plugin                                 |
 
 #### Shared components
 

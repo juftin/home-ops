@@ -162,6 +162,13 @@ task dev:validate   # offline render of all HelmReleases and Kustomizations
 ## Accessing Headlamp
 
 1. Navigate to `https://headlamp.${SECRET_DOMAIN}` (e.g., `https://headlamp.juftin.dev`)
-2. Retrieve the token from 1Password under **headlamp-admin-token → password field**
+2. Retrieve the token from 1Password under **headlamp-admin-token → password field** (this is the
+   Kubernetes ServiceAccount JWT, not a traditional password — the Login item type is used so
+   1Password can autofill it when visiting the URL)
 3. Paste the token into the Headlamp login screen
 4. Navigate to the **Flux** section in the sidebar to view GitOps resource status
+
+> [!NOTE]
+> The token is generated with `kubectl create token headlamp-admin -n observability --duration=8760h`
+> (1-year TTL). If authentication fails, the stored token may be stale — regenerate it and update
+> the 1Password item: `op item edit "headlamp-admin-token" "password=$(kubectl create token headlamp-admin -n observability --duration=8760h)"`
