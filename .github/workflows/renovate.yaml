@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=https://www.schemastore.org/github-workflow.json
+name: renovate
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0/15 * * * *"
+  push:
+    paths:
+      - .github/workflows/renovate.yaml
+      - .github/renovate-config.js
+      - .renovaterc.json5
+    branches:
+      - main
+jobs:
+  renovate:
+    name: renovate
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}
+      cancel-in-progress: false
+    steps:
+      - name: checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+        with:
+          ref: main
+      - name: renovate
+        uses: renovatebot/github-action@d65ef9e20512193cc070238b49c3873a361cd50c # v46.1.1
+        with:
+          token: ${{ secrets.RENOVATE_TOKEN }}
+          configurationFile: .github/renovate-config.js
+          renovate-version: 43.29.2
+        env:
+          RENOVATE_REPOSITORY: ${{ github.repository }}
+          RENOVATE_DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          RENOVATE_DOCKER_PASSWORD: ${{ secrets.DOCKER_TOKEN }}
+          LOG_LEVEL: info

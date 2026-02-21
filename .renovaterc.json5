@@ -10,7 +10,7 @@
     ":semanticCommits",
   ],
   dependencyDashboard: true,
-  dependencyDashboardTitle: "Renovate Dashboard :robot:",
+  dependencyDashboardTitle: "Renovate Dashboard 🤖",
   schedule: ["every weekend"],
   ignorePaths: ["**/*.sops.*"],
   flux: {
@@ -56,24 +56,23 @@
     },
     {
       matchUpdateTypes: ["major"],
-      semanticCommitType: "feat",
-      commitMessagePrefix: "{{semanticCommitType}}({{semanticCommitScope}})!:",
-      commitMessageExtra: "( {{currentVersion}} ➔ {{newVersion}} )",
+      semanticCommitType: "💥 ",
+      commitMessageExtra: "( {{currentVersion}} → {{newVersion}} )",
     },
     {
       matchUpdateTypes: ["minor"],
-      semanticCommitType: "feat",
-      commitMessageExtra: "( {{currentVersion}} ➔ {{newVersion}} )",
+      semanticCommitType: "✨ ",
+      commitMessageExtra: "( {{currentVersion}} → {{newVersion}} )",
     },
     {
       matchUpdateTypes: ["patch"],
-      semanticCommitType: "fix",
-      commitMessageExtra: "( {{currentVersion}} ➔ {{newVersion}} )",
+      semanticCommitType: "🐛 ",
+      commitMessageExtra: "( {{currentVersion}} → {{newVersion}} )",
     },
     {
       matchUpdateTypes: ["digest"],
-      semanticCommitType: "chore",
-      commitMessageExtra: "( {{currentDigestShort}} ➔ {{newDigestShort}} )",
+      semanticCommitType: "📌 ",
+      commitMessageExtra: "( {{currentDigestShort}} → {{newDigestShort}} )",
     },
     {
       matchDatasources: ["docker"],
@@ -87,7 +86,7 @@
     },
     {
       matchManagers: ["github-actions"],
-      semanticCommitType: "ci",
+      semanticCommitType: "👷 ",
       semanticCommitScope: "github-action",
       commitMessageTopic: "action {{depName}}",
     },
