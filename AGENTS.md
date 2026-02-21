@@ -45,6 +45,9 @@ task dev:validate   # renders all Flux HelmReleases and Kustomizations — no cl
   applies at the next reconcile. Use the branch testing workflow instead.
 - **Always run `task lint` before committing** — `yamlfmt` and `mdformat` auto-fix files in place;
   committing un-formatted files fails CI.
+- **Use a single emoji to prefix commit messages** — one emoji followed by a short description,
+  matching the repo's commit style. Examples: `🤫 external-secrets`, `🔐 sops`, `📝 README`,
+  `🤖 AGENTS.md`, `🧹 renovate`. Pick an emoji that reflects the nature of the change.
 
 ## Branch Testing Workflow
 
