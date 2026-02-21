@@ -30,7 +30,7 @@ See [`specs/001-external-secrets-1password/quickstart.md`](/specs/001-external-s
 
 Quick reference:
 
-1. Create a 1Password item in the **Kubernetes** vault with custom fields
+1. Create a 1Password item in the **homelab** vault with custom fields
 2. Create an `ExternalSecret` in your app's `app/` directory referencing `ClusterSecretStore/onepassword`
 3. Run `task lint && task dev:validate`
 

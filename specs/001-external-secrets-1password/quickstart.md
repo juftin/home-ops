@@ -8,14 +8,16 @@ ______________________________________________________________________
 ## Prerequisites
 
 - 1Password Connect is deployed and `ClusterSecretStore/onepassword` shows `Ready: True`
-- You have access to the 1Password "Kubernetes" vault
+- You have access to the 1Password **homelab** vault
 - You are working on a feature branch (never directly on `main`)
 
 ______________________________________________________________________
 
 ## Step 1 — Create the Secret in 1Password
 
-1. Open 1Password and navigate to the **Kubernetes** vault
+### Option A — Using the 1Password app
+
+1. Open 1Password and navigate to the **homelab** vault
 
 2. Create a new item (recommended type: **Secure Note** or **Login**)
 
@@ -29,6 +31,27 @@ ______________________________________________________________________
    ```
 
 5. Save the item
+
+### Option B — Using the `op` CLI
+
+```bash
+# Sign in (if not already authenticated)
+op signin
+
+# Create a Secure Note item in the homelab vault with custom fields
+op item create \
+  --category "Secure Note" \
+  --vault homelab \
+  --title my-app \
+  "API_KEY[password]=abc123..." \
+  "DATABASE_URL[text]=postgres://..."
+
+# Verify the item was created
+op item get my-app --vault homelab --fields label=API_KEY,label=DATABASE_URL
+
+# List all items in the vault
+op item list --vault homelab
+```
 
 > **Naming convention**: Item name = app name (e.g., `cert-manager`, `cloudflare-dns`).
 > Field names = environment variable style (`API_KEY`, `DATABASE_PASSWORD`).
@@ -138,7 +161,7 @@ ______________________________________________________________________
 
 | Symptom                                     | Likely Cause                      | Fix                                                                       |
 | ------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------- |
-| ExternalSecret status: `SecretSyncedError`  | 1Password item name mismatch      | Check item title in "Kubernetes" vault matches `key:` in ExternalSecret   |
+| ExternalSecret status: `SecretSyncedError`  | 1Password item name mismatch      | Check item title in "homelab" vault matches `key:` in ExternalSecret      |
 | ExternalSecret status: `NoSecretStoreFound` | ClusterSecretStore not ready      | Check `kubectl get clustersecretstore onepassword` — ensure `Ready: True` |
 | Secret created but missing keys             | Field names don't match           | Field names in 1Password must exactly match `property:` in ExternalSecret |
 | `ClusterSecretStore` not ready              | 1Password Connect pod not running | Check `kubectl get pods -n external-secrets`                              |
@@ -157,3 +180,34 @@ kubectl get clustersecretstore onepassword
 # View ESO controller logs
 kubectl logs -n external-secrets -l app.kubernetes.io/name=external-secrets --tail=50
 ```
+
+______________________________________________________________________
+
+## Managing 1Password Items with `op` CLI
+
+```bash
+# Sign in
+op signin
+
+# List all items in the homelab vault
+op item list --vault homelab
+
+# Get all fields for an item
+op item get my-app --vault homelab
+
+# Get a specific field value
+op item get my-app --vault homelab --fields label=API_KEY
+
+# Update a field value
+op item edit my-app --vault homelab "API_KEY[password]=new-value"
+
+# Add a new field to an existing item
+op item edit my-app --vault homelab "NEW_FIELD[text]=some-value"
+
+# Delete an item
+op item delete my-app --vault homelab
+```
+
+> [!NOTE]
+> The `op` CLI must be signed into the same 1Password account as the Connect server.
+> If Connect was configured for a different account, manage items from that account's app or CLI session.
