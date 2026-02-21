@@ -37,6 +37,8 @@ task dev:validate   # renders all Flux HelmReleases and Kustomizations — no cl
 ## Development Rules
 
 - **Never commit directly to `main`** — pre-commit blocks it; always use a feature branch.
+- **Always use a git worktree for feature work** — never `git checkout -b` in the main working tree;
+  create a worktree so the main tree stays on `main` and work is fully isolated.
 - **Never store plaintext secrets** — all `*.sops.yaml` files must be SOPS-encrypted. `task configure`
   encrypts them automatically. Never leave decrypted secrets uncommitted.
 - **Do not use `kubectl apply` to test changes** — Flux has `prune: true` and will overwrite direct
@@ -46,16 +48,23 @@ task dev:validate   # renders all Flux HelmReleases and Kustomizations — no cl
 
 ## Branch Testing Workflow
 
-To deploy changes to the live cluster without merging to `main`:
+Always work in a git worktree to keep the main checkout on `main` and isolate feature branches:
 
 ```bash
-git checkout -b feature/my-change
+# Create a worktree for the feature branch
+git worktree add ../home-ops-my-change -b feature/my-change
+cd ../home-ops-my-change
+
 # edit kubernetes/ manifests
 task lint             # auto-fix formatting
 task dev:validate     # validate offline
 task dev:start        # push branch, suspend flux-instance HelmRelease, patch GitRepository, reconcile
 task dev:sync         # push additional commits and reconcile
 task dev:stop         # ALWAYS run this — restores flux-instance and points cluster back at main
+
+# Clean up the worktree when done
+cd ../home-ops
+git worktree remove ../home-ops-my-change
 ```
 
 > Always run `task dev:stop` when done, even if something went wrong. It restores the
@@ -105,6 +114,8 @@ Replicate CI locally with `task dev:validate` before opening a PR.
   `main`. All other hooks must pass.
 - **`yamlfmt` reformats indentation and multiline strings** — do not manually fight its style;
   always let `task lint` normalize files before committing.
+- **Worktrees share the `.git` directory** — gitignored files (`age.key`, `kubeconfig`, etc.) exist
+  only in the main working tree; symlink or copy them into the worktree if needed.
 
 ## Resources
 
