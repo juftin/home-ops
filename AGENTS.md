@@ -88,6 +88,7 @@ kubernetes/apps/<namespace>/
         ├── kustomization.yaml
         ├── ocirepository.yaml  # OCI Helm chart source
         ├── helmrelease.yaml    # HelmRelease with chart values
+        ├── externalsecret.yaml # ExternalSecret from 1Password (if needed, see below)
         └── *.sops.yaml         # SOPS-encrypted secrets (if needed)
 ```
 
@@ -98,6 +99,9 @@ Use `kubernetes/apps/default/echo/` as a working reference. After adding files:
 3. Use `task dev:start` / `task dev:sync` to test on the live cluster
 4. Update **`README.md`** — add the app to the `## Apps` or `## Components` section
 5. Update **`docs/ARCHITECTURE.md`** — add the app to the namespaces table and any relevant layer description
+
+**For app secrets**: prefer `ExternalSecret` + 1Password over committing a new `.sops.yaml`.
+See [`specs/001-external-secrets-1password/quickstart.md`](specs/001-external-secrets-1password/quickstart.md).
 
 ## CI — What Runs on Pull Requests
 
