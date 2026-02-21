@@ -49,7 +49,6 @@ ______________________________________________________________________
   testing.
 - **[headlamp](https://headlamp.dev/)**: Kubernetes dashboard with the
   [Flux plugin](https://github.com/headlamp-k8s/headlamp-plugin-flux) for GitOps visibility.
-  Available at `headlamp.${SECRET_DOMAIN}`.
 
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f52e/512.gif" alt="🔮" width="20" height="20"> Hardware
 
