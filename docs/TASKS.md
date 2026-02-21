@@ -96,13 +96,20 @@ Defined in `.taskfiles/dev/Taskfile.yaml`. Enables testing changes against the l
 **Typical workflow:**
 
 ```bash
-git checkout -b feature/my-change
+# Create a worktree to isolate the feature branch
+git worktree add ../home-ops-my-change -b feature/my-change
+cd ../home-ops-my-change
+
 # edit kubernetes/ manifests ...
 task dev:start      # redirect Flux at this branch
 # iterate:
 task dev:sync       # push + reconcile after each change
 # done:
 task dev:stop       # restore Flux to main
+
+# Clean up
+cd ../home-ops
+git worktree remove ../home-ops-my-change
 ```
 
 > `dev:start` suspends the `flux-instance` HelmRelease so the flux-operator does not fight the
