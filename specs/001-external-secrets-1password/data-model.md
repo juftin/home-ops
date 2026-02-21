@@ -43,7 +43,7 @@ cluster-apps (Flux Kustomization)
                 └── ClusterSecretStore: onepassword
                       provider: onepassword
                       connectHost: http://onepassword.external-secrets.svc.cluster.local
-                      vault: Kubernetes
+                      vault: homelab
                       auth.secretRef → onepassword-secret / token
 
 
@@ -148,7 +148,7 @@ Name:           onepassword
 Provider:       onepassword
 connectHost:    http://onepassword.external-secrets.svc.cluster.local
 vaults:
-  Kubernetes: 1                (vault name → priority)
+  homelab: 1                (vault name → priority)
 auth:
   secretRef:
     connectTokenSecretRef:
@@ -170,7 +170,7 @@ target:
 refreshInterval: 1h
 dataFrom:
   - extract:
-      key: <1password-item-name>      # item title in the "Kubernetes" vault
+      key: <1password-item-name>      # item title in the "homelab" vault
       # OR
 data:
   - secretKey: <k8s-secret-key>
