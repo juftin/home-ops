@@ -99,7 +99,8 @@ Use `kubernetes/apps/default/echo/` as a working reference. After adding files:
 
 1. Add a `resources:` entry in the parent namespace `kustomization.yaml` for the new `ks.yaml`
 2. Run `task lint` then `task dev:validate`
-3. Use `task dev:start` / `task dev:sync` to test on the live cluster
+3. Use `task dev:start` / `task dev:sync` to test on the live cluster; run `task dev:stop` when
+   done — **always**, even if something went wrong
 4. Update **`README.md`** — add the app to the `## Apps` or `## Components` section
 5. Update **`docs/ARCHITECTURE.md`** — add the app to the namespaces table and any relevant layer description
 
@@ -121,6 +122,9 @@ Replicate CI locally with `task dev:validate` before opening a PR.
   decrypts them in-cluster via the `sops-age` secret.
 - **`task dev:start` suspends `flux-instance` HelmRelease** — the flux-operator manages the
   `flux-system` GitRepository and would immediately reset any branch patch without this suspension.
+- **`task dev:stop` must be run before the PR is considered ready** — the cluster tracks the feature
+  branch while testing; `dev:stop` resets it to `main`. Run it as soon as live testing is complete,
+  not only when explicitly asked.
 - **`task lint` always fails on `main`** — the `no-commit-to-branch` hook is expected to fail on
   `main`. All other hooks must pass.
 - **`yamlfmt` reformats indentation and multiline strings** — do not manually fight its style;
@@ -129,6 +133,16 @@ Replicate CI locally with `task dev:validate` before opening a PR.
   exist only in the main working tree. Symlink them into the worktree before running `dev:` tasks —
   the Taskfile resolves these from `ROOT_DIR` so env var overrides won't work:
   `ln -s ../home-ops/age.key age.key && ln -s ../home-ops/kubeconfig kubeconfig`.
+- **`components/sops` is the only Kustomize component on `main`** — namespace-level
+  `kustomization.yaml` files must use `../../components/sops`. Do not copy namespace kustomizations
+  from feature branches that used `../../components/common`; that directory does not exist on `main`.
+- **ServiceAccount tokens from `kubectl create token` go stale** — these JWTs embed the SA's
+  current UID. If the SA is deleted and recreated (e.g. after branch testing), any stored token
+  becomes invalid. Regenerate with:
+  `kubectl create token <sa-name> -n <namespace> --duration=8760h`
+- **Use `Login` (not `Server`) type for 1Password items tied to a browser URL** — only `Login`,
+  `Password`, and `API Credential` item types support the URL field for autofill. `Server` items
+  silently ignore `--url`.
 
 ## Resources
 
