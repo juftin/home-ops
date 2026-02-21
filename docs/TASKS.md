@@ -96,9 +96,13 @@ Defined in `.taskfiles/dev/Taskfile.yaml`. Enables testing changes against the l
 **Typical workflow:**
 
 ```bash
-# Create a worktree to isolate the feature branch
+# Create a worktree to isolate the feature branch (sibling of the main checkout)
 git worktree add ../home-ops-my-change -b feature/my-change
 cd ../home-ops-my-change
+
+# Symlink gitignored files required by dev tasks
+ln -s ../home-ops/age.key age.key
+ln -s ../home-ops/kubeconfig kubeconfig
 
 # edit kubernetes/ manifests ...
 task dev:start      # redirect Flux at this branch
@@ -107,7 +111,7 @@ task dev:sync       # push + reconcile after each change
 # done:
 task dev:stop       # restore Flux to main
 
-# Clean up
+# Clean up (must be run from outside the worktree)
 cd ../home-ops
 git worktree remove ../home-ops-my-change
 ```

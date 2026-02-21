@@ -51,9 +51,13 @@ task dev:validate   # renders all Flux HelmReleases and Kustomizations — no cl
 Always work in a git worktree to keep the main checkout on `main` and isolate feature branches:
 
 ```bash
-# Create a worktree for the feature branch
+# Create a worktree for the feature branch (sibling of the main checkout)
 git worktree add ../home-ops-my-change -b feature/my-change
 cd ../home-ops-my-change
+
+# Symlink gitignored files required by dev tasks
+ln -s ../home-ops/age.key age.key
+ln -s ../home-ops/kubeconfig kubeconfig
 
 # edit kubernetes/ manifests
 task lint             # auto-fix formatting
@@ -62,7 +66,7 @@ task dev:start        # push branch, suspend flux-instance HelmRelease, patch Gi
 task dev:sync         # push additional commits and reconcile
 task dev:stop         # ALWAYS run this — restores flux-instance and points cluster back at main
 
-# Clean up the worktree when done
+# Clean up the worktree when done (must be run from outside the worktree)
 cd ../home-ops
 git worktree remove ../home-ops-my-change
 ```
@@ -114,8 +118,11 @@ Replicate CI locally with `task dev:validate` before opening a PR.
   `main`. All other hooks must pass.
 - **`yamlfmt` reformats indentation and multiline strings** — do not manually fight its style;
   always let `task lint` normalize files before committing.
-- **Worktrees share the `.git` directory** — gitignored files (`age.key`, `kubeconfig`, etc.) exist
-  only in the main working tree; symlink or copy them into the worktree if needed.
+- **Worktrees share the `.git` directory but not gitignored files** — `age.key` and `kubeconfig`
+  exist only in the main working tree. Always symlink them into a new worktree before running
+  `dev:` tasks (`ln -s ../home-ops/age.key age.key`, same for `kubeconfig`).
+- **`git worktree remove` must be run from outside the worktree** — `cd` to the main checkout
+  first, then remove.
 
 ## Resources
 
