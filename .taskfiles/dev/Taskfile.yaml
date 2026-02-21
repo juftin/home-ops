@@ -1,0 +1,61 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: '3'
+tasks:
+  validate:
+    desc: Validate Flux manifests locally with flux-local (no cluster needed)
+    vars:
+      # renovate: datasource=docker depName=ghcr.io/allenporter/flux-local
+      FLUX_LOCAL_IMAGE: ghcr.io/allenporter/flux-local:v8.1.0
+    cmd: >-
+      docker run --rm -v {{.ROOT_DIR}}:/github/workspace {{.FLUX_LOCAL_IMAGE}} test --enable-helm --all-namespaces --path /github/workspace/kubernetes/flux/cluster -v
+    preconditions:
+      - which docker
+  start:
+    desc: Switch Flux to reconcile the current git branch [must not be on main]
+    vars:
+      BRANCH:
+        sh: git branch --show-current
+    cmds:
+      - task: _guard-not-main
+        vars: {BRANCH: '{{.BRANCH}}'}
+      - git push origin {{.BRANCH}}
+      - flux suspend helmrelease flux-instance -n flux-system
+      - kubectl patch gitrepository flux-system -n flux-system --type=merge -p '{"spec":{"ref":{"name":"refs/heads/{{.BRANCH}}"}}}'
+      - flux -n flux-system reconcile source git flux-system
+      - flux -n flux-system reconcile kustomization flux-system
+    preconditions:
+      - test -f {{.KUBECONFIG}}
+      - which flux kubectl git
+  sync:
+    desc: Push current branch and trigger Flux to reconcile it
+    vars:
+      BRANCH:
+        sh: git branch --show-current
+    cmds:
+      - task: _guard-not-main
+        vars: {BRANCH: '{{.BRANCH}}'}
+      - git push origin {{.BRANCH}}
+      - flux -n flux-system reconcile source git flux-system
+      - flux -n flux-system reconcile kustomization flux-system
+    preconditions:
+      - test -f {{.KUBECONFIG}}
+      - which flux git
+  stop:
+    desc: Restore Flux to watch main and resume normal reconciliation
+    cmds:
+      - kubectl patch gitrepository flux-system -n flux-system --type=merge -p '{"spec":{"ref":{"name":"refs/heads/main"}}}'
+      - flux resume helmrelease flux-instance -n flux-system
+      - flux -n flux-system reconcile source git flux-system
+      - flux -n flux-system reconcile kustomization flux-system
+    preconditions:
+      - test -f {{.KUBECONFIG}}
+      - which flux kubectl
+  _guard-not-main:
+    internal: true
+    requires:
+      vars: [BRANCH]
+    cmd: |
+      if [ "{{.BRANCH}}" = "main" ]; then
+        echo "Error: dev tasks cannot be used on the main branch"
+        exit 1
+      fi
