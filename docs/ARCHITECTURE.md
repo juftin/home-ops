@@ -162,6 +162,18 @@ is referenced by the `SOPS_AGE_KEY_FILE` environment variable.
 Flux decrypts secrets in-cluster using a `Secret` containing the age private key, configured via
 the SOPS decryption provider on each `Kustomization`.
 
+#### External Secrets Operator + 1Password
+
+For new secrets that don't need to live in Git, **External Secrets Operator (ESO)** syncs values
+directly from 1Password into Kubernetes `Secret` objects at runtime. The `ClusterSecretStore/onepassword`
+in the `external-secrets` namespace bridges ESO to a 1Password Connect server backed by the
+**homelab** vault.
+
+- **SOPS** — for secrets that must be versioned in Git (bootstrap credentials, cluster-wide values)
+- **ESO + 1Password** — for new app secrets that should be managed in 1Password and never committed
+
+See [`specs/001-external-secrets-1password/quickstart.md`](../specs/001-external-secrets-1password/quickstart.md) for the full workflow.
+
 ______________________________________________________________________
 
 ### 5. Networking
