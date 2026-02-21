@@ -27,21 +27,24 @@ requires zero additional infrastructure.
 authorization:
   defaultAction: Deny
   rules:
-    - name: allow-whitelist
+    - name: require-verified-email
       action: Allow
       principal:
         jwt:
           provider: google        # name of OIDC/JWT provider in the SecurityPolicy
           claims:
+            - name: email_verified
+              values:
+                - 'true'          # block unverified Google accounts
             - name: email
               values:
-                - user@example.com # lowercase; Google returns lowercase emails
+                - user@example.com # MUST be lowercase; Envoy does exact string matching
 ```
 
-**Verification note**: When `oidc` is configured in a SecurityPolicy, the OIDC provider is
-also automatically available as a JWT provider for `authorization` rules. The provider name
-in the authorization rules must match the provider name configured in `oidc` (or "google"
-by convention when targeting Google's OIDC). Confirm during implementation.
+**Case normalization note**: Envoy Gateway's JWT claim authorization uses **exact string matching**
+on `values[]`. There is no runtime case normalization. Google always returns `email` in lowercase,
+so whitelist entries MUST be stored in lowercase by operator convention (FR-013). Mixed-case entries
+silently fail to match.
 
 ______________________________________________________________________
 

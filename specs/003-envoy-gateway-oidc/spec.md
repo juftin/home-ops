@@ -121,8 +121,9 @@ ______________________________________________________________________
   re-authenticated via the refresh token flow, or prompted to log in again without losing their
   destination URL.
 - What happens if a whitelist entry and the Google token email differ only in case (e.g.,
-  `User@Gmail.com` vs `user@gmail.com`)? → They are treated as the same address; comparison is
-  always case-insensitive after lowercase normalization.
+  `User@Gmail.com` vs `user@gmail.com`)? → The entry will not match. Envoy Gateway does exact
+  string matching; Google always returns lowercase emails. Whitelist entries must be stored in
+  lowercase by convention — mixed-case entries silently fail to match.
 - What happens when the email whitelist secret is deleted or malformed? → The protected application
   should fail closed — all access is denied until the secret is restored.
 - What happens when a user is removed from the whitelist while they have an active session? → Their
@@ -151,9 +152,13 @@ ______________________________________________________________________
   error page (hosted as a cluster resource) explaining they are not authorized.
 - **FR-012**: The system MUST host a custom access-denied error page as a cluster resource; this page
   is displayed to any authenticated Google user whose email is not on the relevant Gateway's whitelist.
-- **FR-013**: Email address comparison against the whitelist MUST be case-insensitive; both the
-  stored whitelist entries and the email claim from Google's token MUST be normalized to lowercase
-  before comparison.
+- **FR-013**: All email whitelist entries MUST be stored in lowercase. Google's OIDC token always
+  returns the `email` claim in lowercase; whitelist entries stored in any other case will not match
+  and will result in access denial. Enforcement is by operator convention, not runtime normalization
+  (Envoy Gateway's JWT claim authorization uses exact string matching).
+- **FR-016**: The SecurityPolicy authorization MUST additionally enforce `email_verified: true` as
+  a required JWT claim alongside the email allowlist check; accounts with unverified email addresses
+  are denied regardless of whether their email appears on the whitelist.
 - **FR-004**: Each email whitelist MUST be stored as a SOPS-encrypted secret in the GitOps repository
   and decrypted automatically in-cluster.
 - **FR-005**: The system MUST support multiple independent email whitelists by providing multiple
@@ -220,6 +225,9 @@ ______________________________________________________________________
 ## Assumptions
 
 - Google is the sole OIDC provider for this feature; multi-provider support is out of scope.
+- The OIDC configuration requests at minimum the `openid email` scopes so that the `email` and
+  `email_verified` claims are present in Google's ID token; scope configuration is part of the
+  SecurityPolicy OIDC spec and managed by the operator.
 - All applications are exposed via Envoy Gateway; apps using other ingress paths are out of scope.
 - The cluster operates multiple named Gateways: at least one public Gateway and one or more OAuth
   Gateways; the number and names of OAuth Gateways are determined by the operator based on desired
