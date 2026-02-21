@@ -33,6 +33,9 @@ spec:
           jwt:
             provider: google
             claims:
+              - name: email_verified
+                values:
+                  - "true"
               - name: email
                 values:
                   - "user@example.com"
