@@ -174,8 +174,8 @@ fi
 
 cd "$REPO_ROOT"
 
-# SPECS_DIR used temporarily for feature numbering (checking existing branches/specs)
 SPECS_DIR="$REPO_ROOT/specs"
+mkdir -p "$SPECS_DIR"
 
 # Function to generate branch name with stop word filtering and length filtering
 generate_branch_name() {
@@ -271,21 +271,11 @@ if [ ${#BRANCH_NAME} -gt $MAX_BRANCH_LENGTH ]; then
     >&2 echo "[specify] Truncated to: $BRANCH_NAME (${#BRANCH_NAME} bytes)"
 fi
 
-WORKTREE_PATH="$(dirname "$REPO_ROOT")/$(basename "$REPO_ROOT")-${BRANCH_NAME}"
-
 if [ "$HAS_GIT" = true ]; then
-    git worktree add "$WORKTREE_PATH" -b "$BRANCH_NAME"
-    # Symlink gitignored files required by dev tasks into the new worktree
-    for f in age.key kubeconfig; do
-        [ -f "$REPO_ROOT/$f" ] && ln -sf "$REPO_ROOT/$f" "$WORKTREE_PATH/$f"
-    done
+    git checkout -b "$BRANCH_NAME"
 else
     >&2 echo "[specify] Warning: Git repository not detected; skipped branch creation for $BRANCH_NAME"
-    WORKTREE_PATH="$REPO_ROOT"
 fi
-
-SPECS_DIR="$WORKTREE_PATH/specs"
-mkdir -p "$SPECS_DIR"
 
 FEATURE_DIR="$SPECS_DIR/$BRANCH_NAME"
 mkdir -p "$FEATURE_DIR"
@@ -298,11 +288,10 @@ if [ -f "$TEMPLATE" ]; then cp "$TEMPLATE" "$SPEC_FILE"; else touch "$SPEC_FILE"
 export SPECIFY_FEATURE="$BRANCH_NAME"
 
 if $JSON_MODE; then
-    printf '{"BRANCH_NAME":"%s","SPEC_FILE":"%s","FEATURE_NUM":"%s","WORKTREE_PATH":"%s"}\n' "$BRANCH_NAME" "$SPEC_FILE" "$FEATURE_NUM" "$WORKTREE_PATH"
+    printf '{"BRANCH_NAME":"%s","SPEC_FILE":"%s","FEATURE_NUM":"%s"}\n' "$BRANCH_NAME" "$SPEC_FILE" "$FEATURE_NUM"
 else
     echo "BRANCH_NAME: $BRANCH_NAME"
     echo "SPEC_FILE: $SPEC_FILE"
     echo "FEATURE_NUM: $FEATURE_NUM"
-    echo "WORKTREE_PATH: $WORKTREE_PATH"
     echo "SPECIFY_FEATURE environment variable set to: $BRANCH_NAME"
 fi
