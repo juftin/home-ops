@@ -1,0 +1,30 @@
+# Template: HTTPRoute for Static Error Pages (denied + logged-out)
+# File: kubernetes/apps/default/oauth-pages/app/httproute.yaml
+# Attaches to all OAuth Gateways so /denied and /logged-out are reachable.
+# Add one parentRefs entry per OAuth Gateway.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: oauth-pages
+  namespace: default
+spec:
+  parentRefs:
+    - name: envoy-oauth-external
+      namespace: network
+      # - name: envoy-oauth-internal   # Add additional OAuth Gateways here
+      #   namespace: network
+  rules:
+    - matches:
+        - path:
+            type: Exact
+            value: /denied
+      backendRefs:
+        - name: oauth-pages
+          port: 80
+    - matches:
+        - path:
+            type: Exact
+            value: /logged-out
+      backendRefs:
+        - name: oauth-pages
+          port: 80

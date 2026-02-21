@@ -1,0 +1,38 @@
+# Template: SecurityPolicy with OIDC + Email Allowlist
+# File: kubernetes/apps/network/envoy-gateway/app/oauth-policy-<NAME>.sops.yaml
+# This file MUST be SOPS-encrypted before committing to Git.
+# Replace: <GATEWAY_NAME>, <CLIENT_ID>, <REDIRECT_URL>, <LOGOUT_URL>, <SECRET_DOMAIN>
+# NOTE: email values[] must be lowercase
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: envoy-oauth-<GATEWAY_NAME>-policy
+  namespace: network
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy-oauth-<GATEWAY_NAME>
+  oidc:
+    provider:
+      issuer: "https://accounts.google.com"
+    clientID: "<CLIENT_ID>"
+    clientSecret:
+      name: google-oauth-client-secret
+      namespace: network
+    redirectURL: "<REDIRECT_URL>"
+    logoutPath: /logout
+    logoutRedirectURL: "<LOGOUT_URL>"
+    cookieDomain: "<SECRET_DOMAIN>"
+  authorization:
+    defaultAction: Deny
+    rules:
+      - name: allow-whitelist
+        action: Allow
+        principal:
+          jwt:
+            provider: google
+            claims:
+              - name: email
+                values:
+                  - "user@example.com"
