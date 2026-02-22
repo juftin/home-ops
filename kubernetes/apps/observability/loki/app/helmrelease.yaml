@@ -41,7 +41,7 @@ spec:
       persistence:
         enabled: true
         size: 10Gi
-        storageClass: ""
+        storageClass: node-local
     backend:
       replicas: 0
     read:

@@ -28,6 +28,7 @@ spec:
           volumeClaimTemplate:
             spec:
               accessModes: ["ReadWriteOnce"]
+              storageClassName: node-local
               resources:
                 requests:
                   storage: 30Gi

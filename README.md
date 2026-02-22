@@ -42,6 +42,8 @@ ______________________________________________________________________
   DNS records to a DNS provider.
 - **[reloader](https://github.com/stakater/Reloader)**: Automatic reloading of Kubernetes resources
   when ConfigMaps or Secrets change.
+- **[local-path-provisioner](https://github.com/rancher/local-path-provisioner)**: Dynamic
+  node-local persistent volume provisioning.
 
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f3a1/512.gif" alt="🎡" width="20" height="20"> Apps
 
