@@ -120,6 +120,34 @@ git worktree remove ../home-ops-my-change
 > GitRepository patch. `dev:stop` resumes it and restores everything to the production state.
 > Neither `dev:start` nor `dev:sync` can be run on `main`.
 
+### OIDC / OAuth Gateway validation workflow
+
+Use this sequence when validating Envoy Gateway OIDC changes on a branch:
+
+```bash
+task lint
+task dev:validate
+task dev:start
+
+kubectl get gateway -n network envoy-oauth envoy-oauth-internal
+kubectl get gateway -n network envoy-oauth envoy-oauth-internal --show-labels
+kubectl get securitypolicy -n network envoy-oauth-policy envoy-oauth-internal-policy
+kubectl get httproute -n default oauth-pages
+
+# manual/browser checks:
+# 1) protected route redirects to Google login
+# 2) allowlisted user can access app
+# 3) non-allowlisted user is redirected to /denied
+# 4) /logout lands on /logged-out
+
+task dev:stop
+```
+
+> `task dev:stop` is required even after failed validation attempts; it restores Flux tracking to
+> `main`.
+> OAuth Gateways must keep `home-ops.io/cloudflare-dns=true` or Cloudflare DNS reconciliation is
+> skipped by `cloudflare-dns`.
+
 ______________________________________________________________________
 
 ## Internal / Sub-tasks

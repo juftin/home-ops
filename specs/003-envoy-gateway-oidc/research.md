@@ -97,15 +97,15 @@ kubernetes/apps/network/envoy-gateway/app/
 
 ```bash
 # Decrypt (in repo root, age key must be present)
-sops --decrypt kubernetes/apps/network/envoy-gateway/app/oauth-policy-external.sops.yaml \
+sops --decrypt kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml \
   > /tmp/policy.yaml
 
 # Edit email list in /tmp/policy.yaml, then re-encrypt
 sops --encrypt /tmp/policy.yaml \
-  > kubernetes/apps/network/envoy-gateway/app/oauth-policy-external.sops.yaml
+  > kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml
 
 # Commit and push — Flux reconciles automatically
-git add kubernetes/apps/network/envoy-gateway/app/oauth-policy-external.sops.yaml
+git add kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml
 git commit -m "🔐 update oauth whitelist"
 git push
 ```

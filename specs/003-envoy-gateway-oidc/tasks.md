@@ -42,15 +42,15 @@ ______________________________________________________________________
 
 **Goal**: Operators can opt an application into Google OAuth protection by changing only the app's `parentRefs` Gateway name — no per-app security policy needed. Unauthenticated requests are redirected to Google login.
 
-**Independent Test**: Attach one application's HTTPRoute to `envoy-oauth-external`, visit it in a browser without a session, and confirm a redirect to `accounts.google.com`. Verify that a whitelisted user completing Google login is redirected back to the app and granted access. Confirm a second app remaining on `envoy-external` is accessible with no auth challenge.
+**Independent Test**: Attach one application's HTTPRoute to `envoy-oauth`, visit it in a browser without a session, and confirm a redirect to `accounts.google.com`. Verify that a whitelisted user completing Google login is redirected back to the app and granted access. Confirm a second app remaining on `envoy-external` is accessible with no auth challenge.
 
 ### Implementation for User Story 1
 
-- [x] T008 [US1] Add the `envoy-oauth-external` Gateway resource to `kubernetes/apps/network/envoy-gateway/app/envoy.yaml` — append a new `Gateway` manifest after the existing `envoy-internal` Gateway with: `metadata.name: envoy-oauth-external`, `metadata.namespace: network`, `spec.gatewayClassName: envoy`, `spec.infrastructure.annotations["lbipam.cilium.io/ips"]: "192.168.1.149"` and `spec.infrastructure.annotations["external-dns.alpha.kubernetes.io/hostname"]: "oauth-external.${SECRET_DOMAIN}"`, one HTTP listener on port 80, and one HTTPS listener on port 443 with TLS terminated using `${SECRET_DOMAIN/./-}-production-tls` cert and `allowedRoutes.namespaces.from: All` (use `specs/003-envoy-gateway-oidc/contracts/oauth-gateway.yaml` as the template)
-- [x] T009 [US1] Update the `https-redirect` HTTPRoute in `kubernetes/apps/network/envoy-gateway/app/envoy.yaml` — add a third `parentRef` entry `- name: envoy-oauth-external\n  namespace: network\n  sectionName: http` alongside the existing `envoy-external` and `envoy-internal` entries so HTTP→HTTPS redirect applies to the new OAuth Gateway
-- [x] T010 [US1] Create `kubernetes/apps/network/envoy-gateway/app/oauth-policy-external.sops.yaml` — `SecurityPolicy` named `envoy-oauth-external-policy` in namespace `network` targeting `envoy-oauth-external` Gateway; OIDC config: `provider.issuer: https://accounts.google.com`, `clientID: "<GOOGLE_CLIENT_ID>"`, `clientSecret.name: google-oauth-client-secret`, `clientSecret.namespace: network`, `redirectURL: "https://oauth-external.${SECRET_DOMAIN}/oauth2/callback"`, `logoutPath: /logout`, `logoutRedirectURL: "https://oauth-external.${SECRET_DOMAIN}/logged-out"`, `cookieDomain: "${SECRET_DOMAIN}"`; authorization: `defaultAction: Deny`, one `Allow` rule named `allow-whitelist` with JWT claims `email_verified=true` and `email` values containing at least one placeholder address (use `specs/003-envoy-gateway-oidc/contracts/oauth-policy.sops.yaml` as the template); this file MUST be SOPS-encrypted before committing
-- [x] T011 [US1] Create `kubernetes/apps/default/oauth-pages/app/httproute.yaml` — `HTTPRoute` named `oauth-pages` in namespace `default` with `parentRefs` pointing at `envoy-oauth-external` in namespace `network`; two routing rules: one matching `path.Exact: /denied` and one matching `path.Exact: /logged-out`, both with `backendRefs` pointing to the `oauth-pages` Service on port `80` (use `specs/003-envoy-gateway-oidc/contracts/static-pages-httproute.yaml` as the template)
-- [x] T012 [US1] Update `kubernetes/apps/network/envoy-gateway/app/kustomization.yaml` — add `- ./oauth-client-secret.sops.yaml` and `- ./oauth-policy-external.sops.yaml` to the `resources:` list
+- [x] T008 [US1] Add the `envoy-oauth` Gateway resource to `kubernetes/apps/network/envoy-gateway/app/envoy.yaml` — append a new `Gateway` manifest after the existing `envoy-internal` Gateway with: `metadata.name: envoy-oauth`, `metadata.namespace: network`, `spec.gatewayClassName: envoy`, `spec.infrastructure.annotations["lbipam.cilium.io/ips"]: "192.168.1.149"` and `spec.infrastructure.annotations["external-dns.alpha.kubernetes.io/hostname"]: "oauth.${SECRET_DOMAIN}"`, one HTTP listener on port 80, and one HTTPS listener on port 443 with TLS terminated using `${SECRET_DOMAIN/./-}-production-tls` cert and `allowedRoutes.namespaces.from: All` (use `specs/003-envoy-gateway-oidc/contracts/oauth-gateway.yaml` as the template)
+- [x] T009 [US1] Update the `https-redirect` HTTPRoute in `kubernetes/apps/network/envoy-gateway/app/envoy.yaml` — add a third `parentRef` entry `- name: envoy-oauth\n  namespace: network\n  sectionName: http` alongside the existing `envoy-external` and `envoy-internal` entries so HTTP→HTTPS redirect applies to the new OAuth Gateway
+- [x] T010 [US1] Create `kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml` — `SecurityPolicy` named `envoy-oauth-policy` in namespace `network` targeting `envoy-oauth` Gateway; OIDC config: `provider.issuer: https://accounts.google.com`, `clientID: "<GOOGLE_CLIENT_ID>"`, `clientSecret.name: google-oauth-client-secret`, `clientSecret.namespace: network`, `redirectURL: "https://oauth.${SECRET_DOMAIN}/oauth2/callback"`, `logoutPath: /logout`, `logoutRedirectURL: "https://oauth.${SECRET_DOMAIN}/logged-out"`, `cookieDomain: "${SECRET_DOMAIN}"`; authorization: `defaultAction: Deny`, one `Allow` rule named `allow-whitelist` with JWT claims `email_verified=true` and `email` values containing at least one placeholder address (use `specs/003-envoy-gateway-oidc/contracts/oauth-policy.sops.yaml` as the template); this file MUST be SOPS-encrypted before committing
+- [x] T011 [US1] Create `kubernetes/apps/default/oauth-pages/app/httproute.yaml` — `HTTPRoute` named `oauth-pages` in namespace `default` with `parentRefs` pointing at `envoy-oauth` in namespace `network`; two routing rules: one matching `path.Exact: /denied` and one matching `path.Exact: /logged-out`, both with `backendRefs` pointing to the `oauth-pages` Service on port `80` (use `specs/003-envoy-gateway-oidc/contracts/static-pages-httproute.yaml` as the template)
+- [x] T012 [US1] Update `kubernetes/apps/network/envoy-gateway/app/kustomization.yaml` — add `- ./oauth-client-secret.sops.yaml` and `- ./oauth-policy.sops.yaml` to the `resources:` list
 - [x] T013 [US1] Update `kubernetes/apps/default/kustomization.yaml` — add `- ./oauth-pages/ks.yaml` to the `resources:` list after the existing `./echo/ks.yaml` entry
 
 **Checkpoint**: At this point, User Story 1 is fully functional — an app can be protected by changing one `parentRefs` line, and unauthenticated users are redirected to Google login
@@ -65,8 +65,8 @@ ______________________________________________________________________
 
 ### Implementation for User Story 2
 
-- [x] T014 [US2] Verify `kubernetes/apps/network/envoy-gateway/app/oauth-policy-external.sops.yaml` (created in T010) contains the `authorization.defaultAction: Deny` field and both JWT claim rules — `email_verified` with value `"true"` and `email` with at least one lowercase email address in `values[]`; confirm no mixed-case email entries exist (per FR-013, Envoy does exact string matching and Google always returns lowercase)
-- [x] T015 [US2] Add a `BackendTrafficPolicy` resource to `kubernetes/apps/network/envoy-gateway/app/envoy.yaml` — append after the existing `ClientTrafficPolicy`; named `oauth-denied-override` in namespace `network`; `spec.targetSelectors[0].group: gateway.networking.k8s.io`, `spec.targetSelectors[0].kind: Gateway`, `spec.targetSelectors[0].matchLabels` selecting only OAuth Gateways (or use `name: envoy-oauth-external` directly); `spec.responseOverride[0].match.statusCodes[0].type: Value` with `value: 403`; `spec.responseOverride[0].response.redirect.url: "https://oauth-external.${SECRET_DOMAIN}/denied"` — this intercepts 403 authorization failures from the email whitelist check and redirects users to the access-denied page instead of showing a raw 403
+- [x] T014 [US2] Verify `kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml` (created in T010) contains the `authorization.defaultAction: Deny` field and both JWT claim rules — `email_verified` with value `"true"` and `email` with at least one lowercase email address in `values[]`; confirm no mixed-case email entries exist (per FR-013, Envoy does exact string matching and Google always returns lowercase)
+- [x] T015 [US2] Add a `BackendTrafficPolicy` resource to `kubernetes/apps/network/envoy-gateway/app/envoy.yaml` — append after the existing `ClientTrafficPolicy`; named `oauth-denied-override` in namespace `network`; `spec.targetSelectors[0].group: gateway.networking.k8s.io`, `spec.targetSelectors[0].kind: Gateway`, `spec.targetSelectors[0].matchLabels` selecting only OAuth Gateways (or use `name: envoy-oauth` directly); `spec.responseOverride[0].match.statusCodes[0].type: Value` with `value: 403`; `spec.responseOverride[0].response.redirect.url: "https://oauth.${SECRET_DOMAIN}/denied"` — this intercepts 403 authorization failures from the email whitelist check and redirects users to the access-denied page instead of showing a raw 403
 
 **Checkpoint**: User Story 2 is complete — non-whitelisted authenticated users see `/denied` page; empty whitelist denies all users (fail-closed)
 
@@ -76,11 +76,11 @@ ______________________________________________________________________
 
 **Goal**: Email addresses (PII) are never committed in plaintext. The SOPS-encrypted SecurityPolicy manifest is decrypted automatically in-cluster by Flux's kustomize-controller using the cluster's age key.
 
-**Independent Test**: Clone the repo fresh and inspect `oauth-policy-external.sops.yaml` — email addresses must not be visible in plaintext. Decrypt locally with `sops --decrypt`, modify the email list, re-encrypt, commit, push, and confirm Flux reconciles within one cycle (~10 minutes) and the updated list is active.
+**Independent Test**: Clone the repo fresh and inspect `oauth-policy.sops.yaml` — email addresses must not be visible in plaintext. Decrypt locally with `sops --decrypt`, modify the email list, re-encrypt, commit, push, and confirm Flux reconciles within one cycle (~10 minutes) and the updated list is active.
 
 ### Implementation for User Story 3
 
-- [x] T016 [US3] Verify `kubernetes/apps/network/envoy-gateway/app/oauth-policy-external.sops.yaml` is SOPS-encrypted — the file must contain `sops:` metadata at the bottom with `age:` recipients matching the cluster's age public key; run `grep -c 'ENC\[AES256' oauth-policy-external.sops.yaml` to confirm encrypted values are present and no plaintext email addresses appear outside of the `sops:` metadata block
+- [x] T016 [US3] Verify `kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml` is SOPS-encrypted — the file must contain `sops:` metadata at the bottom with `age:` recipients matching the cluster's age public key; run `grep -c 'ENC\[AES256' oauth-policy.sops.yaml` to confirm encrypted values are present and no plaintext email addresses appear outside of the `sops:` metadata block
 - [x] T017 [US3] Verify `kubernetes/apps/network/envoy-gateway/app/oauth-client-secret.sops.yaml` is SOPS-encrypted — same verification as T016; confirm `client-secret` value is encrypted and no plaintext credential appears
 
 **Checkpoint**: User Story 3 complete — no PII or credentials committed in plaintext; Flux auto-decrypts both files at reconcile time
@@ -95,10 +95,10 @@ ______________________________________________________________________
 
 ### Implementation for User Story 4
 
-- [x] T018 [P] [US4] Add second OAuth Gateway `envoy-oauth-internal` to `kubernetes/apps/network/envoy-gateway/app/envoy.yaml` — append a new Gateway manifest following the same pattern as `envoy-oauth-external` (T008) with: `metadata.name: envoy-oauth-internal`, LB IP `192.168.1.150` (or next available from MetalLB pool), DNS hostname `oauth-internal.${SECRET_DOMAIN}`, same TLS cert and listener structure; also add a third `parentRef` `- name: envoy-oauth-internal\n  namespace: network\n  sectionName: http` to the `https-redirect` HTTPRoute
-- [x] T019 [P] [US4] Create `kubernetes/apps/network/envoy-gateway/app/oauth-policy-internal.sops.yaml` — second `SecurityPolicy` named `envoy-oauth-internal-policy` in namespace `network` targeting `envoy-oauth-internal` Gateway; same OIDC config structure as the external policy (T010) but with `redirectURL: "https://oauth-internal.${SECRET_DOMAIN}/oauth2/callback"` and `logoutRedirectURL: "https://oauth-internal.${SECRET_DOMAIN}/logged-out"`; different `email.values[]` list from the external policy (these are the "internal" users); SOPS-encrypt before committing
+- [x] T018 [P] [US4] Add second OAuth Gateway `envoy-oauth-internal` to `kubernetes/apps/network/envoy-gateway/app/envoy.yaml` — append a new Gateway manifest following the same pattern as `envoy-oauth` (T008) with: `metadata.name: envoy-oauth-internal`, LB IP `192.168.1.150` (or next available from MetalLB pool), DNS hostname `oauth-internal.${SECRET_DOMAIN}`, same TLS cert and listener structure; also add a third `parentRef` `- name: envoy-oauth-internal\n  namespace: network\n  sectionName: http` to the `https-redirect` HTTPRoute
+- [x] T019 [P] [US4] Create `kubernetes/apps/network/envoy-gateway/app/oauth-policy-internal.sops.yaml` — second `SecurityPolicy` named `envoy-oauth-internal-policy` in namespace `network` targeting `envoy-oauth-internal` Gateway; same OIDC config structure as the primary policy (T010) but with `redirectURL: "https://oauth-internal.${SECRET_DOMAIN}/oauth2/callback"` and `logoutRedirectURL: "https://oauth-internal.${SECRET_DOMAIN}/logged-out"`; different `email.values[]` list from the primary policy (these are the "internal" users); SOPS-encrypt before committing
 - [x] T020 [US4] Update `kubernetes/apps/default/oauth-pages/app/httproute.yaml` — add a second entry to `parentRefs` for `envoy-oauth-internal` in namespace `network` so that `/denied` and `/logged-out` routes are reachable from Gateway-B apps
-- [x] T021 [US4] Update `kubernetes/apps/network/envoy-gateway/app/kustomization.yaml` — add `- ./oauth-policy-internal.sops.yaml` to the `resources:` list alongside the existing external policy entry
+- [x] T021 [US4] Update `kubernetes/apps/network/envoy-gateway/app/kustomization.yaml` — add `- ./oauth-policy-internal.sops.yaml` to the `resources:` list alongside the existing primary policy entry
 
 **Checkpoint**: User Story 4 complete — two independent OAuth Gateways with separate email whitelists operating side-by-side
 
@@ -159,8 +159,8 @@ Task T004: "Create kubernetes/apps/default/oauth-pages/app/ocirepository.yaml"
 Task T005: "Create kubernetes/apps/default/oauth-pages/app/helmrelease.yaml"
 
 # Then run US1 gateway + policy in parallel:
-Task T008: "Add envoy-oauth-external Gateway to envoy.yaml"
-Task T010: "Create oauth-policy-external.sops.yaml"  # can start as soon as T003 is done
+Task T008: "Add envoy-oauth Gateway to envoy.yaml"
+Task T010: "Create oauth-policy.sops.yaml"  # can start as soon as T003 is done
 ```
 
 ## Parallel Example: User Story 4
@@ -199,8 +199,8 @@ ______________________________________________________________________
 Before deploying US1, the operator must:
 
 1. Create a Google OAuth 2.0 Client ID in Google API Console (Web Application type)
-2. Register redirect URI: `https://oauth-external.${SECRET_DOMAIN}/oauth2/callback`
-3. Copy the Client ID (goes into `oauth-policy-external.sops.yaml` as plaintext `clientID`) and Client Secret (goes into `oauth-client-secret.sops.yaml` as encrypted `client-secret`)
+2. Register redirect URI: `https://oauth.${SECRET_DOMAIN}/oauth2/callback`
+3. Copy the Client ID (goes into `oauth-policy.sops.yaml` as plaintext `clientID`) and Client Secret (goes into `oauth-client-secret.sops.yaml` as encrypted `client-secret`)
 4. Allocate a new MetalLB IP (`192.168.1.149`) for the OAuth Gateway (verify it's unused: `kubectl get svc -A | grep LoadBalancer`)
 
 ______________________________________________________________________

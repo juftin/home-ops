@@ -136,6 +136,9 @@ Replicate CI locally with `task dev:validate` before opening a PR.
 - **`components/sops` is the only Kustomize component on `main`** — namespace-level
   `kustomization.yaml` files must use `../../components/sops`. Do not copy namespace kustomizations
   from feature branches that used `../../components/common`; that directory does not exist on `main`.
+- **OAuth Gateways must include the Cloudflare DNS label** — `cloudflare-dns` now discovers Gateway
+  resources using `--gateway-label-filter=home-ops.io/cloudflare-dns=true`. If the label is missing
+  from a Gateway, its DNS records will not be created/updated in Cloudflare.
 - **ServiceAccount tokens from `kubectl create token` go stale** — these JWTs embed the SA's
   current UID. If the SA is deleted and recreated (e.g. after branch testing), any stored token
   becomes invalid. Regenerate with:

@@ -95,7 +95,7 @@ kubernetes/apps/network/envoy-gateway/
     ├── podmonitor.yaml              # (existing)
     ├── oauth-client-secret.sops.yaml  # SOPS: Google OAuth client_id + client_secret
     └── oauth-policy-<name>.sops.yaml  # SOPS: SecurityPolicy per OAuth Gateway
-                                       # (one file per Gateway, e.g., oauth-policy-external.sops.yaml)
+                                       # (one file per Gateway, e.g., oauth-policy.sops.yaml)
 
 kubernetes/apps/default/
 ├── kustomization.yaml               # add oauth-pages entry

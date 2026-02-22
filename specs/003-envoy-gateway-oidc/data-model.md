@@ -4,14 +4,15 @@
 
 ### 1. OAuth Gateway (`Gateway`)
 
-One resource per OAuth-protected access group (e.g., `envoy-oauth-external`).
+One resource per OAuth-protected access group (e.g., `envoy-oauth` for the primary group,
+`envoy-oauth-internal` for additional groups).
 
 **Namespace**: `network`
 **File**: `kubernetes/apps/network/envoy-gateway/app/envoy.yaml` (appended)
 
 | Field                                                                          | Value                                 | Notes                                |
 | ------------------------------------------------------------------------------ | ------------------------------------- | ------------------------------------ |
-| `metadata.name`                                                                | `envoy-oauth-<name>`                  | e.g., `envoy-oauth-external`         |
+| `metadata.name`                                                                | `envoy-oauth` or `envoy-oauth-<name>` | e.g., `envoy-oauth-internal`         |
 | `spec.gatewayClassName`                                                        | `envoy`                               | Reuses existing GatewayClass         |
 | `spec.infrastructure.annotations["lbipam.cilium.io/ips"]`                      | `"192.168.1.149"`                     | New IP per Gateway from MetalLB pool |
 | `spec.infrastructure.annotations["external-dns.alpha.kubernetes.io/hostname"]` | `oauth.<domain>`                      | Per-Gateway DNS name                 |
@@ -169,7 +170,7 @@ Operator edits allowlist
 
 ```
 Operator wants to protect app with OAuth
-  → Change app's HTTPRoute parentRefs.name from "envoy-external" to "envoy-oauth-external"
+  → Change app's HTTPRoute parentRefs.name from "envoy-external" to "envoy-oauth"
   → git commit + push → Flux reconciles
   → App now protected (no changes to SecurityPolicy, whitelist, or other apps)
 ```
@@ -178,10 +179,10 @@ ______________________________________________________________________
 
 ## Naming Conventions
 
-| Resource type    | Pattern                                          | Example                                              |
-| ---------------- | ------------------------------------------------ | ---------------------------------------------------- |
-| OAuth Gateway    | `envoy-oauth-<group>`                            | `envoy-oauth-external`                               |
-| SecurityPolicy   | `envoy-oauth-<group>-policy`                     | `envoy-oauth-external-policy`                        |
-| SOPS policy file | `oauth-policy-<group>.sops.yaml`                 | `oauth-policy-external.sops.yaml`                    |
-| DNS hostname     | `oauth-<group>.${SECRET_DOMAIN}`                 | `oauth-external.example.com`                         |
-| Redirect URL     | `https://oauth-<group>.<domain>/oauth2/callback` | `https://oauth-external.example.com/oauth2/callback` |
+| Resource type    | Pattern                                                                                                | Example                                              |
+| ---------------- | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------- |
+| OAuth Gateway    | `envoy-oauth` (primary) or `envoy-oauth-<group>`                                                       | `envoy-oauth-internal`                               |
+| SecurityPolicy   | `envoy-oauth-policy` (primary) or `envoy-oauth-<group>-policy`                                         | `envoy-oauth-internal-policy`                        |
+| SOPS policy file | `oauth-policy.sops.yaml` (primary) or `oauth-policy-<group>.sops.yaml`                                 | `oauth-policy-internal.sops.yaml`                    |
+| DNS hostname     | `oauth.${SECRET_DOMAIN}` (primary) or `oauth-<group>.${SECRET_DOMAIN}`                                 | `oauth-internal.example.com`                         |
+| Redirect URL     | `https://oauth.<domain>/oauth2/callback` (primary) or `https://oauth-<group>.<domain>/oauth2/callback` | `https://oauth-internal.example.com/oauth2/callback` |

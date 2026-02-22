@@ -16,7 +16,7 @@ ______________________________________________________________________
 3. Application type: **Web application**
 4. Name: `home-ops` (or any name)
 5. Authorized redirect URIs:
-   - `https://oauth-external.<YOUR_DOMAIN>/oauth2/callback` (one per OAuth Gateway you create)
+   - `https://oauth.<YOUR_DOMAIN>/oauth2/callback` (one per OAuth Gateway you create)
 6. Click **Create** → Copy the **Client ID** and **Client Secret**
 
 ______________________________________________________________________
@@ -50,15 +50,19 @@ Open `kubernetes/apps/network/envoy-gateway/app/envoy.yaml` and append a new Gat
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
-  name: envoy-oauth-external
+  name: envoy-oauth
   namespace: network
+  labels:
+    home-ops.io/cloudflare-dns: 'true'
+    home-ops.io/oauth-gateway: 'true'
   annotations:
+    external-dns.alpha.kubernetes.io/target: external.${SECRET_DOMAIN}
     lbipam.cilium.io/ips: 192.168.1.149    # Choose an unused MetalLB IP
 spec:
   gatewayClassName: envoy
   infrastructure:
     annotations:
-      external-dns.alpha.kubernetes.io/hostname: oauth-external.${SECRET_DOMAIN}
+      external-dns.alpha.kubernetes.io/hostname: oauth.${SECRET_DOMAIN}
   listeners:
     - name: http
       protocol: HTTP
@@ -77,13 +81,17 @@ spec:
           from: All
 ```
 
+> Keep the `home-ops.io/cloudflare-dns: "true"` label on OAuth Gateways. `cloudflare-dns` uses
+> `--gateway-label-filter=home-ops.io/cloudflare-dns=true`, so missing labels prevent DNS records
+> from being created.
+
 Also update the `https-redirect` HTTPRoute at the bottom of `envoy.yaml` to add the new Gateway:
 
 ```yaml
 parentRefs:
   - name: envoy-external
   - name: envoy-internal
-  - name: envoy-oauth-external   # Add this line
+  - name: envoy-oauth   # Add this line
 ```
 
 ______________________________________________________________________
@@ -96,17 +104,17 @@ DOMAIN="example.com"  # Your actual domain
 
 # Create a plaintext SecurityPolicy, then encrypt it
 cat <<EOF | sops --encrypt --input-type=yaml --output-type=yaml /dev/stdin \
-  > kubernetes/apps/network/envoy-gateway/app/oauth-policy-external.sops.yaml
+  > kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
 metadata:
-  name: envoy-oauth-external-policy
+  name: envoy-oauth-policy
   namespace: network
 spec:
   targetRefs:
     - group: gateway.networking.k8s.io
       kind: Gateway
-      name: envoy-oauth-external
+      name: envoy-oauth
   oidc:
     provider:
       issuer: "https://accounts.google.com"
@@ -114,10 +122,16 @@ spec:
     clientSecret:
       name: google-oauth-client-secret
       namespace: network
-    redirectURL: "https://oauth-external.${DOMAIN}/oauth2/callback"
+    redirectURL: "https://oauth.${DOMAIN}/oauth2/callback"
     logoutPath: "/logout"
-    logoutRedirectURL: "https://oauth-external.${DOMAIN}/logged-out"
+    logoutRedirectURL: "https://oauth.${DOMAIN}/logged-out"
     cookieDomain: "${DOMAIN}"
+  jwt:
+    providers:
+      - name: google
+        issuer: "https://accounts.google.com"
+        remoteJWKS:
+          uri: "https://www.googleapis.com/oauth2/v3/certs"
   authorization:
     defaultAction: Deny
     rules:
@@ -127,6 +141,9 @@ spec:
         jwt:
           provider: google
           claims:
+          - name: email_verified
+            values:
+            - "true"
           - name: email
             values:
             - "you@gmail.com"          # Add allowlisted email addresses here
@@ -148,7 +165,7 @@ resources:
   - ocirepository.yaml
   - podmonitor.yaml
   - oauth-client-secret.sops.yaml  # Add
-  - oauth-policy-external.sops.yaml  # Add
+  - oauth-policy.sops.yaml  # Add
 ```
 
 ______________________________________________________________________
@@ -182,7 +199,7 @@ route:
 # After (OAuth-protected)
 route:
   parentRefs:
-    - name: envoy-oauth-external
+    - name: envoy-oauth
 ```
 
 3. Run `task lint && task dev:validate` — then commit and push.
@@ -207,7 +224,7 @@ ______________________________________________________________________
 
 ```bash
 # Decrypt
-sops --decrypt kubernetes/apps/network/envoy-gateway/app/oauth-policy-external.sops.yaml \
+sops --decrypt kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml \
   > /tmp/policy.yaml
 
 # Edit /tmp/policy.yaml — add email to:
@@ -215,11 +232,11 @@ sops --decrypt kubernetes/apps/network/envoy-gateway/app/oauth-policy-external.s
 
 # Re-encrypt
 sops --encrypt /tmp/policy.yaml \
-  > kubernetes/apps/network/envoy-gateway/app/oauth-policy-external.sops.yaml
+  > kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml
 
 rm /tmp/policy.yaml   # never leave plaintext around
 
-git add kubernetes/apps/network/envoy-gateway/app/oauth-policy-external.sops.yaml
+git add kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml
 git commit -m "🔐 add user to oauth whitelist"
 git push
 ```
@@ -259,7 +276,7 @@ ______________________________________________________________________
 Google OIDC
     │
     ▼
-OAuth Gateway (e.g., envoy-oauth-external @ 192.168.1.149)
+OAuth Gateway (e.g., envoy-oauth @ 192.168.1.149)
     │  └─ SecurityPolicy: OIDC + email allowlist (SOPS-encrypted)
     │
     ├─── /denied, /logged-out → oauth-pages nginx (default namespace)

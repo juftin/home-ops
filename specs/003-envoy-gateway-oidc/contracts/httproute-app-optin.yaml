@@ -10,7 +10,7 @@ metadata:
 spec:
   parentRefs:
     # Change from envoy-external / envoy-internal to an OAuth Gateway:
-    - name: envoy-oauth-external
+    - name: envoy-oauth
       namespace: network
   hostnames:
     - <HOSTNAME>

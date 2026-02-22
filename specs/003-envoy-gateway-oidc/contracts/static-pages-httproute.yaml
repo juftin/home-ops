@@ -9,7 +9,7 @@ metadata:
   namespace: default
 spec:
   parentRefs:
-    - name: envoy-oauth-external
+    - name: envoy-oauth
       namespace: network
       # - name: envoy-oauth-internal   # Add additional OAuth Gateways here
       #   namespace: network
