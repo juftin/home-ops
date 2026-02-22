@@ -212,6 +212,7 @@ metadata:
   name: envoy-oauth-internal
   namespace: network
   labels:
+    home-ops.io/cloudflare-dns: "true"
     home-ops.io/oauth-gateway: "true"
   annotations:
     external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
