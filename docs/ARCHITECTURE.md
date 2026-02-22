@@ -134,13 +134,13 @@ kubernetes/apps/<namespace>/
 
 | Namespace          | Contents                                                                       |
 | ------------------ | ------------------------------------------------------------------------------ |
-| `kube-system`      | cilium, coredns, metrics-server, reloader                                      |
+| `kube-system`      | cilium, coredns, local-path-provisioner, metrics-server, reloader              |
 | `cert-manager`     | cert-manager (TLS)                                                             |
 | `network`          | envoy-gateway, cloudflared tunnel, external-dns (k8s-gateway + cloudflare-dns) |
 | `external-secrets` | external-secrets operator, 1Password Connect                                   |
 | `flux-system`      | Flux itself                                                                    |
 | `default`          | General applications (e.g. `echo` test server)                                 |
-| `observability`    | headlamp Kubernetes dashboard with Flux plugin                                 |
+| `observability`    | headlamp dashboard, Grafana UI, Prometheus, Alertmanager, Loki, and Alloy      |
 
 #### Shared components
 
