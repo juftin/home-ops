@@ -9,6 +9,7 @@ ______________________________________________________________________
 
 ## Related Operational Runbooks
 
+- [Google OAuth Setup](./GOOGLE-OAUTH-SETUP.md)
 - [OIDC Troubleshooting](./OIDC-TROUBLESHOOTING.md)
 - [Gateway Onboarding Checklist](./GATEWAY-ONBOARDING-CHECKLIST.md)
 - [SecurityPolicy Change Playbook](./SECURITYPOLICY-CHANGE-PLAYBOOK.md)
