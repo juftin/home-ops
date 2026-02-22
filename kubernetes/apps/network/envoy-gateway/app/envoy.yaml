@@ -156,21 +156,28 @@ spec:
   targetSelectors:
     - group: gateway.networking.k8s.io
       kind: Gateway
-      name: envoy-oauth-external
+      matchLabels:
+        home-ops.io/oauth-gateway: "true"
   responseOverride:
     - match:
         statusCodes:
           - type: Value
             value: 403
-      response:
-        redirect:
-          url: "https://oauth-external.${SECRET_DOMAIN}/denied"
+      redirect:
+        scheme: https
+        hostname: oauth-external.${SECRET_DOMAIN}
+        statusCode: 302
+        path:
+          type: ReplaceFullPath
+          replaceFullPath: /denied
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: envoy-oauth-external
   namespace: network
+  labels:
+    home-ops.io/oauth-gateway: "true"
   annotations:
     lbipam.cilium.io/ips: "192.168.1.149"
 spec:
@@ -200,6 +207,8 @@ kind: Gateway
 metadata:
   name: envoy-oauth-internal
   namespace: network
+  labels:
+    home-ops.io/oauth-gateway: "true"
   annotations:
     lbipam.cilium.io/ips: "192.168.1.150"
 spec:
