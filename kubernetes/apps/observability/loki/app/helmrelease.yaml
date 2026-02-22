@@ -35,6 +35,7 @@ spec:
       limits_config:
         retention_period: 168h
       compactor:
+        delete_request_store: filesystem
         retention_enabled: true
     singleBinary:
       replicas: 1
