@@ -115,7 +115,7 @@ spec:
     persistence:
       html:
         type: configMap
-        name: oauth-pages-html
+        identifier: oauth-pages-html
         globalMounts:
           - path: /usr/share/nginx/html
     service:
