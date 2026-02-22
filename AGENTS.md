@@ -7,6 +7,10 @@ Linux is the OS. Secrets are SOPS-encrypted with age. Dependencies are updated b
 @README.md
 @docs/ARCHITECTURE.md
 @docs/TASKS.md
+@docs/OIDC-TROUBLESHOOTING.md
+@docs/GATEWAY-ONBOARDING-CHECKLIST.md
+@docs/SECURITYPOLICY-CHANGE-PLAYBOOK.md
+@docs/POST-MERGE-VERIFICATION.md
 
 ## Environment Setup
 

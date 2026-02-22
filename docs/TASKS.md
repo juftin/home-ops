@@ -7,6 +7,15 @@ Run `task` (or `task default`) to list all available tasks.
 
 ______________________________________________________________________
 
+## Related Operational Runbooks
+
+- [OIDC Troubleshooting](./OIDC-TROUBLESHOOTING.md)
+- [Gateway Onboarding Checklist](./GATEWAY-ONBOARDING-CHECKLIST.md)
+- [SecurityPolicy Change Playbook](./SECURITYPOLICY-CHANGE-PLAYBOOK.md)
+- [Post-merge Verification](./POST-MERGE-VERIFICATION.md)
+
+______________________________________________________________________
+
 ## Top-level Tasks
 
 These tasks are defined directly in `Taskfile.yaml`.
