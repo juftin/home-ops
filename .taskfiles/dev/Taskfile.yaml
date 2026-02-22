@@ -7,7 +7,7 @@ tasks:
       # renovate: datasource=docker depName=ghcr.io/allenporter/flux-local
       FLUX_LOCAL_IMAGE: ghcr.io/allenporter/flux-local:v8.1.0
     cmd: >-
-      docker run --rm -v {{.ROOT_DIR}}:/github/workspace {{.FLUX_LOCAL_IMAGE}} test --enable-helm --all-namespaces --path /github/workspace/kubernetes/flux/cluster -v
+      docker run --rm -v {{.ROOT_DIR}}:/github/workspace -w /github/workspace {{.FLUX_LOCAL_IMAGE}} test --enable-helm --all-namespaces --path /github/workspace/kubernetes/flux/cluster -v
     preconditions:
       - which docker
   start:
