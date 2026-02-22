@@ -59,7 +59,7 @@ This phase does not deploy anything — it confirms the environment is ready.
   `kubectl get clustersecretstore onepassword`.
   Document any failures and resolve before proceeding.
 
-- [ ] T005 Review `kubernetes/apps/observability/kustomization.yaml` to understand its current
+- [x] T005 Review `kubernetes/apps/observability/kustomization.yaml` to understand its current
   structure (it currently lists only `headlamp/ks.yaml`). Do not modify it yet — each user story
   phase will add its own `resources:` entry as the final step of that phase, keeping changes
   atomic and independently revertible.
@@ -82,7 +82,7 @@ Run `up` query in Grafana Explore → all targets return `1`.
 
 ### Implementation for User Story 1
 
-- [ ] T006 [US1] Create directory `kubernetes/apps/observability/kube-prometheus-stack/app/`.
+- [x] T006 [US1] Create directory `kubernetes/apps/observability/kube-prometheus-stack/app/`.
   Create `kubernetes/apps/observability/kube-prometheus-stack/ks.yaml` following the headlamp
   pattern (`kubernetes/apps/observability/headlamp/ks.yaml`). Set `name: kube-prometheus-stack`,
   `namespace: observability`, `path: ./kubernetes/apps/observability/kube-prometheus-stack/app`,
@@ -90,26 +90,26 @@ Run `up` query in Grafana Explore → all targets return `1`.
   Secret (same pattern as headlamp). Set `timeout: 15m` and `wait: true` (CRDs must be ready
   before Loki/Alloy can deploy).
 
-- [ ] T007 [P] [US1] Create `kubernetes/apps/observability/kube-prometheus-stack/app/ocirepository.yaml`.
+- [x] T007 [P] [US1] Create `kubernetes/apps/observability/kube-prometheus-stack/app/ocirepository.yaml`.
   Use the verified URL from T001 (expected:
   `oci://ghcr.io/home-operations/charts-mirror/kube-prometheus-stack`). Follow the headlamp
   OCIRepository pattern (`kubernetes/apps/observability/headlamp/app/helmrelease.yaml` top
   section). Set `interval: 5m`, `layerSelector.mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip`,
   `layerSelector.operation: copy`. Use the latest tag verified in T001.
 
-- [ ] T008 [P] [US1] Create `kubernetes/apps/observability/kube-prometheus-stack/app/externalsecret.yaml`.
+- [x] T008 [P] [US1] Create `kubernetes/apps/observability/kube-prometheus-stack/app/externalsecret.yaml`.
   Target secret name: `grafana-admin-creds`. Reference ClusterSecretStore `onepassword`.
   Use `dataFrom[0].extract.key: grafana-admin-creds` (matching the 1Password item created in T002).
   Use the headlamp ExternalSecret (`kubernetes/apps/observability/headlamp/app/externalsecret.yaml`)
   as the exact pattern to follow.
 
-- [ ] T009 [P] [US1] Create `kubernetes/apps/observability/kube-prometheus-stack/app/httproute.yaml`.
+- [x] T009 [P] [US1] Create `kubernetes/apps/observability/kube-prometheus-stack/app/httproute.yaml`.
   Hostname: `grafana.${SECRET_DOMAIN}`. Gateway: `envoy-external` in namespace `network`,
   section `https`. Backend: service `kube-prometheus-stack-grafana` port `80` in namespace
   `observability`. Follow the headlamp HTTPRoute pattern exactly
   (`kubernetes/apps/observability/headlamp/app/httproute.yaml`).
 
-- [ ] T010 [US1] Create `kubernetes/apps/observability/kube-prometheus-stack/app/helmrelease.yaml`.
+- [x] T010 [US1] Create `kubernetes/apps/observability/kube-prometheus-stack/app/helmrelease.yaml`.
   Reference the OCIRepository created in T007. This is the primary configuration task — include
   all of the following values sections:
 
@@ -132,11 +132,11 @@ Run `up` query in Grafana Explore → all targets return `1`.
   - `kubeStateMetrics.enabled: true`
   - Set `install.remediation.retries: -1` and `upgrade.cleanupOnFail: true` following headlamp pattern.
 
-- [ ] T011 [US1] Create `kubernetes/apps/observability/kube-prometheus-stack/app/kustomization.yaml`.
+- [x] T011 [US1] Create `kubernetes/apps/observability/kube-prometheus-stack/app/kustomization.yaml`.
   List all resources created in T007–T010: `ocirepository.yaml`, `externalsecret.yaml`,
   `httproute.yaml`, `helmrelease.yaml`. Add schema comment header following headlamp pattern.
 
-- [ ] T012 [US1] Add `- ./kube-prometheus-stack/ks.yaml` to the `resources:` list in
+- [x] T012 [US1] Add `- ./kube-prometheus-stack/ks.yaml` to the `resources:` list in
   `kubernetes/apps/observability/kustomization.yaml`. This is the change that causes Flux to
   begin reconciling the kube-prometheus-stack Kustomization.
 
@@ -163,14 +163,14 @@ sends a Slack notification.
 
 ### Implementation for User Story 2
 
-- [ ] T014 [US2] Update `kubernetes/apps/observability/kube-prometheus-stack/app/externalsecret.yaml`
+- [x] T014 [US2] Update `kubernetes/apps/observability/kube-prometheus-stack/app/externalsecret.yaml`
   to add a second data source: `dataFrom[1].extract.key: alertmanager-slack-webhook` targeting
   a second Secret named `alertmanager-slack-webhook` (keep `grafana-admin-creds` as `dataFrom[0]`).
   Alternatively, create a second ExternalSecret resource in the same file or a new
   `externalsecret-alertmanager.yaml` listed in the kustomization — either is valid; choose the
   cleaner approach.
 
-- [ ] T015 [US2] Update `kubernetes/apps/observability/kube-prometheus-stack/app/helmrelease.yaml`
+- [x] T015 [US2] Update `kubernetes/apps/observability/kube-prometheus-stack/app/helmrelease.yaml`
   to enable and configure Alertmanager:
 
   - Change `alertmanager.enabled: true`
@@ -209,19 +209,19 @@ and time range.
 
 ### Implementation for User Story 3
 
-- [ ] T017 [US3] Create directory `kubernetes/apps/observability/loki/app/`.
+- [x] T017 [US3] Create directory `kubernetes/apps/observability/loki/app/`.
   Create `kubernetes/apps/observability/loki/ks.yaml` following the kube-prometheus-stack ks.yaml
   pattern (T006). Set `name: loki`, `namespace: observability`,
   `path: ./kubernetes/apps/observability/loki/app`. Add
   `dependsOn: [{name: kube-prometheus-stack, namespace: observability}]` so Loki waits for the
   Prometheus Operator CRDs to be installed before reconciling. Set `timeout: 10m`, `wait: true`.
 
-- [ ] T018 [P] [US3] Create `kubernetes/apps/observability/loki/app/ocirepository.yaml`.
+- [x] T018 [P] [US3] Create `kubernetes/apps/observability/loki/app/ocirepository.yaml`.
   Use the verified Loki OCI URL from T001 (expected:
   `oci://ghcr.io/home-operations/charts-mirror/loki`). Follow the same OCIRepository pattern
   as T007. Use the latest tag verified in T001.
 
-- [ ] T019 [US3] Create `kubernetes/apps/observability/loki/app/helmrelease.yaml`.
+- [x] T019 [US3] Create `kubernetes/apps/observability/loki/app/helmrelease.yaml`.
   Reference the Loki OCIRepository from T018. Configure single-binary mode with filesystem
   backend and node-local PVC:
 
@@ -240,20 +240,20 @@ and time range.
   - `monitoring.serviceMonitor.enabled: true` (for Prometheus scraping)
     Set `install.remediation.retries: -1` and `upgrade.cleanupOnFail: true`.
 
-- [ ] T020 [US3] Create `kubernetes/apps/observability/loki/app/kustomization.yaml`.
+- [x] T020 [US3] Create `kubernetes/apps/observability/loki/app/kustomization.yaml`.
   List resources: `ocirepository.yaml`, `helmrelease.yaml`.
 
-- [ ] T021 [US3] Create directory `kubernetes/apps/observability/alloy/app/`.
+- [x] T021 [US3] Create directory `kubernetes/apps/observability/alloy/app/`.
   Create `kubernetes/apps/observability/alloy/ks.yaml`. Set `name: alloy`,
   `namespace: observability`, `path: ./kubernetes/apps/observability/alloy/app`. Add
   `dependsOn: [{name: loki, namespace: observability}]` so Alloy waits for Loki's endpoint
   to be available. Set `timeout: 5m`, `wait: false`.
 
-- [ ] T022 [P] [US3] Create `kubernetes/apps/observability/alloy/app/ocirepository.yaml`.
+- [x] T022 [P] [US3] Create `kubernetes/apps/observability/alloy/app/ocirepository.yaml`.
   Use the verified Alloy OCI URL from T001 (expected:
   `oci://ghcr.io/home-operations/charts-mirror/alloy`). Follow the same OCIRepository pattern.
 
-- [ ] T023 [US3] Create `kubernetes/apps/observability/alloy/app/helmrelease.yaml`.
+- [x] T023 [US3] Create `kubernetes/apps/observability/alloy/app/helmrelease.yaml`.
   Reference the Alloy OCIRepository from T022. Configure Alloy as a DaemonSet log shipper:
 
   - `alloy.configMap.content`: Alloy pipeline config that:
@@ -267,10 +267,10 @@ and time range.
   - `tolerations`: add toleration for control-plane nodes so logs are collected from all nodes
     Set `install.remediation.retries: -1` and `upgrade.cleanupOnFail: true`.
 
-- [ ] T024 [US3] Create `kubernetes/apps/observability/alloy/app/kustomization.yaml`.
+- [x] T024 [US3] Create `kubernetes/apps/observability/alloy/app/kustomization.yaml`.
   List resources: `ocirepository.yaml`, `helmrelease.yaml`.
 
-- [ ] T025 [US3] Update `kubernetes/apps/observability/kube-prometheus-stack/app/helmrelease.yaml`
+- [x] T025 [US3] Update `kubernetes/apps/observability/kube-prometheus-stack/app/helmrelease.yaml`
   to add the Loki data source to Grafana (as specified in
   `specs/004-observability-platform/data-model.md` — Entity: Dashboard, Loki data source
   wiring section). Add under `grafana.additionalDataSources`:
@@ -285,7 +285,7 @@ and time range.
 
   This satisfies FR-009 (metric-to-log navigation) and is required for SC-007.
 
-- [ ] T026 [US3] Add `- ./loki/ks.yaml` and `- ./alloy/ks.yaml` to the `resources:` list in
+- [x] T026 [US3] Add `- ./loki/ks.yaml` and `- ./alloy/ks.yaml` to the `resources:` list in
   `kubernetes/apps/observability/kustomization.yaml`. Both entries must be added atomically in
   the same commit alongside the loki/ and alloy/ directories.
 
@@ -336,16 +336,16 @@ ______________________________________________________________________
 
 **Purpose**: Documentation updates and final validation required before PR.
 
-- [ ] T031 [P] Update `README.md` — add Grafana, Prometheus, Alertmanager, Loki, and Alloy to
+- [x] T031 [P] Update `README.md` — add Grafana, Prometheus, Alertmanager, Loki, and Alloy to
   the Apps or Components section. Follow the existing table/list format in the file. Include
   the Grafana URL (`grafana.juftin.dev`) and a one-line description for each component.
 
-- [ ] T032 [P] Update `docs/ARCHITECTURE.md` — add all five new components to the `observability`
+- [x] T032 [P] Update `docs/ARCHITECTURE.md` — add all five new components to the `observability`
   namespace entry in the namespaces table. Update any layer descriptions that reference the
   observability namespace. Remove or update the current single-entry description
   ("headlamp Kubernetes dashboard with Flux plugin") to reflect the full stack.
 
-- [ ] T033 Run `task lint` for a final formatting pass (run twice if needed — second run should
+- [x] T033 Run `task lint` for a final formatting pass (run twice if needed — second run should
   always be clean). Confirm all five new files (ocirepository, helmrelease, ks.yaml, etc.) pass
   yamlfmt formatting.
 

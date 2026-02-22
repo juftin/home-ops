@@ -49,6 +49,15 @@ ______________________________________________________________________
   testing.
 - **[headlamp](https://headlamp.dev/)**: Kubernetes dashboard with the
   [Flux plugin](https://github.com/headlamp-k8s/headlamp-plugin-flux) for GitOps visibility.
+- **[Grafana](https://grafana.com/)**: Cluster dashboards and Explore UI at
+  [grafana.juftin.dev](https://grafana.juftin.dev).
+- **[Prometheus](https://prometheus.io/)**: Scrapes and stores Kubernetes metrics with 30-day
+  retention.
+- **[Alertmanager](https://prometheus.io/docs/alerting/latest/alertmanager/)**: Routes firing and
+  resolved alerts to Slack.
+- **[Loki](https://grafana.com/oss/loki/)**: Aggregates and stores Kubernetes logs for 7 days.
+- **[Alloy](https://grafana.com/oss/alloy-opentelemetry-collector/)**: DaemonSet log shipper that
+  labels pod logs and forwards them to Loki.
 
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f52e/512.gif" alt="🔮" width="20" height="20"> Hardware
 
