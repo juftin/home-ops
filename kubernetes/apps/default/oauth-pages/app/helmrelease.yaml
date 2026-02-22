@@ -1,0 +1,129 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: oauth-pages
+spec:
+  chart:
+    spec:
+      chart: app-template
+      sourceRef:
+        kind: OCIRepository
+        name: oauth-pages
+  interval: 1h
+  values:
+    controllers:
+      oauth-pages:
+        containers:
+          app:
+            image:
+              repository: nginx
+              tag: alpine
+            resources:
+              requests:
+                cpu: 5m
+                memory: 16Mi
+    configMaps:
+      oauth-pages-html:
+        data:
+          denied.html: |
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Access Denied</title>
+                <style>
+                    body {
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        min-height: 100vh;
+                        margin: 0;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    }
+                    .container {
+                        text-align: center;
+                        background: white;
+                        padding: 3rem 2rem;
+                        border-radius: 10px;
+                        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+                        max-width: 500px;
+                    }
+                    h1 {
+                        color: #e53e3e;
+                        margin: 0 0 1rem 0;
+                        font-size: 2rem;
+                    }
+                    p {
+                        color: #4a5568;
+                        line-height: 1.6;
+                        margin: 0;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>🚫 Access Denied</h1>
+                    <p>Your Google account is not on the authorized email list for this application.</p>
+                    <p>If you believe this is an error, please contact your system administrator.</p>
+                </div>
+            </body>
+            </html>
+          logged-out.html: |
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Logged Out</title>
+                <style>
+                    body {
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        min-height: 100vh;
+                        margin: 0;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    }
+                    .container {
+                        text-align: center;
+                        background: white;
+                        padding: 3rem 2rem;
+                        border-radius: 10px;
+                        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+                        max-width: 500px;
+                    }
+                    h1 {
+                        color: #38a169;
+                        margin: 0 0 1rem 0;
+                        font-size: 2rem;
+                    }
+                    p {
+                        color: #4a5568;
+                        line-height: 1.6;
+                        margin: 0;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>👋 Logged Out</h1>
+                    <p>You have been successfully logged out.</p>
+                    <p>Your session has been cleared. You can close this page.</p>
+                </div>
+            </body>
+            </html>
+    persistence:
+      html:
+        type: configMap
+        name: oauth-pages-html
+        globalMounts:
+          - path: /usr/share/nginx/html
+    service:
+      app:
+        controller: oauth-pages
+        ports:
+          http:
+            port: 80

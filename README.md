@@ -60,6 +60,8 @@ ______________________________________________________________________
 - **[Loki](https://grafana.com/oss/loki/)**: Aggregates and stores Kubernetes logs for 7 days.
 - **[Alloy](https://grafana.com/oss/alloy-opentelemetry-collector/)**: DaemonSet log shipper that
   labels pod logs and forwards them to Loki.
+- **[oauth-pages](https://nginx.org/)**: Static access-denied and logout confirmation pages for
+  Envoy Gateway OIDC.
 
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f52e/512.gif" alt="🔮" width="20" height="20"> Hardware
 
