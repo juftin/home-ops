@@ -5,7 +5,7 @@ metadata:
   namespace: default
 spec:
   parentRefs:
-    - name: envoy-oauth-external
+    - name: envoy-oauth
       namespace: network
     - name: envoy-oauth-internal
       namespace: network

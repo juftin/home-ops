@@ -7,5 +7,5 @@ resources:
   - ./ocirepository.yaml
   - ./podmonitor.yaml
   - ./oauth-client-secret.sops.yaml
-  - ./oauth-policy-external.sops.yaml
+  - ./oauth-policy.sops.yaml
   - ./oauth-policy-internal.sops.yaml
