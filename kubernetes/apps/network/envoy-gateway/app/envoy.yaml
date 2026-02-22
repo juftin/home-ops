@@ -44,6 +44,8 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: envoy-external
+  labels:
+    home-ops.io/cloudflare-dns: "true"
   annotations:
     external-dns.alpha.kubernetes.io/target: external.${SECRET_DOMAIN}
 spec:
@@ -177,6 +179,7 @@ metadata:
   name: envoy-oauth
   namespace: network
   labels:
+    home-ops.io/cloudflare-dns: "true"
     home-ops.io/oauth-gateway: "true"
   annotations:
     lbipam.cilium.io/ips: "192.168.1.149"
