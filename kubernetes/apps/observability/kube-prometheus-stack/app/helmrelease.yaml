@@ -21,6 +21,11 @@ spec:
       prometheusSpec:
         scrapeInterval: 30s
         retention: 30d
+        securityContext:
+          fsGroup: 0
+          runAsGroup: 0
+          runAsNonRoot: false
+          runAsUser: 0
         serviceMonitorSelectorNilUsesHelmValues: false
         podMonitorSelectorNilUsesHelmValues: false
         ruleSelectorNilUsesHelmValues: false
