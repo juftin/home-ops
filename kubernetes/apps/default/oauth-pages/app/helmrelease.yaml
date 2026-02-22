@@ -3,12 +3,9 @@ kind: HelmRelease
 metadata:
   name: oauth-pages
 spec:
-  chart:
-    spec:
-      chart: app-template
-      sourceRef:
-        kind: OCIRepository
-        name: oauth-pages
+  chartRef:
+    kind: OCIRepository
+    name: oauth-pages
   interval: 1h
   values:
     controllers:
