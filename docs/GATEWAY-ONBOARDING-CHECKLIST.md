@@ -62,6 +62,12 @@ File: `kubernetes/apps/default/oauth-pages/app/httproute.yaml`
 - [ ] Add new Gateway to `parentRefs`
 - [ ] Ensure hostnames include new OAuth host if needed
 - [ ] Verify `/denied` and `/logged-out` route to `oauth-pages`
+- [ ] Verify `/denied` -> `/denied.html` and `/logged-out` -> `/logged-out.html` rewrites exist
+- [ ] Keep `/oauth2/callback` as its own route rule (no public allow override)
+
+File: `kubernetes/apps/default/oauth-pages/app/securitypolicy.yaml`
+
+- [ ] `oauth-pages-public` allows only `sectionName: denied` and `sectionName: logged-out`
 
 ______________________________________________________________________
 

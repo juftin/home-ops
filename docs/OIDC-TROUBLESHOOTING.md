@@ -9,6 +9,7 @@ ______________________________________________________________________
 ```bash
 kubectl get gateway -n network envoy-oauth envoy-oauth-internal --show-labels
 kubectl get securitypolicy -n network envoy-oauth-policy envoy-oauth-internal-policy
+kubectl get securitypolicy -n default oauth-pages-public -o yaml
 kubectl get secret -n network google-oauth-client-secret
 kubectl get httproute -n default oauth-pages
 kubectl get helmrelease -n network cloudflare-dns
@@ -52,6 +53,8 @@ ______________________________________________________________________
 
 - `spec.oidc.redirectURL` in policy matches the Gateway hostname exactly
 - Redirect URI is registered in Google OAuth client
+- `oauth-pages` includes the exact `/oauth2/callback` route
+- `oauth-pages-public` policy does **not** broadly allow the callback route
 
 Primary policy file:
 
@@ -64,6 +67,9 @@ Secondary policy file:
 ### Fix
 
 - Correct redirect URL/host mismatch
+- Ensure callback handling stays on the OIDC flow:
+  - `oauth-pages` route rule `callback` matches `/oauth2/callback`
+  - `oauth-pages-public` only targets `sectionName: denied` and `sectionName: logged-out`
 - Re-encrypt SOPS file if edited in plaintext
 - Push and reconcile
 
@@ -98,12 +104,15 @@ kubectl get httproute -n default oauth-pages -o yaml
 
 ### Expected
 
-- `parentRefs` include both `envoy-oauth` and `envoy-oauth-internal`
-- route matches include exact `/denied` and `/logged-out`
+- `parentRefs` include both `envoy-oauth` and `envoy-oauth-internal` (and `envoy-external` if used)
+- route rules include exact `/denied` and `/logged-out`
+- rules rewrite to `/denied.html` and `/logged-out.html`
+- `oauth-pages-public` allows only `sectionName: denied` and `sectionName: logged-out`
 
 ### Fix
 
 - Update `kubernetes/apps/default/oauth-pages/app/httproute.yaml`
+- Confirm `kubernetes/apps/default/oauth-pages/app/securitypolicy.yaml` is section-scoped
 - Validate and reconcile
 
 ______________________________________________________________________

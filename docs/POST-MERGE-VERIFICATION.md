@@ -40,6 +40,7 @@ ______________________________________________________________________
 - [ ] Allowlisted user can access protected app
 - [ ] Non-allowlisted user lands on `/denied`
 - [ ] Logout lands on `/logged-out`
+- [ ] Callback handling is healthy (no nginx 404 at `/oauth2/callback`)
 - [ ] Non-OAuth routes on `envoy-external` remain unaffected
 
 ______________________________________________________________________

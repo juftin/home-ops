@@ -149,6 +149,8 @@ kubectl get httproute -n default oauth-pages
 # 2) allowlisted user can access app
 # 3) non-allowlisted user is redirected to /denied
 # 4) /logout lands on /logged-out
+# 5) /oauth2/callback no longer returns nginx 404 (callback handled by OIDC flow)
+# 6) routes intentionally left on envoy-external remain publicly reachable
 
 task dev:stop
 ```

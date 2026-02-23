@@ -65,6 +65,7 @@ ______________________________________________________________________
 ### OIDC Behavior
 
 - Protected routes redirect unauthenticated requests directly to the configured OIDC provider.
+- Selected operational UIs can be attached to OAuth-protected gateways, while other routes can stay on the external gateway.
 - Authorization denials are presented with a custom `/denied` page.
 - Logout flow lands on a custom `/logged-out` confirmation page.
 - See [`docs/OIDC-TROUBLESHOOTING.md`](./docs/OIDC-TROUBLESHOOTING.md) for operational checks and
