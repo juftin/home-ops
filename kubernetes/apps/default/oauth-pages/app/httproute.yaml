@@ -30,6 +30,12 @@ spec:
         - path:
             type: Exact
             value: /denied
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplaceFullPath
+              replaceFullPath: /denied.html
       backendRefs:
         - name: oauth-pages
           port: 80
@@ -37,6 +43,12 @@ spec:
         - path:
             type: Exact
             value: /logged-out
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplaceFullPath
+              replaceFullPath: /logged-out.html
       backendRefs:
         - name: oauth-pages
           port: 80
