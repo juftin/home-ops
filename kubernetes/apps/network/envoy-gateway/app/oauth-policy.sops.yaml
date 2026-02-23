@@ -21,6 +21,10 @@ spec:
     cookieNames:
       accessToken: ENC[AES256_GCM,data:vuKBkeoigV67TBw=,iv:gU3oYGiU9G8S1jXd1sRQhpvM4xMtm6+rzUUjILd6se0=,tag:HvQoT5ZOSdIr/CoJmPveOg==,type:str]
       idToken: ENC[AES256_GCM,data:d8nGB4GuUQ==,iv:1l8MxBEWitwgo0UO64lM08KU0tbtDgstIWNbK2dxgRQ=,tag:JBsfHNoeypqNEXGrZ8pmKA==,type:str]
+    scopes:
+      - ENC[AES256_GCM,data:zuFc08Ki,iv:bDMsSdcBh0/AdEfopPrwWO3pOPZmNR5Qn+ZeE5VTJAs=,tag:QcK198uBUCYKu20IOJJ7EQ==,type:str]
+      - ENC[AES256_GCM,data:bqGivPs=,iv:NUiMoM2fuDxucivZ0ZNuZcxkzoY1RSwvYvEtw37Sg1U=,tag:xB+HWf/4ujdV7IIiadEY7A==,type:str]
+      - ENC[AES256_GCM,data:MnNEFjbssg==,iv:orSEQIo/3YOYcc257+sFN5/xOJ/QPUUJJXL282OVM5s=,tag:f9Ly6gN0BaesspFNEoYMvw==,type:str]
   jwt:
     providers:
       - name: ENC[AES256_GCM,data:ezqKfotV,iv:pV1o8/0j6z7tBaqUvBBnNY2yGVHQF5e0wrGIG0vmkqU=,tag:BghGSmQBb4+KDU7YWCqlCw==,type:str]
@@ -58,8 +62,8 @@ sops:
         WWg2L1NnYjY2MCtHR1B4S0lMKzcrNDQK/ngsQntAbtEhetRbTHc9W6KcgmX0+owG
         dPMRE8TgA6SWQk0+vcQuKjWiSsd44ZaZPPWPw8H0tlma3SueKSj3IA==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2026-02-23T06:03:12Z"
-  mac: ENC[AES256_GCM,data:rSAEiM/YDJC96JH/IxYbKYPhlCyevvrcYY9nbnZZ2sS+4v1EvITBpR1EHsHx/y7PnNN+VxnQ4Jy/LHUpcp21AM6+WqffDzVPpSbLTSfs5+aF6gCe7CtqudFh8LBhMTkxJ9g7zpOoJgfyWJS6aGP+Kty6HVyP15oIjNUDus/1lq8=,iv:n9wnNQiD8rblTHP2FmHOktBxZZq3/OKKce+6pm6Qlw4=,tag:VSAvJJqIBVIbYGHN8RoDIg==,type:str]
+  lastmodified: "2026-02-23T06:05:44Z"
+  mac: ENC[AES256_GCM,data:LOIpB7XfgE2lGlW9FtLhMzWX9lQk5Nk/2eMK763HhmglmQq0kl6UGP5TBAlgYZ44FUz+zsK5nRo99vWb7FZ9kTKuJIcCuCiUybjlgf4JbhWGWaR8yT6VsIQBBv1+AKWpwWK/AFqUHkJ/fq94Ucdrqnpdthe9+FrVHdxyXnsVMjc=,iv:PESjD+9v6ksuiB0EWjBPfa2YzqWMvUdaQ28ItWXJD54=,tag:5SAhg9ZZxhlgmopz2UpZ2g==,type:str]
   encrypted_regex: ^(spec)$
   mac_only_encrypted: true
   version: 3.11.0
