@@ -61,7 +61,7 @@ spec:
       app:
         hostnames: ["{{ .Release.Name }}.${SECRET_DOMAIN}"]
         parentRefs:
-          - name: envoy-oauth
+          - name: envoy-external
             namespace: network
             sectionName: https
         rules:
