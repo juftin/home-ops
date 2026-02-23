@@ -29,86 +29,70 @@ spec:
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>Access Denied</title>
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
                 <style>
                     body {
-                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
                         min-height: 100vh;
+                        background: radial-gradient(circle at 10% 20%, #c4b5fd 0%, #818cf8 45%, #4338ca 100%);
+                    }
+                    main.container {
+                        min-height: 100vh;
+                        display: grid;
+                        place-items: center;
+                    }
+                    article.denied-card {
+                        max-width: 640px;
                         margin: 0;
-                        background: radial-gradient(circle at 10% 20%, #93c5fd 0%, #a78bfa 45%, #7c3aed 100%);
-                        overflow: hidden;
-                    }
-                    .container {
                         text-align: center;
-                        background: rgba(255, 255, 255, 0.95);
-                        padding: 2.75rem 2.25rem;
                         border-radius: 1rem;
-                        box-shadow: 0 20px 45px rgba(30, 41, 59, 0.28);
-                        max-width: 500px;
-                        position: relative;
-                        z-index: 1;
+                        box-shadow: 0 24px 48px rgba(15, 23, 42, 0.35);
+                        backdrop-filter: blur(6px);
                     }
-                    .mascot {
-                        width: 120px;
+                    .castle {
+                        width: 140px;
                         margin: 0 auto 1rem;
                     }
-                    h1 {
-                        color: #7c2d12;
-                        margin: 0 0 1rem 0;
-                        font-size: 2rem;
-                    }
-                    p {
+                    .subtitle {
+                        margin-top: 0.75rem;
                         color: #334155;
-                        line-height: 1.6;
-                        margin: 0 0 0.75rem;
                     }
                     .actions {
-                        margin-top: 1.1rem;
+                        margin-top: 1rem;
                         display: flex;
                         flex-wrap: wrap;
                         gap: 0.75rem;
                         justify-content: center;
                     }
-                    .btn {
-                        display: inline-block;
-                        text-decoration: none;
-                        padding: 0.65rem 0.9rem;
-                        border-radius: 0.5rem;
-                        font-weight: 600;
-                        font-size: 0.95rem;
-                    }
-                    .btn-primary {
-                        background: #2563eb;
-                        color: #fff;
-                    }
-                    .btn-secondary {
-                        background: #e2e8f0;
-                        color: #1f2937;
+                    .actions a {
+                        margin-bottom: 0;
                     }
                 </style>
             </head>
             <body>
-                <div class="container">
-                    <div class="mascot" aria-hidden="true">
-                        <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="60" cy="60" r="54" fill="#fde68a"/>
-                            <circle cx="42" cy="50" r="5" fill="#1f2937"/>
-                            <circle cx="78" cy="50" r="5" fill="#1f2937"/>
-                            <path d="M38 75 Q60 88 82 75" stroke="#1f2937" stroke-width="5" fill="none" stroke-linecap="round"/>
-                            <rect x="49" y="18" width="22" height="18" rx="4" fill="#ef4444"/>
-                            <path d="M53 18v-5a7 7 0 0 1 14 0v5" stroke="#ef4444" stroke-width="4" fill="none"/>
-                        </svg>
-                    </div>
-                    <h1>Access Denied (but make it cute)</h1>
-                    <p>Womp womp... this Google account is not on the VIP allowlist.</p>
-                    <p>Try another account, or ask Juftin to add your email.</p>
-                    <div class="actions">
-                        <a class="btn btn-primary" href="https://accounts.google.com/Logout" target="_blank" rel="noopener noreferrer">Switch Google account</a>
-                        <a class="btn btn-secondary" href="https://echo.${SECRET_DOMAIN}/">Try again</a>
-                    </div>
-                </div>
+                <main class="container">
+                    <article class="denied-card">
+                        <div class="castle" aria-hidden="true">
+                            <svg viewBox="0 0 180 140" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="38" y="44" width="104" height="74" rx="8" fill="#e2e8f0"/>
+                                <rect x="52" y="30" width="24" height="24" fill="#94a3b8"/>
+                                <rect x="104" y="30" width="24" height="24" fill="#94a3b8"/>
+                                <rect x="84" y="72" width="24" height="46" rx="10" fill="#475569"/>
+                                <circle cx="90" cy="96" r="3" fill="#f8fafc"/>
+                                <path d="M46 44h88" stroke="#64748b" stroke-width="4"/>
+                                <path d="M65 20l8 10h-16zM117 20l8 10h-16z" fill="#334155"/>
+                                <circle cx="142" cy="28" r="10" fill="#f59e0b"/>
+                                <path d="M28 122h124" stroke="#16a34a" stroke-width="8" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <h1>Oops! Access Denied</h1>
+                        <p class="subtitle">You do not seem to have the keys to this castle.</p>
+                        <p>Please sign in with an approved account, or ask your administrator to add your email to the allowlist.</p>
+                        <div class="actions">
+                            <a href="https://accounts.google.com/Logout" class="contrast" role="button" target="_blank" rel="noopener noreferrer">Switch Google account</a>
+                            <a href="https://echo.${SECRET_DOMAIN}/" class="secondary" role="button">Try again</a>
+                        </div>
+                    </article>
+                </main>
             </body>
             </html>
           logged-out.html: |
