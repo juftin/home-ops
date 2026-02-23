@@ -52,16 +52,3 @@ spec:
       backendRefs:
         - name: oauth-pages
           port: 80
-    - matches:
-        - path:
-            type: Exact
-            value: /login
-      filters:
-        - type: URLRewrite
-          urlRewrite:
-            path:
-              type: ReplaceFullPath
-              replaceFullPath: /login.html
-      backendRefs:
-        - name: oauth-pages
-          port: 80
