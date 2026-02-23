@@ -18,6 +18,13 @@ spec:
     - matches:
         - path:
             type: Exact
+            value: /oauth2/callback
+      backendRefs:
+        - name: oauth-pages
+          port: 80
+    - matches:
+        - path:
+            type: Exact
             value: /denied
       backendRefs:
         - name: oauth-pages
