@@ -33,9 +33,6 @@ spec:
           jwt:
             provider: ENC[AES256_GCM,data:S4n6thCS,iv:SkLyGg/4/7X8v4NV6bW6FSgYtdRyYbv25nzR66lNn4o=,tag:udPPiWBOSD+juCjqzYE5VA==,type:str]
             claims:
-              - name: ENC[AES256_GCM,data:zCLwayqOSR10FyaD9uc=,iv:wva7yn4U09JDdabDSD3ZQAc0ygY5P38ChymC3ZRxQ/8=,tag:qnjk+A8kGv+4f68sxdIznA==,type:str]
-                values:
-                  - ENC[AES256_GCM,data:HuwtJw==,iv:KpZOimgfl3Gen19NLBC7/dZnhJMdwR93XVtOsZ+jgPw=,tag:pXW2zmDKYkHLP853dA/YMQ==,type:str]
               - name: ENC[AES256_GCM,data:Se72uYg=,iv:aWFTxlMXhz+acMh9FLsyIMffj0kihFaORVsdzwg8ZkE=,tag:c6Cka2ocHnQgmfrjZgAW9w==,type:str]
                 values:
                   - ENC[AES256_GCM,data:JgbI4c7vZbRI1kDjMRY6KQ==,iv:/+00Z+gOJIhSSvE8cHh/9pCEBtsQIAkUk/HRoV7hpBs=,tag:Lc7kg58mhrF7NcERu4bygA==,type:str]
@@ -50,8 +47,8 @@ sops:
         WWg2L1NnYjY2MCtHR1B4S0lMKzcrNDQK/ngsQntAbtEhetRbTHc9W6KcgmX0+owG
         dPMRE8TgA6SWQk0+vcQuKjWiSsd44ZaZPPWPw8H0tlma3SueKSj3IA==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2026-02-23T05:00:50Z"
-  mac: ENC[AES256_GCM,data:o8/U06Bx6lOB/VVbw3NXoCAMz03abuHYHkfT0BbnP+sfErNGw/Mykpcy4M50Wtn4ruwvCBYXdO2YZ68IaNWIGh2wqFsdCB6PuB/rjfCrvZfJzvdcxA2lbWygHj3ZzZAy3fmpA4rmzeKAYbykfursMxQEK1V34scDPtuD5E7fdr4=,iv:kJmkD0ExtnECXtXmQ/31MtVb84tCKKbONk/ZmRLT5ho=,tag:BtFw/c0UrIEdHop7KCfHEA==,type:str]
+  lastmodified: "2026-02-23T05:52:38Z"
+  mac: ENC[AES256_GCM,data:O3vfqKVsoE+/3H1p2B3652lqp+txVFp4kL5pqvGe/76i2FY0QDBAlTVb/xdvMWPifVeAClEUbxaVroQ5DJVzb+9SQivH8/1vxlGvMZS7ThsIxazbf+NTfV4MHXz6SC/beUZ4+0Q7hWJ1Z7ldUmFV2Z2v37+0phhGhEF6XZ2RlKw=,iv:kMdNalgzPq1lZ6fDVMxW7bt9/OeNvznQLfjsS8vmnVQ=,tag:OJEKdvPYvVG5Vsle/gKJTQ==,type:str]
   encrypted_regex: ^(spec)$
   mac_only_encrypted: true
   version: 3.11.0
