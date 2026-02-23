@@ -24,6 +24,14 @@ spec:
         issuer: ENC[AES256_GCM,data:EYwUfse9ZAsETulO8jvme26I9DAQJOd3rc9m,iv:XcQHtHzrqC6PCS4RSg8CYja42EK+mHQc/Ko4RYyytJE=,tag:SikFhVaFlYaqtCcbPM9KQQ==,type:str]
         remoteJWKS:
           uri: ENC[AES256_GCM,data:d0KcYbhQfXne0f6Hfy81gbCzf2qWKP7Ud71AKNP8iTNPHHTzGg08ukd5,iv:LmBjNYbmJ9TJ1cDH9VWqT+QDCEooz57j3juIITyaTYo=,tag:H6v7Lv0O145o6ZxETZoVkA==,type:str]
+        extractFrom:
+          cookies:
+            - ENC[AES256_GCM,data:f24tvLRVrag7f3E=,iv:TvfAJ2cytsLHLSHO7UDXKKydDsqfeYxA9RG8dbCkvI4=,tag:jH9G+avw2jakydDebO7NqA==,type:str]
+          headers:
+            - name: ENC[AES256_GCM,data:qu13ilV0iRPGLhAieg==,iv:hlDy8EQaZ+n9hbXHBzUzNhWBKgMO+noICFgio2g7FKI=,tag:57GptL+4YDBfG9QWLGhRww==,type:str]
+              valuePrefix: ENC[AES256_GCM,data:kQ4+YjMrLw==,iv:qpUZHYUH7yFkZNlRHLCnehXOXjNhyEhzcxDjxLNI71Y=,tag:/PEZGibQ2YBwfuM+9HLieQ==,type:str]
+          params:
+            - ENC[AES256_GCM,data:Bq5GEiXLrs4l9rkN,iv:/Wgkv3G5/tfW3a78uEBjdqPPu4mD6RI+5FKgsHWyTnw=,tag:EBLOkircMLtW4BCm6T9k0g==,type:str]
   authorization:
     defaultAction: ENC[AES256_GCM,data:HJwn3w==,iv:+4i77SqC2cKoluTWA4aBcGvCRyKtCY68k/vGzlnjhlY=,tag:t77Nx/ay4lpzdBeb95JI2Q==,type:str]
     rules:
@@ -47,8 +55,8 @@ sops:
         V0VTUzFxQ2hmUzgwZ3o3dlVzckV1ZU0KxWk3cDSjf0FTa44Q/moUbdkcb7w1Q54h
         HaeK4f3cqbPPfv66ZXwu2NjDRvKGre2cqY+WrBUEYVwD4gbhK757dA==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2026-02-23T05:52:38Z"
-  mac: ENC[AES256_GCM,data:R6uLyj6IyGMXMfiOBzb4SxfOvXXhapO35GXUFEEhj/xs3WYG9PCEhA42JhcBm8daEflEdpkvOtzUw4noSt7fK+HKfAUx4HYMUXKRQoCSbEPocf/6yL02rb8sDeiJsFAkh7uLefzUYuTbA/dEFmvhvgRkQGdAPNSZs38KJMVXIkg=,iv:rh420RmFgsoA/tfKFocTuJ7UZKxOc3zzJ6UBF2jc9kI=,tag:iDTBx+CZMbDzu62YWxAIOA==,type:str]
+  lastmodified: "2026-02-23T06:00:47Z"
+  mac: ENC[AES256_GCM,data:AszooGCua/OAVdrBCOojrSdHE5Pc5JwDz8A3eWtlWzFgtUbLMi+bu2pQGmAAz9pPIIsUJuD0tvG8AOpdyGzb8DdAk9jc2vTKx2MGaprMGXX/DhMETpiJUWXyM2WnpV7lO2w/zJFgSoCjhCyQUbvlHOnut6jQocu6gWNZt9T/nIU=,iv:2VPmJNlV1gZSMCP07RNpQiVWLXaFagCGK1tPfvkuOJ8=,tag:8C4jmrvYXYIht/01p01eUA==,type:str]
   encrypted_regex: ^(spec)$
   mac_only_encrypted: true
   version: 3.11.0
