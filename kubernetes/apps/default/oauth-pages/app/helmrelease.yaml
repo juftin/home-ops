@@ -93,6 +93,61 @@ spec:
                 </main>
             </body>
             </html>
+          login.html: |
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Sign In</title>
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+                <style>
+                    body {
+                        min-height: 100vh;
+                        background: #0f172a;
+                        color: #ffffff;
+                    }
+                    main.container {
+                        min-height: 100vh;
+                        display: grid;
+                        place-items: center;
+                        text-align: center;
+                    }
+                    .castle {
+                        width: 180px;
+                        margin: 0 auto 1rem;
+                    }
+                    h1 {
+                        color: #ffffff;
+                    }
+                    p {
+                        color: #e2e8f0;
+                    }
+                    .actions {
+                        margin-top: 1rem;
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 0.75rem;
+                        justify-content: center;
+                    }
+                    .actions a {
+                        margin-bottom: 0;
+                    }
+                </style>
+            </head>
+            <body>
+                <main class="container">
+                    <section>
+                        <img class="castle" src="https://openmoji.org/data/color/svg/1F3F0.svg" alt="Cartoon castle icon" />
+                        <h1>Welcome to the castle</h1>
+                        <p>Sign in with Google to continue.</p>
+                        <div class="actions">
+                            <a href="https://echo.${SECRET_DOMAIN}/" class="contrast" role="button">Sign in with Google</a>
+                        </div>
+                    </section>
+                </main>
+            </body>
+            </html>
           logged-out.html: |
             <!DOCTYPE html>
             <html lang="en">
