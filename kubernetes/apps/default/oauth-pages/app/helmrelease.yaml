@@ -37,33 +37,77 @@ spec:
                         align-items: center;
                         min-height: 100vh;
                         margin: 0;
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        background: radial-gradient(circle at 10% 20%, #93c5fd 0%, #a78bfa 45%, #7c3aed 100%);
+                        overflow: hidden;
                     }
                     .container {
                         text-align: center;
-                        background: white;
-                        padding: 3rem 2rem;
-                        border-radius: 10px;
-                        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+                        background: rgba(255, 255, 255, 0.95);
+                        padding: 2.75rem 2.25rem;
+                        border-radius: 1rem;
+                        box-shadow: 0 20px 45px rgba(30, 41, 59, 0.28);
                         max-width: 500px;
+                        position: relative;
+                        z-index: 1;
+                    }
+                    .mascot {
+                        width: 120px;
+                        margin: 0 auto 1rem;
                     }
                     h1 {
-                        color: #e53e3e;
+                        color: #7c2d12;
                         margin: 0 0 1rem 0;
                         font-size: 2rem;
                     }
                     p {
-                        color: #4a5568;
+                        color: #334155;
                         line-height: 1.6;
-                        margin: 0;
+                        margin: 0 0 0.75rem;
+                    }
+                    .actions {
+                        margin-top: 1.1rem;
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 0.75rem;
+                        justify-content: center;
+                    }
+                    .btn {
+                        display: inline-block;
+                        text-decoration: none;
+                        padding: 0.65rem 0.9rem;
+                        border-radius: 0.5rem;
+                        font-weight: 600;
+                        font-size: 0.95rem;
+                    }
+                    .btn-primary {
+                        background: #2563eb;
+                        color: #fff;
+                    }
+                    .btn-secondary {
+                        background: #e2e8f0;
+                        color: #1f2937;
                     }
                 </style>
             </head>
             <body>
                 <div class="container">
-                    <h1>🚫 Access Denied</h1>
-                    <p>Your Google account is not on the authorized email list for this application.</p>
-                    <p>If you believe this is an error, please contact your system administrator.</p>
+                    <div class="mascot" aria-hidden="true">
+                        <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="60" cy="60" r="54" fill="#fde68a"/>
+                            <circle cx="42" cy="50" r="5" fill="#1f2937"/>
+                            <circle cx="78" cy="50" r="5" fill="#1f2937"/>
+                            <path d="M38 75 Q60 88 82 75" stroke="#1f2937" stroke-width="5" fill="none" stroke-linecap="round"/>
+                            <rect x="49" y="18" width="22" height="18" rx="4" fill="#ef4444"/>
+                            <path d="M53 18v-5a7 7 0 0 1 14 0v5" stroke="#ef4444" stroke-width="4" fill="none"/>
+                        </svg>
+                    </div>
+                    <h1>Access Denied (but make it cute)</h1>
+                    <p>Womp womp... this Google account is not on the VIP allowlist.</p>
+                    <p>Try another account, or ask Juftin to add your email.</p>
+                    <div class="actions">
+                        <a class="btn btn-primary" href="https://accounts.google.com/Logout" target="_blank" rel="noopener noreferrer">Switch Google account</a>
+                        <a class="btn btn-secondary" href="https://echo.${SECRET_DOMAIN}/">Try again</a>
+                    </div>
                 </div>
             </body>
             </html>
