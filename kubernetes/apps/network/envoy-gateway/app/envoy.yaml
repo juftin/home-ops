@@ -186,7 +186,6 @@ spec:
             value: 403
       redirect:
         scheme: https
-        hostname: echo.${SECRET_DOMAIN}
         statusCode: 302
         path:
           type: ReplaceFullPath

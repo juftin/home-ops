@@ -87,7 +87,7 @@ spec:
                         <p>Please sign in with an approved account, or ask your administrator to grant you access.</p>
                         <div class="actions">
                             <a href="https://accounts.google.com/Logout" class="contrast" role="button" target="_blank" rel="noopener noreferrer">Switch Google account</a>
-                            <a href="https://echo.${SECRET_DOMAIN}/" class="secondary" role="button">Try again</a>
+                            <a href="/" class="secondary" role="button">Try again</a>
                         </div>
                     </article>
                 </main>

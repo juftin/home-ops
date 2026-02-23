@@ -16,6 +16,8 @@ spec:
   hostnames:
     - oauth.${SECRET_DOMAIN}
     - oauth-internal.${SECRET_DOMAIN}
+    - grafana.${SECRET_DOMAIN}
+    - headlamp.${SECRET_DOMAIN}
     - echo.${SECRET_DOMAIN}
     - external.${SECRET_DOMAIN}
   rules:
