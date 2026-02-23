@@ -184,89 +184,13 @@ spec:
         statusCodes:
           - type: Value
             value: 403
-      response:
-        statusCode: 403
-        contentType: text/html; charset=utf-8
-        body:
-          type: Inline
-          inline: |
-            <!doctype html>
-            <html lang="en">
-              <head>
-                <meta charset="utf-8" />
-                <meta name="viewport" content="width=device-width, initial-scale=1" />
-                <title>Access denied</title>
-                <style>
-                  body {
-                    margin: 0;
-                    min-height: 100vh;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-                  }
-                  .card {
-                    background: #fff;
-                    width: min(92vw, 560px);
-                    border-radius: 12px;
-                    padding: 2rem;
-                    text-align: center;
-                    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-                  }
-                  .logo {
-                    width: 80px;
-                    height: 80px;
-                    border-radius: 999px;
-                    margin: 0 auto 0.75rem;
-                    display: block;
-                  }
-                  h1 {
-                    margin: 0 0 0.75rem;
-                    color: #e53e3e;
-                  }
-                  p {
-                    margin: 0.5rem 0;
-                    color: #4a5568;
-                    line-height: 1.5;
-                  }
-                  .actions {
-                    margin-top: 1rem;
-                    display: flex;
-                    gap: 0.75rem;
-                    justify-content: center;
-                    flex-wrap: wrap;
-                  }
-                  a.btn {
-                    text-decoration: none;
-                    padding: 0.65rem 0.9rem;
-                    border-radius: 0.5rem;
-                    font-weight: 600;
-                    font-size: 0.95rem;
-                  }
-                  .primary {
-                    background: #1a73e8;
-                    color: #fff;
-                  }
-                  .secondary {
-                    background: #edf2f7;
-                    color: #2d3748;
-                  }
-                </style>
-              </head>
-              <body>
-                <main class="card">
-                  <img class="logo" src="https://raw.githubusercontent.com/juftin/juftin.github.io/main/content/static/juftin.png" alt="Juftin logo" />
-                  <h1>Access denied</h1>
-                  <p>Your Google account is not on the allowlist for this application.</p>
-                  <p>If this seems wrong, sign out and retry with a different account.</p>
-                  <div class="actions">
-                    <a class="btn primary" href="https://accounts.google.com/Logout">Sign out of Google</a>
-                    <a class="btn secondary" href="/">Retry</a>
-                  </div>
-                </main>
-              </body>
-            </html>
+      redirect:
+        scheme: https
+        hostname: external.${SECRET_DOMAIN}
+        statusCode: 302
+        path:
+          type: ReplaceFullPath
+          replaceFullPath: /denied
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway

@@ -11,9 +11,12 @@ spec:
       namespace: network
     - name: envoy-oauth-internal
       namespace: network
+    - name: envoy-external
+      namespace: network
   hostnames:
     - oauth.${SECRET_DOMAIN}
     - oauth-internal.${SECRET_DOMAIN}
+    - external.${SECRET_DOMAIN}
   rules:
     - matches:
         - path:
