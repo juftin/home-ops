@@ -186,7 +186,7 @@ spec:
             value: 403
       redirect:
         scheme: https
-        hostname: oauth.${SECRET_DOMAIN}
+        hostname: echo.${SECRET_DOMAIN}
         statusCode: 302
         path:
           type: ReplaceFullPath
