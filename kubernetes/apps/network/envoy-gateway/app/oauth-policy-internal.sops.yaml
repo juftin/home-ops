@@ -18,6 +18,9 @@ spec:
     redirectURL: ENC[AES256_GCM,data:3NU9hj8kaTuqxswZwtR9evbl510GYa57EBeMoi0sQbJYhkx9t73cMN6UnU5h3mHYX7mkE0RJBA==,iv:18bVIYKEjtlkWoT7xcW2YaXIUx7UZB+/j1M2uXKWVys=,tag:b5+ZPOHOw4I46kNHVVYI3w==,type:str]
     logoutPath: ENC[AES256_GCM,data:3EKGk2NJRA==,iv:o42bX7qRp5BR3zJeRmKOuZoagsocBMf8LKk7FQMdFT0=,tag:mRtQHXgIAlvo4Gp1qpbwxw==,type:str]
     cookieDomain: ENC[AES256_GCM,data:B4M4LBOmnuu/JgnorrJROA==,iv:l7Pi7UAEhKGxWmuQn6WHABOWdJLL9UO5Pi3prdU91x0=,tag:FQHX61Nw6gDatwS15HL00g==,type:str]
+    cookieNames:
+      accessToken: ENC[AES256_GCM,data:y05BKkP5aNaAyAA=,iv:u323qSWyrLiJXaHpjsJjDyCaY6X3zM9Drx2ijSK70DA=,tag://3zKp2RIh//Yp9u2HiFvg==,type:str]
+      idToken: ENC[AES256_GCM,data:X0oq4/00YQ==,iv:fDFYyGbtdiYEaZBl1hI1a3dZqrn3Cui3rCg76pdD2Tc=,tag:kWtOHp5VHuBFtUfddb3LBA==,type:str]
   jwt:
     providers:
       - name: ENC[AES256_GCM,data:Nph9SXL0,iv:QDw6nCIJ6E3dD6/p/nAAM5DCCzM6xGzwCpzHPTv7o6o=,tag:DrOEN2dsgllK4+iCFg5pmQ==,type:str]
@@ -26,7 +29,7 @@ spec:
           uri: ENC[AES256_GCM,data:d0KcYbhQfXne0f6Hfy81gbCzf2qWKP7Ud71AKNP8iTNPHHTzGg08ukd5,iv:LmBjNYbmJ9TJ1cDH9VWqT+QDCEooz57j3juIITyaTYo=,tag:H6v7Lv0O145o6ZxETZoVkA==,type:str]
         extractFrom:
           cookies:
-            - ENC[AES256_GCM,data:f24tvLRVrag7f3E=,iv:TvfAJ2cytsLHLSHO7UDXKKydDsqfeYxA9RG8dbCkvI4=,tag:jH9G+avw2jakydDebO7NqA==,type:str]
+            - ENC[AES256_GCM,data:HyFoKOED5Q==,iv:qD5MomJ2D9IbnXOZvEjKR4uuWIL6aqS3Q9cV9Zxnw2M=,tag:/chyI6fU5B4pc7o0f3pkXw==,type:str]
           headers:
             - name: ENC[AES256_GCM,data:qu13ilV0iRPGLhAieg==,iv:hlDy8EQaZ+n9hbXHBzUzNhWBKgMO+noICFgio2g7FKI=,tag:57GptL+4YDBfG9QWLGhRww==,type:str]
               valuePrefix: ENC[AES256_GCM,data:kQ4+YjMrLw==,iv:qpUZHYUH7yFkZNlRHLCnehXOXjNhyEhzcxDjxLNI71Y=,tag:/PEZGibQ2YBwfuM+9HLieQ==,type:str]
@@ -55,8 +58,8 @@ sops:
         V0VTUzFxQ2hmUzgwZ3o3dlVzckV1ZU0KxWk3cDSjf0FTa44Q/moUbdkcb7w1Q54h
         HaeK4f3cqbPPfv66ZXwu2NjDRvKGre2cqY+WrBUEYVwD4gbhK757dA==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2026-02-23T06:00:47Z"
-  mac: ENC[AES256_GCM,data:AszooGCua/OAVdrBCOojrSdHE5Pc5JwDz8A3eWtlWzFgtUbLMi+bu2pQGmAAz9pPIIsUJuD0tvG8AOpdyGzb8DdAk9jc2vTKx2MGaprMGXX/DhMETpiJUWXyM2WnpV7lO2w/zJFgSoCjhCyQUbvlHOnut6jQocu6gWNZt9T/nIU=,iv:2VPmJNlV1gZSMCP07RNpQiVWLXaFagCGK1tPfvkuOJ8=,tag:8C4jmrvYXYIht/01p01eUA==,type:str]
+  lastmodified: "2026-02-23T06:03:12Z"
+  mac: ENC[AES256_GCM,data:zJeYi5jY4pteUAliiov5gYAVpg74Xk6KpliHgePNlZybBIdAQQyxg224qk2SZAOsurlMdImz6f7d9AZpccYJPLmXyc0PFN0apoW0aCUIOITWY+CpUxhXslFTaormIe4pJZ8BGYP9rsjXjFkrXE5jv43aIzyxZkVi2EZg2F7rhps=,iv:iBbyzb3/GF1TuNd+rjYlovc0qaLJ5dfeGm6pCvLCELE=,tag:TriCAawwSCsyh9Ezny/w1Q==,type:str]
   encrypted_regex: ^(spec)$
   mac_only_encrypted: true
   version: 3.11.0
