@@ -19,14 +19,16 @@ spec:
     - echo.${SECRET_DOMAIN}
     - external.${SECRET_DOMAIN}
   rules:
-    - matches:
+    - name: callback
+      matches:
         - path:
             type: Exact
             value: /oauth2/callback
       backendRefs:
         - name: oauth-pages
           port: 80
-    - matches:
+    - name: denied
+      matches:
         - path:
             type: Exact
             value: /denied
@@ -39,7 +41,8 @@ spec:
       backendRefs:
         - name: oauth-pages
           port: 80
-    - matches:
+    - name: logged-out
+      matches:
         - path:
             type: Exact
             value: /logged-out

@@ -8,5 +8,10 @@ spec:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
       name: oauth-pages
+      sectionName: denied
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: oauth-pages
+      sectionName: logged-out
   authorization:
     defaultAction: Allow
