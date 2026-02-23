@@ -144,6 +144,14 @@ Replicate CI locally with `task dev:validate` before opening a PR.
 - **OAuth Gateways must include the Cloudflare DNS label** — `cloudflare-dns` now discovers Gateway
   resources using `--gateway-label-filter=home-ops.io/cloudflare-dns=true`. If the label is missing
   from a Gateway, its DNS records will not be created/updated in Cloudflare.
+- **`oauth-pages` requires URL rewrites for friendly paths** — `/denied` and `/logged-out` must be
+  rewritten to `/denied.html` and `/logged-out.html` in
+  `kubernetes/apps/default/oauth-pages/app/httproute.yaml`; otherwise nginx serves 404.
+- **Keep oauth utility pages publicly reachable** — `kubernetes/apps/default/oauth-pages/app/securitypolicy.yaml`
+  intentionally sets `authorization.defaultAction: Allow` on the `oauth-pages` HTTPRoute so denied/logout
+  pages do not get trapped behind the gateway-level OIDC challenge.
+- **Default auth UX is immediate provider redirect** — do not add or keep a public `/login` route unless
+  explicitly requested for a temporary test; protected paths should immediately initiate OIDC login.
 - **ServiceAccount tokens from `kubectl create token` go stale** — these JWTs embed the SA's
   current UID. If the SA is deleted and recreated (e.g. after branch testing), any stored token
   becomes invalid. Regenerate with:
