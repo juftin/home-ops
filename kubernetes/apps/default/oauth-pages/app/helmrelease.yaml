@@ -92,6 +92,12 @@ spec:
                         box-shadow: 0 10px 40px rgba(0,0,0,0.2);
                         max-width: 500px;
                     }
+                    .logo {
+                        width: 80px;
+                        height: 80px;
+                        border-radius: 999px;
+                        margin-bottom: 1rem;
+                    }
                     h1 {
                         color: #38a169;
                         margin: 0 0 1rem 0;
@@ -100,15 +106,43 @@ spec:
                     p {
                         color: #4a5568;
                         line-height: 1.6;
-                        margin: 0;
+                        margin: 0 0 0.75rem 0;
+                    }
+                    .actions {
+                        margin-top: 1.25rem;
+                        display: flex;
+                        gap: 0.75rem;
+                        justify-content: center;
+                        flex-wrap: wrap;
+                    }
+                    .btn {
+                        display: inline-block;
+                        text-decoration: none;
+                        padding: 0.65rem 0.9rem;
+                        border-radius: 0.5rem;
+                        font-weight: 600;
+                        font-size: 0.95rem;
+                    }
+                    .btn-primary {
+                        background: #1a73e8;
+                        color: white;
+                    }
+                    .btn-secondary {
+                        background: #edf2f7;
+                        color: #2d3748;
                     }
                 </style>
             </head>
             <body>
                 <div class="container">
+                    <img class="logo" src="https://raw.githubusercontent.com/juftin/juftin.github.io/main/content/static/juftin.png" alt="Juftin logo" />
                     <h1>👋 Logged Out</h1>
                     <p>You have been successfully logged out.</p>
-                    <p>Your session has been cleared. You can close this page.</p>
+                    <p>Your session cookie has been cleared for this site.</p>
+                    <div class="actions">
+                        <a class="btn btn-primary" href="https://accounts.google.com/Logout" target="_blank" rel="noopener noreferrer">Sign out of Google</a>
+                        <a class="btn btn-secondary" href="javascript:window.location.reload();">Refresh</a>
+                    </div>
                 </div>
             </body>
             </html>
