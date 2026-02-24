@@ -78,6 +78,11 @@ spec:
                   http2Origin: true
                   originServerName: oauth.${SECRET_DOMAIN}
                 service: https://envoy-oauth.{{ .Release.Namespace }}.svc.cluster.local:443
+              - hostname: "oauth.${SECRET_DOMAIN}"
+                originRequest:
+                  http2Origin: true
+                  originServerName: oauth.${SECRET_DOMAIN}
+                service: https://envoy-oauth.{{ .Release.Namespace }}.svc.cluster.local:443
               - hostname: "*.${SECRET_DOMAIN}"
                 originRequest:
                   http2Origin: true
