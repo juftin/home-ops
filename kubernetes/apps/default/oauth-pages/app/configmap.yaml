@@ -130,10 +130,10 @@ data:
       <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Logged Out</title>
+        <title>401 Unauthorized</title>
       </head>
       <body>
-        <h1>Logged Out</h1>
-        <p>Your session has been cleared.</p>
+        <h1>401 Unauthorized</h1>
+        <p>You are signed out and no longer authorized.</p>
       </body>
     </html>

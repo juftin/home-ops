@@ -148,7 +148,7 @@ spec:
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Logged Out</title>
+                <title>401 Unauthorized</title>
                 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
                 <style>
                     body {
@@ -202,9 +202,9 @@ spec:
                 <main class="container">
                     <article class="denied-card">
                         <img class="castle" src="https://openmoji.org/data/color/svg/1F6AA.svg" alt="Open door icon" />
-                        <h1>You're Logged Out</h1>
-                        <p class="subtitle">Your session has been cleared.</p>
-                        <p>You can close this tab, or sign in again with an approved account.</p>
+                        <h1>401 Unauthorized</h1>
+                        <p class="subtitle">You are signed out and no longer authorized.</p>
+                        <p>Sign in again with an approved account to continue.</p>
                         <div class="actions">
                             <a href="/" class="contrast" role="button">Sign in again</a>
                             <a href="/" class="secondary" role="button">Return home</a>
