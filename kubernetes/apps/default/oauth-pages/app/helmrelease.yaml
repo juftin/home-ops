@@ -33,7 +33,7 @@ spec:
                     html,
                     body {
                         font-family: Lato, Arial, sans-serif;
-                        font-size: 120%;
+                        font-size: 100%;
                         font-weight: 300;
                         height: 100%;
                     }
@@ -47,28 +47,31 @@ spec:
                         flex-direction: column;
                         min-height: 100%;
                         justify-content: center;
-                        padding: 5rem 0;
+                        padding: 2rem 0;
                     }
                     .error__header {
                         color: red;
-                        font-size: 5rem;
+                        font-size: 3.25rem;
                         font-weight: 900;
-                        padding: 1.5rem 0 0.5rem 0;
+                        padding: 0.5rem 0 0.25rem 0;
                     }
                     .error__header--secondary {
                         color: darkred;
-                        font-size: 2.5rem;
-                        padding: 0 0 1rem 0;
+                        font-size: 1.4rem;
+                        padding: 0 0 0.5rem 0;
                         text-transform: uppercase;
                     }
                     .error__description {
                         color: darkred;
-                        font-size: 1.5rem;
+                        font-size: 1.05rem;
                         margin: 0;
                     }
                     .stage {
                         height: 18rem;
+                        margin-bottom: -3rem;
                         position: relative;
+                        transform: scale(0.72);
+                        transform-origin: top center;
                         width: 8rem;
                     }
                     .key {
