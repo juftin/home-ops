@@ -44,6 +44,8 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: envoy-external
+  labels:
+    home-ops.io/cloudflare-dns: "true"
   annotations:
     external-dns.alpha.kubernetes.io/target: external.${SECRET_DOMAIN}
 spec:
@@ -120,6 +122,9 @@ spec:
   targetSelectors:
     - group: gateway.networking.k8s.io
       kind: Gateway
+      matchExpressions:
+        - key: home-ops.io/oauth-gateway
+          operator: DoesNotExist
   tcpKeepalive: {}
   timeout:
     http:
@@ -147,6 +152,111 @@ spec:
       - h2
       - http/1.1
 ---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: oauth-denied-override
+  namespace: network
+spec:
+  compressor:
+    - type: Zstd
+      zstd: {}
+    - type: Brotli
+      brotli: {}
+    - type: Gzip
+      gzip: {}
+  retry:
+    numRetries: 2
+    retryOn:
+      triggers:
+        - reset
+  tcpKeepalive: {}
+  timeout:
+    http:
+      requestTimeout: 0s
+  targetSelectors:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      matchLabels:
+        home-ops.io/oauth-gateway: "true"
+  responseOverride:
+    - match:
+        statusCodes:
+          - type: Value
+            value: 403
+      redirect:
+        scheme: https
+        statusCode: 302
+        path:
+          type: ReplaceFullPath
+          replaceFullPath: /denied
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: envoy-oauth
+  namespace: network
+  labels:
+    home-ops.io/cloudflare-dns: "true"
+    home-ops.io/oauth-gateway: "true"
+  annotations:
+    external-dns.alpha.kubernetes.io/target: external.${SECRET_DOMAIN}
+    lbipam.cilium.io/ips: "192.168.1.149"
+spec:
+  gatewayClassName: envoy
+  infrastructure:
+    annotations:
+      external-dns.alpha.kubernetes.io/hostname: oauth.${SECRET_DOMAIN}
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+    - name: https
+      protocol: HTTPS
+      port: 443
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: ${SECRET_DOMAIN/./-}-production-tls
+            namespace: network
+      allowedRoutes:
+        namespaces:
+          from: All
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: envoy-oauth-internal
+  namespace: network
+  labels:
+    home-ops.io/cloudflare-dns: "true"
+    home-ops.io/oauth-gateway: "true"
+  annotations:
+    external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
+    lbipam.cilium.io/ips: "192.168.1.150"
+spec:
+  gatewayClassName: envoy
+  infrastructure:
+    annotations:
+      external-dns.alpha.kubernetes.io/hostname: oauth-internal.${SECRET_DOMAIN}
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+    - name: https
+      protocol: HTTPS
+      port: 443
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: ${SECRET_DOMAIN/./-}-production-tls
+            namespace: network
+      allowedRoutes:
+        namespaces:
+          from: All
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -159,6 +269,12 @@ spec:
       namespace: network
       sectionName: http
     - name: envoy-internal
+      namespace: network
+      sectionName: http
+    - name: envoy-oauth
+      namespace: network
+      sectionName: http
+    - name: envoy-oauth-internal
       namespace: network
       sectionName: http
   rules:

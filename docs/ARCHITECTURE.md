@@ -132,15 +132,15 @@ kubernetes/apps/<namespace>/
 
 #### Namespaces
 
-| Namespace          | Contents                                                                       |
-| ------------------ | ------------------------------------------------------------------------------ |
-| `kube-system`      | cilium, coredns, local-path-provisioner, metrics-server, reloader              |
-| `cert-manager`     | cert-manager (TLS)                                                             |
-| `network`          | envoy-gateway, cloudflared tunnel, external-dns (k8s-gateway + cloudflare-dns) |
-| `external-secrets` | external-secrets operator, 1Password Connect                                   |
-| `flux-system`      | Flux itself                                                                    |
-| `default`          | General applications (e.g. `echo` test server)                                 |
-| `observability`    | headlamp dashboard, Grafana UI, Prometheus, Alertmanager, Loki, and Alloy      |
+| Namespace          | Contents                                                                                                         |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `kube-system`      | cilium, coredns, local-path-provisioner, metrics-server, reloader                                                |
+| `cert-manager`     | cert-manager (TLS)                                                                                               |
+| `network`          | envoy-gateway, OAuth Gateways, SecurityPolicies, cloudflared tunnel, external-dns (k8s-gateway + cloudflare-dns) |
+| `external-secrets` | external-secrets operator, 1Password Connect                                                                     |
+| `flux-system`      | Flux itself                                                                                                      |
+| `default`          | General applications (e.g. `echo` test server, `oauth-pages` for OIDC error pages)                               |
+| `observability`    | headlamp dashboard, Grafana UI, Prometheus, Alertmanager, Loki, and Alloy                                        |
 
 #### Shared components
 

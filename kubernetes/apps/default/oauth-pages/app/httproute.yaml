@@ -1,0 +1,67 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: oauth-pages
+  namespace: default
+  annotations:
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
+spec:
+  parentRefs:
+    - name: envoy-oauth
+      namespace: network
+    - name: envoy-oauth-internal
+      namespace: network
+    - name: envoy-external
+      namespace: network
+  hostnames:
+    - oauth.${SECRET_DOMAIN}
+    - oauth-internal.${SECRET_DOMAIN}
+    - grafana.${SECRET_DOMAIN}
+    - headlamp.${SECRET_DOMAIN}
+    - echo.${SECRET_DOMAIN}
+    - external.${SECRET_DOMAIN}
+  rules:
+    - name: callback
+      matches:
+        - path:
+            type: Exact
+            value: /oauth2/callback
+      backendRefs:
+        - name: oauth-pages
+          port: 80
+    - name: logout
+      matches:
+        - path:
+            type: Exact
+            value: /logout
+      backendRefs:
+        - name: oauth-pages
+          port: 80
+    - name: denied
+      matches:
+        - path:
+            type: Exact
+            value: /denied
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplaceFullPath
+              replaceFullPath: /denied.html
+      backendRefs:
+        - name: oauth-pages
+          port: 80
+    - name: logged-out
+      matches:
+        - path:
+            type: Exact
+            value: /logged-out
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplaceFullPath
+              replaceFullPath: /logged-out.html
+      backendRefs:
+        - name: oauth-pages
+          port: 80

@@ -51,8 +51,7 @@ ______________________________________________________________________
   testing.
 - **[headlamp](https://headlamp.dev/)**: Kubernetes dashboard with the
   [Flux plugin](https://github.com/headlamp-k8s/headlamp-plugin-flux) for GitOps visibility.
-- **[Grafana](https://grafana.com/)**: Cluster dashboards and Explore UI at
-  [grafana.juftin.dev](https://grafana.juftin.dev).
+- **[Grafana](https://grafana.com/)**: Cluster dashboards and Explore UI.
 - **[Prometheus](https://prometheus.io/)**: Scrapes and stores Kubernetes metrics with 30-day
   retention.
 - **[Alertmanager](https://prometheus.io/docs/alerting/latest/alertmanager/)**: Routes firing and
@@ -60,6 +59,17 @@ ______________________________________________________________________
 - **[Loki](https://grafana.com/oss/loki/)**: Aggregates and stores Kubernetes logs for 7 days.
 - **[Alloy](https://grafana.com/oss/alloy-opentelemetry-collector/)**: DaemonSet log shipper that
   labels pod logs and forwards them to Loki.
+- **[oauth-pages](https://nginx.org/)**: Static access-denied and logout confirmation pages for
+  Envoy Gateway OIDC, including route rewrites from friendly paths to static HTML files.
+
+### OIDC Behavior
+
+- Protected routes redirect unauthenticated requests directly to the configured OIDC provider.
+- Selected operational UIs can be attached to OAuth-protected gateways, while other routes can stay on the external gateway.
+- Authorization denials are presented with a custom `/denied` page.
+- Logout flow lands on a custom `/logged-out` confirmation page.
+- See [`docs/OIDC-TROUBLESHOOTING.md`](./docs/OIDC-TROUBLESHOOTING.md) for operational checks and
+  recovery steps.
 
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f52e/512.gif" alt="🔮" width="20" height="20"> Hardware
 

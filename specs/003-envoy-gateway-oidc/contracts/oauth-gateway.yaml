@@ -1,0 +1,31 @@
+# Template: OAuth Gateway
+# File: kubernetes/apps/network/envoy-gateway/app/envoy.yaml (appended)
+# Replace: <GATEWAY_NAME>, <LB_IP>, <DNS_HOSTNAME>, <SECRET_DOMAIN>
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: envoy-oauth-<GATEWAY_NAME>
+  namespace: network
+  annotations:
+    lbipam.cilium.io/ips: "<LB_IP>"
+spec:
+  gatewayClassName: envoy
+  infrastructure:
+    annotations:
+      external-dns.alpha.kubernetes.io/hostname: <DNS_HOSTNAME>
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+    - name: https
+      protocol: HTTPS
+      port: 443
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: "${SECRET_DOMAIN/./-}-production-tls"
+            namespace: network
+      allowedRoutes:
+        namespaces:
+          from: All

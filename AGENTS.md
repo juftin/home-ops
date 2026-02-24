@@ -7,6 +7,11 @@ Linux is the OS. Secrets are SOPS-encrypted with age. Dependencies are updated b
 @README.md
 @docs/ARCHITECTURE.md
 @docs/TASKS.md
+@docs/GOOGLE-OAUTH-SETUP.md
+@docs/OIDC-TROUBLESHOOTING.md
+@docs/GATEWAY-ONBOARDING-CHECKLIST.md
+@docs/SECURITYPOLICY-CHANGE-PLAYBOOK.md
+@docs/POST-MERGE-VERIFICATION.md
 
 ## Environment Setup
 
@@ -104,6 +109,18 @@ Use `kubernetes/apps/default/echo/` as a working reference. After adding files:
 4. Update **`README.md`** — add the app to the `## Apps` or `## Components` section
 5. Update **`docs/ARCHITECTURE.md`** — add the app to the namespaces table and any relevant layer description
 
+**If the app is OAuth-protected**:
+
+1. Add an explicit hostname entry in
+   `kubernetes/apps/network/cloudflare-tunnel/app/helmrelease.yaml` that routes to
+   `https://envoy-oauth.<namespace>.svc.cluster.local:443` **before** the wildcard
+   `*.${SECRET_DOMAIN}` rule.
+2. Add the app hostname to
+   `kubernetes/apps/default/oauth-pages/app/httproute.yaml` so `/denied` and `/logged-out` work on
+   that host.
+3. Keep `/oauth2/callback` route handling on `oauth-pages` and do not broaden
+   `oauth-pages-public` to allow callback.
+
 **For app secrets**: prefer `ExternalSecret` + 1Password over committing a new `.sops.yaml`.
 See [`specs/001-external-secrets-1password/quickstart.md`](specs/001-external-secrets-1password/quickstart.md).
 
@@ -136,6 +153,17 @@ Replicate CI locally with `task dev:validate` before opening a PR.
 - **`components/sops` is the only Kustomize component on `main`** — namespace-level
   `kustomization.yaml` files must use `../../components/sops`. Do not copy namespace kustomizations
   from feature branches that used `../../components/common`; that directory does not exist on `main`.
+- **OAuth Gateways must include the Cloudflare DNS label** — `cloudflare-dns` now discovers Gateway
+  resources using `--gateway-label-filter=home-ops.io/cloudflare-dns=true`. If the label is missing
+  from a Gateway, its DNS records will not be created/updated in Cloudflare.
+- **`oauth-pages` requires URL rewrites for friendly paths** — `/denied` and `/logged-out` must be
+  rewritten to `/denied.html` and `/logged-out.html` in
+  `kubernetes/apps/default/oauth-pages/app/httproute.yaml`; otherwise nginx serves 404.
+- **Keep oauth utility pages publicly reachable** — `kubernetes/apps/default/oauth-pages/app/securitypolicy.yaml`
+  intentionally sets `authorization.defaultAction: Allow` on the `oauth-pages` HTTPRoute so denied/logout
+  pages do not get trapped behind the gateway-level OIDC challenge.
+- **Default auth UX is immediate provider redirect** — do not add or keep a public `/login` route unless
+  explicitly requested for a temporary test; protected paths should immediately initiate OIDC login.
 - **ServiceAccount tokens from `kubectl create token` go stale** — these JWTs embed the SA's
   current UID. If the SA is deleted and recreated (e.g. after branch testing), any stored token
   becomes invalid. Regenerate with:
