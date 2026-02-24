@@ -109,6 +109,18 @@ Use `kubernetes/apps/default/echo/` as a working reference. After adding files:
 4. Update **`README.md`** — add the app to the `## Apps` or `## Components` section
 5. Update **`docs/ARCHITECTURE.md`** — add the app to the namespaces table and any relevant layer description
 
+**If the app is OAuth-protected**:
+
+1. Add an explicit hostname entry in
+   `kubernetes/apps/network/cloudflare-tunnel/app/helmrelease.yaml` that routes to
+   `https://envoy-oauth.<namespace>.svc.cluster.local:443` **before** the wildcard
+   `*.${SECRET_DOMAIN}` rule.
+2. Add the app hostname to
+   `kubernetes/apps/default/oauth-pages/app/httproute.yaml` so `/denied` and `/logged-out` work on
+   that host.
+3. Keep `/oauth2/callback` route handling on `oauth-pages` and do not broaden
+   `oauth-pages-public` to allow callback.
+
 **For app secrets**: prefer `ExternalSecret` + 1Password over committing a new `.sops.yaml`.
 See [`specs/001-external-secrets-1password/quickstart.md`](specs/001-external-secrets-1password/quickstart.md).
 

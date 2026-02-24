@@ -55,6 +55,9 @@ ______________________________________________________________________
 - Redirect URI is registered in Google OAuth client
 - `oauth-pages` includes the exact `/oauth2/callback` route
 - `oauth-pages-public` policy does **not** broadly allow the callback route
+- `cloudflare-tunnel` has an explicit `oauth.${SECRET_DOMAIN}` ingress entry to `envoy-oauth`
+  before `*.${SECRET_DOMAIN}` in
+  `kubernetes/apps/network/cloudflare-tunnel/app/helmrelease.yaml`
 
 Primary policy file:
 
@@ -70,6 +73,8 @@ Secondary policy file:
 - Ensure callback handling stays on the OIDC flow:
   - `oauth-pages` route rule `callback` matches `/oauth2/callback`
   - `oauth-pages-public` only targets `sectionName: denied` and `sectionName: logged-out`
+- Ensure `cloudflare-tunnel` sends `oauth.${SECRET_DOMAIN}` to `envoy-oauth` with an explicit
+  hostname rule before the wildcard route
 - Re-encrypt SOPS file if edited in plaintext
 - Push and reconcile
 

@@ -86,7 +86,7 @@ spec:
                         <p class="subtitle">You don't seem to have the keys to the castle.</p>
                         <p>Please sign in with an approved account, or ask your administrator to grant you access.</p>
                         <div class="actions">
-                            <a href="https://accounts.google.com/Logout" class="contrast" role="button" target="_blank" rel="noopener noreferrer">Switch Google account</a>
+                            <a href="https://accounts.google.com/Logout" class="contrast" role="button" target="_blank" rel="noopener noreferrer">Log Out of Google</a>
                             <a href="/" class="secondary" role="button">Try again</a>
                         </div>
                     </article>
