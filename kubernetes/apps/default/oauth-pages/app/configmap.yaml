@@ -226,10 +226,9 @@ data:
       <body>
         <div id="app">
           <div>401</div>
-          <div class="txt">Unauthorized<span class="blink">_</span></div>
+          <div class="txt">User Not Logged In<span class="blink">_</span></div>
           <div class="actions">
-            <a href="/" role="button">Sign in again</a>
-            <a href="/" class="secondary" role="button">Return home</a>
+            <a href="/" role="button">Login</a>
           </div>
         </div>
       </body>
