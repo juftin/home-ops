@@ -8,13 +8,110 @@ data:
     <!DOCTYPE html>
     <html lang="en">
       <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Access Denied</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>403 Forbidden</title>
+        <style>
+          @import url("https://fonts.googleapis.com/css?family=Press+Start+2P");
+
+          html,
+          body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+          }
+
+          * {
+            font-family: "Press Start 2P", cursive;
+            box-sizing: border-box;
+          }
+
+          #app {
+            padding: 1rem;
+            background: #000000;
+            display: flex;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+            color: #54fe55;
+            text-shadow: 0 0 10px;
+            font-size: 6rem;
+            flex-direction: column;
+            text-align: center;
+          }
+
+          #app .txt {
+            font-size: 1.8rem;
+          }
+
+          .actions {
+            margin-top: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: center;
+          }
+
+          .actions a {
+            color: #54fe55;
+            border: 2px solid #54fe55;
+            text-decoration: none;
+            padding: 0.65rem 0.9rem;
+            font-size: 0.75rem;
+            text-shadow: none;
+            box-shadow: 0 0 8px rgba(84, 254, 85, 0.75);
+          }
+
+          .actions a:hover {
+            background: #54fe55;
+            color: #000000;
+          }
+
+          .actions a.secondary {
+            color: #9ca3af;
+            border-color: #9ca3af;
+            box-shadow: none;
+          }
+
+          .actions a.secondary:hover {
+            background: #9ca3af;
+            color: #000000;
+          }
+
+          @keyframes blink {
+            0% {
+              opacity: 0;
+            }
+
+            49% {
+              opacity: 0;
+            }
+
+            50% {
+              opacity: 1;
+            }
+
+            100% {
+              opacity: 1;
+            }
+          }
+
+          .blink {
+            animation-name: blink;
+            animation-duration: 1s;
+            animation-iteration-count: infinite;
+          }
+        </style>
       </head>
       <body>
-        <h1>Access Denied</h1>
-        <p>Your account is not on the authorized email list.</p>
+        <div id="app">
+          <div>403</div>
+          <div class="txt">Forbidden<span class="blink">_</span></div>
+          <div class="actions">
+            <a href="/" role="button">Sign in again</a>
+            <a href="/" class="secondary" role="button">Return home</a>
+          </div>
+        </div>
       </body>
     </html>
   logged-out.html: |

@@ -30,325 +30,106 @@ spec:
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>403 Forbidden</title>
                 <style>
+                    @import url("https://fonts.googleapis.com/css?family=Press+Start+2P");
+
                     html,
                     body {
-                        font-family: Lato, Arial, sans-serif;
-                        font-size: 100%;
-                        font-weight: 300;
+                        width: 100%;
                         height: 100%;
-                    }
-                    body {
                         margin: 0;
                     }
-                    .error {
-                        align-items: center;
-                        background: #0f172a;
+
+                    * {
+                        font-family: 'Press Start 2P', cursive;
+                        box-sizing: border-box;
+                    }
+
+                    #app {
+                        padding: 1rem;
+                        background: #000000;
                         display: flex;
-                        flex-direction: column;
-                        min-height: 100%;
-                        justify-content: center;
-                        padding: 2rem 0;
-                    }
-                    .error__header {
-                        color: #ffffff;
-                        font-size: 3.25rem;
-                        font-weight: 900;
-                        padding: 0.5rem 0 0.25rem 0;
-                    }
-                    .error__header--secondary {
-                        color: #e2e8f0;
-                        font-size: 1.4rem;
-                        padding: 0 0 0.5rem 0;
-                        text-transform: uppercase;
-                    }
-                    .error__description {
-                        color: #e2e8f0;
-                        font-size: 1.05rem;
-                        margin: 0;
-                    }
-                    .stage {
-                        height: 18rem;
-                        margin-bottom: -3rem;
-                        position: relative;
-                        transform: scale(0.72);
-                        transform-origin: top center;
-                        width: 8rem;
-                    }
-                    .key {
-                        animation: squigglevision 0.35s infinite;
-                        position: relative;
                         height: 100%;
-                        width: 8rem;
+                        justify-content: center;
+                        align-items: center;
+                        color: #54FE55;
+                        text-shadow: 0 0 10px;
+                        font-size: 6rem;
+                        flex-direction: column;
+                        text-align: center;
                     }
-                    .key__head {
-                        background: #FDD835;
-                        border-radius: 50%;
-                        box-shadow: 0.85rem 0 0 #C6A800;
-                        height: 8rem;
-                        position: absolute;
-                        width: 8rem;
-                        z-index: 1;
+
+                    #app .txt {
+                        font-size: 1.8rem;
                     }
-                    .key__head::before {
-                        background: #0f172a;
-                        border-radius: 50%;
-                        box-shadow: inset 0.5rem 0.1rem 0 #C6A800;
-                        content: "";
-                        display: block;
-                        height: 1rem;
-                        left: 3.5rem;
-                        position: absolute;
-                        top: 1.5rem;
-                        width: 1rem;
-                    }
-                    .key__eye {
-                        background-color: #111111;
-                        border-radius: 50%;
-                        height: 0.75rem;
-                        left: 1.5rem;
-                        position: absolute;
-                        top: 4.5rem;
-                        width: 0.75rem;
-                    }
-                    .key__eye:nth-child(2) {
-                        left: 5rem;
-                    }
-                    .key__eye::before {
-                        animation: scale 0.35s linear infinite alternate;
-                        background: white;
-                        border-radius: 50%;
-                        content: "";
-                        display: block;
-                        height: 0.15rem;
-                        left: 0.15rem;
-                        position: absolute;
-                        top: 0.15rem;
-                        width: 0.15rem;
-                    }
-                    .key__eye::after {
-                        animation: scale 0.25s linear infinite alternate;
-                        background: white;
-                        border-radius: 50%;
-                        content: "";
-                        display: block;
-                        height: 0.25rem;
-                        left: 0.35rem;
-                        position: absolute;
-                        top: 0.35rem;
-                        width: 0.25rem;
-                    }
-                    .key__mouth {
-                        animation: sniff 2s linear infinite alternate;
-                        border-radius: 50%;
-                        border: 0.2rem solid #111111;
-                        border-bottom-color: transparent;
-                        border-left-color: transparent;
-                        height: 1.25rem;
-                        left: 2.85rem;
-                        position: relative;
-                        top: 5rem;
-                        transform: rotate(-45deg);
-                        width: 1.25rem;
-                    }
-                    .key__body {
-                        background: #FDD835;
-                        box-shadow: 1rem 0 0 #C6A800;
-                        height: 9rem;
-                        left: 2.5rem;
-                        position: relative;
-                        top: 7rem;
-                        width: 3rem;
-                    }
-                    .key__body::before {
-                        background: rgba(198, 168, 0, 0.5);
-                        border-radius: 1rem;
-                        content: "";
-                        display: block;
-                        height: 8.5rem;
-                        left: 1rem;
-                        position: absolute;
-                        top: 2rem;
-                        width: 0.45rem;
-                        z-index: 2;
-                    }
-                    .key__body::after {
-                        background: #FDD835;
-                        border-radius: 0 0 80% 25%;
-                        box-shadow: 1rem 0 0 #C6A800;
-                        content: "";
-                        display: block;
-                        height: 2rem;
-                        position: absolute;
-                        top: 100%;
-                        width: 3rem;
-                    }
-                    .key__arm {
-                        border: 0.2rem solid #111111;
-                        border-bottom-color: transparent;
-                        border-radius: 50%;
-                        border-top-color: transparent;
-                        height: 4.55rem;
-                        position: absolute;
-                        width: 1.25rem;
-                    }
-                    .key__arm--left {
-                        border-left-color: transparent;
-                        left: 1.9rem;
-                        top: 1rem;
-                    }
-                    .key__arm--right {
-                        border-right-color: transparent;
-                        left: -0.5rem;
-                        top: 1rem;
-                    }
-                    .key__indentation {
-                        background: #FDD835;
-                        box-shadow: 0.5rem -0.5rem 0 #C6A800;
-                        height: 2rem;
-                        left: 2rem;
-                        position: absolute;
-                        top: 2rem;
-                        transform: rotate(45deg);
-                        width: 2rem;
-                    }
-                    .key__indentation:nth-child(2) {
-                        height: 1.5rem;
-                        top: 4.5rem;
-                        width: 1.5rem;
-                    }
-                    .key__indentation:nth-child(3) {
-                        height: 1.75rem;
-                        top: 6rem;
-                        width: 1.75rem;
-                    }
-                    .lock {
-                        background: #111111;
-                        border-radius: 0.5rem;
-                        bottom: 0;
-                        height: 4rem;
-                        left: 6.1rem;
-                        position: absolute;
-                        width: 2.5rem;
-                    }
-                    .lock::before {
-                        border: 0.35rem solid #111111;
-                        border-bottom: 0;
-                        border-radius: 0.75rem 0.75rem 0 0;
-                        content: "";
-                        height: 1.8rem;
-                        left: 0.55rem;
-                        position: absolute;
-                        top: -1.7rem;
-                        width: 1.1rem;
-                    }
-                    .svg-defs {
-                        display: none;
-                    }
+
                     .actions {
+                        margin-top: 2rem;
                         display: flex;
                         flex-wrap: wrap;
                         gap: 0.75rem;
                         justify-content: center;
-                        margin-top: 2rem;
                     }
+
                     .actions a {
-                        background: #111111;
-                        border-radius: 0.35rem;
-                        color: #ffffff;
-                        padding: 0.7rem 1rem;
+                        color: #54FE55;
+                        border: 2px solid #54FE55;
                         text-decoration: none;
+                        padding: 0.65rem 0.9rem;
+                        font-size: 0.75rem;
+                        text-shadow: none;
+                        box-shadow: 0 0 8px rgba(84, 254, 85, 0.75);
                     }
+
+                    .actions a:hover {
+                        background: #54FE55;
+                        color: #000000;
+                    }
+
                     .actions a.secondary {
-                        background: #C62828;
+                        color: #9CA3AF;
+                        border-color: #9CA3AF;
+                        box-shadow: none;
                     }
-                    @keyframes scale {
-                        from {
-                            transform: scale(1);
-                        }
-                        to {
-                            transform: scale(1.4);
-                        }
+
+                    .actions a.secondary:hover {
+                        background: #9CA3AF;
+                        color: #000000;
                     }
-                    @keyframes sniff {
-                        0%,
-                        70%,
-                        100% {
-                            transform: translateY(0) rotate(-45deg);
-                        }
-                        75% {
-                            transform: translateY(-5%) rotate(-45deg);
-                        }
-                    }
-                    @keyframes squigglevision {
+
+                    @keyframes blink {
                         0% {
-                            filter: url('#squiggly-0');
+                            opacity: 0;
                         }
-                        25% {
-                            filter: url('#squiggly-1');
+
+                        49% {
+                            opacity: 0;
                         }
+
                         50% {
-                            filter: url('#squiggly-2');
+                            opacity: 1;
                         }
-                        75% {
-                            filter: url('#squiggly-3');
-                        }
+
                         100% {
-                            filter: url('#squiggly-4');
+                            opacity: 1;
                         }
+                    }
+
+                    .blink {
+                        animation-name: blink;
+                        animation-duration: 1s;
+                        animation-iteration-count: infinite;
                     }
                 </style>
             </head>
             <body>
-                <svg class="svg-defs" xmlns="http://www.w3.org/2000/svg" version="1.1">
-                    <defs>
-                        <filter id="squiggly-0">
-                            <feTurbulence baseFrequency="0.02" numOctaves="3" result="noise" seed="0"/>
-                            <feDisplacementMap in="SourceGraphic" in2="noise" scale="2"/>
-                        </filter>
-                        <filter id="squiggly-1">
-                            <feTurbulence baseFrequency="0.02" numOctaves="3" result="noise" seed="1"/>
-                            <feDisplacementMap in="SourceGraphic" in2="noise" scale="3"/>
-                        </filter>
-                        <filter id="squiggly-2">
-                            <feTurbulence baseFrequency="0.02" numOctaves="3" result="noise" seed="2"/>
-                            <feDisplacementMap in="SourceGraphic" in2="noise" scale="2"/>
-                        </filter>
-                        <filter id="squiggly-3">
-                            <feTurbulence baseFrequency="0.02" numOctaves="3" result="noise" seed="3"/>
-                            <feDisplacementMap in="SourceGraphic" in2="noise" scale="3"/>
-                        </filter>
-                        <filter id="squiggly-4">
-                            <feTurbulence baseFrequency="0.02" numOctaves="3" result="noise" seed="4"/>
-                            <feDisplacementMap in="SourceGraphic" in2="noise" scale="1"/>
-                        </filter>
-                    </defs>
-                </svg>
-                <section class="error">
-                    <div class="stage">
-                        <div class="key">
-                            <div class="key__head">
-                                <div class="key__eye"></div>
-                                <div class="key__eye"></div>
-                                <div class="key__mouth"></div>
-                            </div>
-                            <div class="key__body">
-                                <div class="key__indentation"></div>
-                                <div class="key__indentation"></div>
-                                <div class="key__indentation"></div>
-                                <div class="key__arm key__arm--left"></div>
-                                <div class="key__arm key__arm--right"></div>
-                            </div>
-                        </div>
-                        <div class="lock"></div>
-                    </div>
-                    <h1 class="error__header">403</h1>
-                    <h2 class="error__header error__header--secondary">Access denied</h2>
-                    <p class="error__description">Sorry, buddy, you really should not be here.</p>
+                <div id="app">
+                    <div>403</div>
+                    <div class="txt">Forbidden<span class="blink">_</span></div>
                     <div class="actions">
-                        <a href="/">Sign in again</a>
-                        <a href="/" class="secondary">Return home</a>
+                        <a href="/" role="button">Sign in again</a>
+                        <a href="/" class="secondary" role="button">Return home</a>
                     </div>
-                </section>
+                </div>
             </body>
             </html>
           logged-out.html: |
