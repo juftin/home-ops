@@ -108,10 +108,20 @@ data:
           <div>403</div>
           <div class="txt">Forbidden<span class="blink">_</span></div>
           <div class="actions">
-            <a href="/logout" role="button">Sign in again</a>
+            <a href="/logout" role="button" id="sign-in-again">Sign in again</a>
             <a href="/" class="secondary" role="button">Return home</a>
           </div>
         </div>
+        <script>
+          document.getElementById("sign-in-again").addEventListener("click", async function (event) {
+            event.preventDefault();
+            try {
+              await fetch("/logout", { credentials: "include", redirect: "manual" });
+            } finally {
+              window.location.href = "/logged-out";
+            }
+          });
+        </script>
       </body>
     </html>
   logged-out.html: |
