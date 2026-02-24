@@ -29,6 +29,14 @@ spec:
       backendRefs:
         - name: oauth-pages
           port: 80
+    - name: logout
+      matches:
+        - path:
+            type: Exact
+            value: /logout
+      backendRefs:
+        - name: oauth-pages
+          port: 80
     - name: denied
       matches:
         - path:
