@@ -171,6 +171,12 @@ Replicate CI locally with `task dev:validate` before opening a PR.
 - **Use `Login` (not `Server`) type for 1Password items tied to a browser URL** — only `Login`,
   `Password`, and `API Credential` item types support the URL field for autofill. `Server` items
   silently ignore `--url`.
+- **`flux-instance` upgrade failures cause an unrecoverable rollback loop** — if a `flux-instance`
+  HelmRelease upgrade fails after Flux binaries have already been updated (e.g. v2.7.5 → v2.8.0),
+  the HelmRelease will try to roll back to the previous chart version, which the FluxInstance
+  operator rejects with "downgrading not supported, reinstall needed". Fix: suspend the HelmRelease,
+  delete all `sh.helm.release.v1.flux-instance.*` secrets in `flux-system`, then resume — the
+  helm-controller will perform a fresh install of the current chart version instead of rolling back.
 
 ## Resources
 
