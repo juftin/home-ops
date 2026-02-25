@@ -19,6 +19,7 @@ ______________________________________________________________________
 - **[Renovate](https://renovatebot.com/)**: Automated dependency updates.
 - **[GitHub Actions](https://github.com/features/actions)**: CI/CD workflows for automation.
 - **[Cloudflare](https://www.cloudflare.com/)**: DNS Services.
+- **[Google SSO](https://github.com/envoyproxy/gateway)**: Protect selected endpoints behind Google OAuth2.
 
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f48e/512.gif" alt="🎡" width="20" height="20"> Components
 
@@ -32,10 +33,10 @@ ______________________________________________________________________
 - **[envoy-gateway](https://github.com/envoyproxy/gateway)**: Kubernetes Gateway API implementation
   for advanced traffic management, security, and routing.
 - **[sops](https://github.com/getsops/sops)**: Managed secrets for Kubernetes and Terraform which
-  are commited to Git.
+  are committed to Git.
 - **[external-secrets](https://github.com/external-secrets/external-secrets)**: Integrates external
-  secret management systems (
-  particularly [1Password](https://external-secrets.io/main/provider/1password-automation/)) with
+  secret management systems (particularly
+  [1Password](https://external-secrets.io/main/provider/1password-automation/)) with
   Kubernetes Secrets.
 - **[cilium](https://github.com/cilium/cilium)**: eBPF-based networking for my workloads.
 - **[external-dns](https://github.com/kubernetes-sigs/external-dns)**: Automatically syncs ingress
@@ -62,22 +63,13 @@ ______________________________________________________________________
 - **[oauth-pages](https://nginx.org/)**: Static access-denied and logout confirmation pages for
   Envoy Gateway OIDC, including route rewrites from friendly paths to static HTML files.
 
-### OIDC Behavior
-
-- Protected routes redirect unauthenticated requests directly to the configured OIDC provider.
-- Selected operational UIs can be attached to OAuth-protected gateways, while other routes can stay on the external gateway.
-- Authorization denials are presented with a custom `/denied` page.
-- Logout flow lands on a custom `/logged-out` confirmation page.
-- See [`docs/OIDC-TROUBLESHOOTING.md`](./docs/OIDC-TROUBLESHOOTING.md) for operational checks and
-  recovery steps.
-
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f52e/512.gif" alt="🔮" width="20" height="20"> Hardware
 
 | Device                   | Num | Processor | Cores | OS Disk    | Data Disk | Memory | OS    | Function   |
 | ------------------------ | --- | --------- | ----- | ---------- | --------- | ------ | ----- | ---------- |
 | HP EliteDesk 800 G6 Mini | 1   | i5-10500T | 6     | 256GB NVMe | 1TB NVMe  | 32GB   | Talos | Kubernetes |
 
-\*\* more nodes to be added soon
+\*\*more nodes to be added soon
 
 ______________________________________________________________________
 
