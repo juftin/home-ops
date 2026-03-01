@@ -35,7 +35,7 @@
 #    - Creates default Claude file if no agent files exist
 #
 # Usage: ./update-agent-context.sh [agent_type]
-# Agent types: claude|gemini|copilot|cursor-agent|qwen|opencode|codex|windsurf|kilocode|auggie|shai|q|agy|bob|qoder
+# Agent types: claude|gemini|copilot|cursor-agent|qwen|opencode|codex|windsurf|kilocode|auggie|roo|codebuddy|amp|shai|q|agy|bob|qodercli
 # Leave empty to update all existing agent files
 
 set -e
@@ -355,6 +355,15 @@ create_new_agent_file() {
     # Clean up backup files
     rm -f "$temp_file.bak" "$temp_file.bak2"
 
+    # Prepend Cursor frontmatter for .mdc files so rules are auto-included
+    if [[ "$target_file" == *.mdc ]]; then
+        local frontmatter_file
+        frontmatter_file=$(mktemp) || return 1
+        printf '%s\n' "---" "description: Project Development Guidelines" "globs: [\"**/*\"]" "alwaysApply: true" "---" "" > "$frontmatter_file"
+        cat "$temp_file" >> "$frontmatter_file"
+        mv "$frontmatter_file" "$temp_file"
+    fi
+
     return 0
 }
 
@@ -492,6 +501,17 @@ update_existing_agent_file() {
         changes_entries_added=true
     fi
 
+    # Ensure Cursor .mdc files have YAML frontmatter for auto-inclusion
+    if [[ "$target_file" == *.mdc ]]; then
+        if ! head -1 "$temp_file" | grep -q '^---'; then
+            local frontmatter_file
+            frontmatter_file=$(mktemp) || { rm -f "$temp_file"; return 1; }
+            printf '%s\n' "---" "description: Project Development Guidelines" "globs: [\"**/*\"]" "alwaysApply: true" "---" "" > "$frontmatter_file"
+            cat "$temp_file" >> "$frontmatter_file"
+            mv "$frontmatter_file" "$temp_file"
+        fi
+    fi
+
     # Move temp file to target atomically
     if ! mv "$temp_file" "$target_file"; then
         log_error "Failed to update target file"
@@ -619,7 +639,7 @@ update_specific_agent() {
         codebuddy)
             update_agent_file "$CODEBUDDY_FILE" "CodeBuddy CLI"
             ;;
-        qoder)
+        qodercli)
             update_agent_file "$QODER_FILE" "Qoder CLI"
             ;;
         amp)
@@ -637,9 +657,12 @@ update_specific_agent() {
         bob)
             update_agent_file "$BOB_FILE" "IBM Bob"
             ;;
+        generic)
+            log_info "Generic agent: no predefined context file. Use the agent-specific update script for your agent."
+            ;;
         *)
             log_error "Unknown agent type '$agent_type'"
-            log_error "Expected: claude|gemini|copilot|cursor-agent|qwen|opencode|codex|windsurf|kilocode|auggie|roo|amp|shai|q|agy|bob|qoder"
+            log_error "Expected: claude|gemini|copilot|cursor-agent|qwen|opencode|codex|windsurf|kilocode|auggie|roo|codebuddy|amp|shai|q|agy|bob|qodercli|generic"
             exit 1
             ;;
     esac
@@ -723,7 +746,6 @@ update_all_existing_agents() {
         update_agent_file "$AGY_FILE" "Antigravity"
         found_agent=true
     fi
-
     if [[ -f "$BOB_FILE" ]]; then
         update_agent_file "$BOB_FILE" "IBM Bob"
         found_agent=true
@@ -753,7 +775,7 @@ print_summary() {
 
     echo
 
-    log_info "Usage: $0 [claude|gemini|copilot|cursor-agent|qwen|opencode|codex|windsurf|kilocode|auggie|codebuddy|shai|q|agy|bob|qoder]"
+    log_info "Usage: $0 [claude|gemini|copilot|cursor-agent|qwen|opencode|codex|windsurf|kilocode|auggie|roo|codebuddy|amp|shai|q|agy|bob|qodercli]"
 }
 
 #==============================================================================
