@@ -1,0 +1,103 @@
+openapi: 3.1.0
+info:
+  title: Authentication Mode Management Contract
+  version: 0.1.0
+  description: |
+    Logical contract for managing cluster-wide authentication mode and querying
+    authorization outcomes for operational verification.
+servers:
+  - url: https://ops.home-ops.local
+paths:
+  /auth-mode:
+    get:
+      summary: Read active authentication mode
+      operationId: getAuthMode
+      responses:
+        '200':
+          description: Active mode returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationMode'
+    put:
+      summary: Set cluster-wide authentication mode
+      operationId: setAuthMode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mode]
+              properties:
+                mode:
+                  type: string
+                  enum: [authentik, legacy]
+      responses:
+        '200':
+          description: Mode updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationMode'
+        '409':
+          description: Mode transition conflict
+  /auth-decisions:
+    get:
+      summary: List authorization decisions
+      operationId: listAuthDecisions
+      parameters:
+        - in: query
+          name: routeId
+          schema:
+            type: string
+        - in: query
+          name: outcome
+          schema:
+            type: string
+            enum: [allow, deny]
+      responses:
+        '200':
+          description: Decision list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AuthorizationDecision'
+components:
+  schemas:
+    AuthenticationMode:
+      type: object
+      required: [mode, effectiveAt]
+      properties:
+        mode:
+          type: string
+          enum: [authentik, legacy]
+        effectiveAt:
+          type: string
+          format: date-time
+        changedBy:
+          type: string
+    AuthorizationDecision:
+      type: object
+      required: [timestamp, subjectId, routeId, outcome, sourceMode]
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        subjectId:
+          type: string
+        routeId:
+          type: string
+        outcome:
+          type: string
+          enum: [allow, deny]
+        denialReason:
+          type: string
+        sourceMode:
+          type: string
+          enum: [authentik, legacy]
