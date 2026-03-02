@@ -1,17 +1,77 @@
-data: ENC[AES256_GCM,data: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,iv:YX7N/5T+NFnk4L6/ScTugRunbWxjOLl/DgbYHLHda7I=,tag:762O0Sv67mphDw+VB1A+wA==,type:str]
+data: |
+  apiVersion: gateway.envoyproxy.io/v1alpha1
+  kind: SecurityPolicy
+  metadata:
+    name: envoy-oauth-internal-policy
+    namespace: network
+    annotations:
+      home-ops.io/auth-mode: authentik
+      home-ops.io/legacy-mode: available
+  spec:
+    targetRefs:
+      - group: gateway.networking.k8s.io
+        kind: Gateway
+        name: envoy-oauth-internal
+    oidc:
+      provider:
+        issuer: https://auth.${SECRET_DOMAIN}/application/o/home-ops
+        authorizationEndpoint: https://auth.${SECRET_DOMAIN}/application/o/authorize/
+      clientID: 706743218818-jp4s5vunfp9ac1euuu4j0sh5t46palg6.apps.googleusercontent.com
+      clientSecret:
+        name: oauth-client-secret
+        namespace: network
+      redirectURL: https://oauth-internal.${SECRET_DOMAIN}/oauth2/callback
+      logoutPath: /logout
+      cookieDomain: ${SECRET_DOMAIN}
+      cookieNames:
+        accessToken: AccessToken
+        idToken: IdToken
+      scopes:
+        - openid
+        - email
+        - profile
+    jwt:
+      providers:
+        - name: authentik
+          issuer: https://auth.${SECRET_DOMAIN}/application/o/home-ops
+          remoteJWKS:
+            uri: https://auth.${SECRET_DOMAIN}/application/o/home-ops/jwks/
+          extractFrom:
+            cookies:
+              - IdToken
+            headers:
+              - name: Authorization
+                valuePrefix: 'Bearer '
+            params:
+              - access_token
+    authorization:
+      defaultAction: Deny
+      rules:
+        - name: allow-authentik-groups
+          action: Allow
+          principal:
+            jwt:
+              provider: authentik
+              claims:
+                - name: groups
+                  values:
+                    - home-ops:protected
+                - name: email_verified
+                  values:
+                    - "true"
 sops:
   age:
     - recipient: age1d7ltdyge970mha3gqyenf9mrn8ezg60nexy99vzndvl592q2zcxqkytdwd
       enc: |
         -----BEGIN AGE ENCRYPTED FILE-----
-        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSB6YUtVMFRLWHhpTzRUQzV3
-        UWprQmNON0dobXNvR0pMSUp4YXRIMXZQaVVzClo5K2Jua2EvR2lEUnVXaDRiTDFS
-        OUdXbFV3b2lZWW02dEZ0N3MvKzUwTjQKLS0tIGI4TXZQRmg4UUJZNW5TVGZGVEht
-        a2VDNmQ3UzNCL3lPMVVleGtyUXl5aGMKzB50SsQ5Ns2DrtN2szMzQ6/7KNlRy5KM
-        8rTWmaHF3/gw/4K2nBDFjx9rtJh1TopS7EtvBeftbTlkbqnz58t2Vw==
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBLY21XRURGY1htelpuTW54
+        MUd0VXRONUkwTk9jdmk3YytmY0FHRHgxbXdRClQxcVJ3VkNJRUJmQkpySkw5bnJW
+        TEEwQ1BuVWlOdjlCQU52SThFS0owT0kKLS0tIGVkaUIvelAwUmx0MWdBbUVlTFk3
+        SC84ZzQveE8rdFdOc3JxLy9kdndDMmcKOrYPzqGSeR0rYD2Kyha1EiKxb6QSVWwg
+        jl+u0qDr4wwpWTfhV2E16Z/74Ez0YnfiBqEfi92I3IqEEuQW9nM8FQ==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2026-03-02T05:23:01Z"
-  mac: ENC[AES256_GCM,data:3NaABFOpfuhkmU6vWIEFWaYtgBCAPpIPu5at+5AfzXxZAYpkqWpnd9g9foWrLMALGleLk1vt6Q3U7OiZUqMxJDAvwLzKzNRUkIsPgjSZWVTBTpeCfy0NAY3ugk8GfPQ4EDbU7PZwL6x3s7camLWFPNfmh2IDtBnI/Q7TAoy7jFE=,iv:95aHp3eVSFfRkRhXSOosrTzo3aXlDy9ClmsCc7qKn5U=,tag:enDS/gA44yYF0Fh7ys8inw==,type:str]
-  unencrypted_suffix: _unencrypted
+  lastmodified: "2026-03-02T05:24:00Z"
+  mac: ENC[AES256_GCM,data:cLA15TVn00SPmmgGGbtWV6L/9Tiq2hGbmzarwQc5GrJprywCb3oTDbxcv9NHM9JgXt0cpyBoPOAT/rAwfdIo3zPNboNLoLlfGFoKedX6+HiG78UDVkU0dwJjwkrvLLMcCvL3Y7MlRYVaV34S9F3YomYDjhyWZPEmmjrxPSeqzTY=,iv:E2n6sbIttvzs86lDpZ0jVvDgysidbZU14w3Vx6lYAmg=,tag:DNhZu3xTfqZDyxx/YDffpg==,type:str]
+  encrypted_regex: ^(spec)$
   mac_only_encrypted: true
   version: 3.12.1
