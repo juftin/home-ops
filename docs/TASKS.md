@@ -99,6 +99,7 @@ Defined in `.taskfiles/dev/Taskfile.yaml`. Enables testing changes against the l
 | Task                | Description                                                                                                                                              |
 | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `task dev:validate` | Run `flux-local test` locally via Docker — validates all Helm renders and Kustomization builds with no cluster required                                  |
+| `task dev:worktree` | Create `../home-ops-<name>` on `feature/<name>`, then symlink `age.key` and `kubeconfig` from the main checkout                                          |
 | `task dev:start`    | Push current branch, suspend the `flux-instance` HelmRelease, patch the `flux-system` GitRepository to watch the current branch, and trigger a reconcile |
 | `task dev:sync`     | Push new commits on the current branch and trigger Flux to reconcile them                                                                                |
 | `task dev:stop`     | Restore the GitRepository to `refs/heads/main`, resume the `flux-instance` HelmRelease, and trigger a reconcile                                          |
@@ -107,12 +108,10 @@ Defined in `.taskfiles/dev/Taskfile.yaml`. Enables testing changes against the l
 
 ```bash
 # Create a worktree to isolate the feature branch (sibling of the main checkout)
-git worktree add ../home-ops-my-change -b feature/my-change
+task dev:worktree NAME=my-change
 cd ../home-ops-my-change
 
-# Symlink gitignored files required by dev tasks (Taskfile resolves these from ROOT_DIR)
-ln -s ../home-ops/age.key age.key
-ln -s ../home-ops/kubeconfig kubeconfig
+# age.key and kubeconfig are symlinked automatically
 
 # edit kubernetes/ manifests ...
 task dev:start      # redirect Flux at this branch

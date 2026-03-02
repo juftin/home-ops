@@ -50,6 +50,8 @@ task dev:validate   # renders all Flux HelmReleases and Kustomizations — no cl
   applies at the next reconcile. Use the branch testing workflow instead.
 - **Always run `task lint` before committing** — `yamlfmt` and `mdformat` auto-fix files in place;
   committing un-formatted files fails CI.
+- **Document implemented specs in `AGENTS.md`** — this is the canonical agent guidance file for this
+  repository; do not rely on `.github/agents/copilot-instructions.md`.
 - **Use a single emoji to prefix commit messages** — one emoji followed by a short description,
   matching the repo's commit style. Examples: `🤫 external-secrets`, `🔐 sops`, `📝 README`,
   `🤖 AGENTS.md`, `🧹 renovate`. Pick an emoji that reflects the nature of the change.
@@ -60,12 +62,10 @@ Always work in a git worktree to keep the main checkout on `main` and isolate fe
 
 ```bash
 # Create a worktree for the feature branch (sibling of the main checkout)
-git worktree add ../home-ops-my-change -b feature/my-change
+task dev:worktree NAME=my-change
 cd ../home-ops-my-change
 
-# Symlink gitignored files required by dev tasks (Taskfile resolves these from ROOT_DIR)
-ln -s ../home-ops/age.key age.key
-ln -s ../home-ops/kubeconfig kubeconfig
+# age.key and kubeconfig are symlinked automatically
 
 # edit kubernetes/ manifests
 task lint             # auto-fix formatting
@@ -147,9 +147,9 @@ Replicate CI locally with `task dev:validate` before opening a PR.
 - **`yamlfmt` reformats indentation and multiline strings** — do not manually fight its style;
   always let `task lint` normalize files before committing.
 - **Worktrees share the `.git` directory but not gitignored files** — `age.key` and `kubeconfig`
-  exist only in the main working tree. Symlink them into the worktree before running `dev:` tasks —
-  the Taskfile resolves these from `ROOT_DIR` so env var overrides won't work:
-  `ln -s ../home-ops/age.key age.key && ln -s ../home-ops/kubeconfig kubeconfig`.
+  exist only in the main working tree. Run `task dev:worktree NAME=<change>` to create the worktree
+  and symlink both files before running `dev:` tasks — the Taskfile resolves these from `ROOT_DIR`
+  so env var overrides won't work.
 - **`components/sops` is the only Kustomize component on `main`** — namespace-level
   `kustomization.yaml` files must use `../../components/sops`. Do not copy namespace kustomizations
   from feature branches that used `../../components/common`; that directory does not exist on `main`.

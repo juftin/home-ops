@@ -10,6 +10,25 @@ tasks:
       docker run --rm -v {{.ROOT_DIR}}:/github/workspace -w /github/workspace {{.FLUX_LOCAL_IMAGE}} test --enable-helm --all-namespaces --path /github/workspace/kubernetes/flux/cluster -v
     preconditions:
       - which docker
+  worktree:
+    desc: Create a feature worktree and symlink required local files
+    requires:
+      vars: [NAME]
+    vars:
+      WORKTREE_DIR: ../home-ops-{{.NAME}}
+      BRANCH: feature/{{.NAME}}
+    cmds:
+      - git worktree add {{.WORKTREE_DIR}} -b {{.BRANCH}}
+      - ln -sf {{.ROOT_DIR}}/age.key {{.WORKTREE_DIR}}/age.key
+      - ln -sf {{.ROOT_DIR}}/kubeconfig {{.WORKTREE_DIR}}/kubeconfig
+      - 'echo "Created worktree {{.WORKTREE_DIR}} on {{.BRANCH}}"'
+      - 'echo "Next: cd {{.WORKTREE_DIR}}"'
+    preconditions:
+      - msg: File age.key not found, run `task decrypt`
+        sh: test -f {{.ROOT_DIR}}/age.key
+      - msg: File kubeconfig not found, run `task decrypt`
+        sh: test -f {{.ROOT_DIR}}/kubeconfig
+      - which git
   start:
     desc: Switch Flux to reconcile the current git branch [must not be on main]
     vars:
