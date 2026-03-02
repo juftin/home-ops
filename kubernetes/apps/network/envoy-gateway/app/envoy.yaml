@@ -48,6 +48,7 @@ metadata:
     home-ops.io/cloudflare-dns: "true"
     home-ops.io/auth-mode: protected
   annotations:
+    external-dns.alpha.kubernetes.io/target: external.${SECRET_DOMAIN}
     home-ops.io/auth-mode-selector: cluster
     home-ops.io/auth-decision-source: authentik
 spec:
@@ -81,6 +82,7 @@ metadata:
   labels:
     home-ops.io/auth-mode: protected
   annotations:
+    external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
     home-ops.io/auth-mode-selector: cluster
     home-ops.io/auth-decision-source: authentik
 spec:
@@ -219,6 +221,7 @@ metadata:
     home-ops.io/oauth-gateway: "true"
     home-ops.io/auth-mode: authentik
   annotations:
+    external-dns.alpha.kubernetes.io/target: external.${SECRET_DOMAIN}
     lbipam.cilium.io/ips: "192.168.1.149"
     home-ops.io/auth-mode-selector: cluster
     home-ops.io/auth-fail-closed: "true"
@@ -255,6 +258,7 @@ metadata:
     home-ops.io/oauth-gateway: "true"
     home-ops.io/auth-mode: authentik
   annotations:
+    external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
     lbipam.cilium.io/ips: "192.168.1.150"
     home-ops.io/auth-mode-selector: cluster
     home-ops.io/auth-fail-closed: "true"
