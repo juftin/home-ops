@@ -62,6 +62,8 @@ ______________________________________________________________________
   labels pod logs and forwards them to Loki.
 - **[oauth-pages](https://nginx.org/)**: Static access-denied and logout confirmation pages for
   Envoy Gateway OIDC, including route rewrites from friendly paths to static HTML files.
+- **[Authentik](https://goauthentik.io/)**: Identity provider serving OIDC issuer metadata and login
+  flows for protected routes.
 
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f52e/512.gif" alt="🔮" width="20" height="20"> Hardware
 

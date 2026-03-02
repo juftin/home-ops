@@ -139,7 +139,7 @@ kubernetes/apps/<namespace>/
 | `network`          | envoy-gateway, OAuth Gateways, SecurityPolicies, cloudflared tunnel, external-dns (k8s-gateway + cloudflare-dns) |
 | `external-secrets` | external-secrets operator, 1Password Connect                                                                     |
 | `flux-system`      | Flux itself                                                                                                      |
-| `default`          | General applications (e.g. `echo` test server, `oauth-pages` for OIDC error pages)                               |
+| `default`          | General applications (e.g. `echo` test server, `oauth-pages` error pages, `authentik` IdP service)               |
 | `observability`    | headlamp dashboard, Grafana UI, Prometheus, Alertmanager, Loki, and Alloy                                        |
 
 #### Shared components

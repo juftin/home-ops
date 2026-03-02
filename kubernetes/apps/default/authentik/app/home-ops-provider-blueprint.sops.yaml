@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: home-ops-provider-blueprint
+  namespace: default
+type: Opaque
+stringData:
+  home-ops-provider.yaml: ENC[AES256_GCM,data:mQEeGFtAboT1lsI0T/H0cZAiFfIGN3MuNtr5Uc1FvbxxfWisdkDR50wau/jIUWvsK84VMqd37v6BISb4ovN3hVwQgzf//jsz9MlxNRfxj+SgpxVB4HTPZQlr/qUvEnR6Gd7BW3M8Y8WmMUmh3yHqzX1PcztrSVsh37RjO4FLuU243n6IT6AaalZUwBsAGzSC9IJ/59gf7XMT/HIJS1nE0u7uKM4++v7bGhL5YgdWNhowO5y/EHqyjTZTOH7+uQD7pJXzPjTFn7FZvHuzXQAzegdo+rAkMULQd4WMgYq7ur/AFuj6rdtv+2zNlbqJp2HD42oYH7hgl5yJX+fDuphz+yTQ13JTqqoqWPs+MYvZXZZSH8FJUM6LRh33Si3k6VnlYxRtus0eU1KFrh8VcHWSZKlCRMo6ApUfjfJ3ou5coAeUVwcUINelEcqDxgPA3DwP98dz7QRAbzoaGswwo0lXiAKXlV4Xu+CMQTm8W3Fatr/Oz5rLAB5NMVxVrH33A9nu6GrBMuYt05eQV2YE1Jk94IzoIsuaHuek3oK3Z5TYkc6Cl/TmIptdaqRcCce6gCbxHgyk8vWrpAocgm504v2XvTZifbPRcdwn0ancAwH1W5rT75KuPLtV9esLNyOP2Y+D9skxSUpv1CJxiVkaPnUakWwyJSbz62zuycMFnFT7gB+JHZqAb/7vtHhxu/uKxJ7mRrQDj0Y9bEL74WVodjItAayr5p1E4U+wjUi50KmuY4Xx0h8Lx4I3qtwMrdLTyKI1Q6XEPfy4mw44DlnjNmNMbZFL3oI2ycm56dA9cZVnAl1GFBUwA7KXQ63irSOVz1RCUZMGHTGEBKL7BFfBbnZ7HGsDL39e2/V6wtyH6bNlc5hx/wBMuyUfUP9x1YzoIgiO5xTxJbXImu3O85FXtqP6mGDfxO8lPTrk4bMbfcWi8b0HNpevafeZ2A0lkajp21dYhgnEHK2aE/A49hD1FmL/k3y1js87w5+Zn9MH/9sD+Rf0HqKRJtu9Sz+54NVcaYbDONsW8NEDC6DUO3Exf+jMko607wye8+4c8JQJnLNXWk0i0V37e6jj1s+HsBOmDgRSNQip3tyrehhDUO3/pjnBMrVYMGMyx3dsKPPOlLgZ3iJiQJf21pF8+Zl/s7Tqc2c5aYNIYVLSFZftQ2PLtoc/9nbwEze9+YeYgptU7S0oYXs5MI6Z223mRe0eOAxJ8JKrsBqMYZK6HvCn9vIvA3Sy7Q2h6ULGSR6t4X26YKY4TGRxKoQJs5z+XXDvNzClkdNkPAqrNHg3uxcZqieUSJC1qesnJi0dOfsLPgr31KNkrBzCBOMqwTEj66wOby3eWoXOKjIFglV+Y6sjPFIZMl/aQV9SzelBTsXUVr7B7ll5VOKyXjHHxrQJjrwS27ki9+Cm5l2Frn6TeZpgoKPHTNM1lHkVIrpMmcaGc6IT3OFsT++Q40YeKK6CNrL1cxX64cUsv1c834KMCxBG5ZFjZ1OtJ/DRlri33QJvT9+8Lfqcf5Gqy3KhucwN0vJNbndpXOJGRq499+Jc1uUiGkOdLjGs1WxE36IbL8zmToHUoNegss6VFfPLKoPKMT1sAUX/xgLWRaHYZH5QHGItYzTcIUNQMHFVFBm1DztjOqPnc0i7teIs1HMBkyuUMN4kDaU8tGbXAeGvrXndRFgJcWA2n1uMc9uhbn0ibTlnCzEcNpiCYUpudKRhnsD9bH5k8XPuGnpsz2vLlfVnZPXzatLmT/CUVwvKpjR1mRTmI2qBPCScTlyQ8p4jDPoDk6fYlExxWU/4H0/SCPE/fVn6u4LdbAtWtZ45NTM9Kax+ArNM55rCaOLXK3s=,iv:BgRSE/noGB7wMGS+h6xaoz9uhGHnmVB6LlTpOAD0Zfo=,tag:isC+q+1XFsxVkqLGkUvHxg==,type:str]
+sops:
+  age:
+    - recipient: age1d7ltdyge970mha3gqyenf9mrn8ezg60nexy99vzndvl592q2zcxqkytdwd
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSB3bUZZa0lPNFk5S0p4QzVQ
+        ZWlmblQxOTYzOGJrMXBuWU56L0Y4R0FjZlFBClVEQzN3WTJub3FwVDNwMTIzQm1s
+        NDh2Z2hhUmlqSUVTelpObzg0TEVuSWsKLS0tIFR3Z0lSaC82RkhDWGFzc0E0eG9x
+        dnZaUjZQT2Q2VmlsSkttZlRIUTc0NFkK16fmwUar/wg0k5qRFfn/Dj96b+Me192b
+        GRZ4nHDD6umldXE7TjsAEWZRIYzoHNQgCAIaMsY6durOq+Nzm7UJjQ==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2026-03-02T05:00:23Z"
+  mac: ENC[AES256_GCM,data:UF577SCwxUg3u1f5Pt5MOF4ECLF4Fyyf+0G0en+fnbJWCS/ZwW81XbqntOTka2BKvAz/gB0H3Et9C02b5phtwDSCXLbl4RmiYl38P2KgfVhuRaLog8Vmt9IyeVu++J2Ii3NSNbhVAeHR0adBxjKcSIpUN2/95cZVHeiPvuIzNnM=,iv:jf9Kyt/YQBAVpN0G8+snEkxUII6FKs4Vg7OcxI/csWw=,tag:JtT1RgSbPf2I5QOMLTXuvg==,type:str]
+  encrypted_regex: ^(data|stringData)$
+  mac_only_encrypted: true
+  version: 3.12.1
