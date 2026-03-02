@@ -56,6 +56,19 @@ task dev:validate   # renders all Flux HelmReleases and Kustomizations — no cl
   matching the repo's commit style. Examples: `🤫 external-secrets`, `🔐 sops`, `📝 README`,
   `🤖 AGENTS.md`, `🧹 renovate`. Pick an emoji that reflects the nature of the change.
 
+## Specs Workflow (Specify)
+
+Use Spec Kit to define and execute feature work. Specs live under `specs/<NNN-feature>/`.
+
+```text
+/speckit.specify "<feature description>"  # creates spec.md and checklist(s)
+/speckit.clarify                          # optional; resolves ambiguous requirements
+/speckit.plan                             # creates plan/research/design artifacts
+/speckit.tasks                            # creates tasks.md
+/speckit.analyze                          # checks spec/plan/tasks consistency
+/speckit.implement                        # executes tasks.md
+```
+
 ## Branch Testing Workflow
 
 Always work in a git worktree to keep the main checkout on `main` and isolate feature branches:
