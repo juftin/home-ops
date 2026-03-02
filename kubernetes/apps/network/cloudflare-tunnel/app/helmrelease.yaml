@@ -68,6 +68,24 @@ spec:
         data:
           config.yaml: |-
             ingress:
+              - hostname: "external.${SECRET_DOMAIN}"
+                path: /oauth2/*
+                originRequest:
+                  http2Origin: true
+                  originServerName: oauth.${SECRET_DOMAIN}
+                service: https://envoy-oauth.{{ .Release.Namespace }}.svc.cluster.local:443
+              - hostname: "external.${SECRET_DOMAIN}"
+                path: /logout
+                originRequest:
+                  http2Origin: true
+                  originServerName: oauth.${SECRET_DOMAIN}
+                service: https://envoy-oauth.{{ .Release.Namespace }}.svc.cluster.local:443
+              - hostname: "external.${SECRET_DOMAIN}"
+                path: /denied
+                originRequest:
+                  http2Origin: true
+                  originServerName: oauth.${SECRET_DOMAIN}
+                service: https://envoy-oauth.{{ .Release.Namespace }}.svc.cluster.local:443
               - hostname: "grafana.${SECRET_DOMAIN}"
                 originRequest:
                   http2Origin: true

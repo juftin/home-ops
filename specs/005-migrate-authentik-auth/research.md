@@ -45,3 +45,16 @@
 - **Rationale**: Reduces migration risk and avoids coupling runtime semantics to current tooling only.
 - **Alternatives considered**:
   - Terraform-first redesign now: rejected as out of scope for this feature.
+
+## Implementation assumptions (auth-mode)
+
+- Cluster-wide mode source is declarative (`helmrelease` + `envoy-auth-mode` ConfigMap) and remains GitOps-owned for this phase.
+- Authentik is the default selected mode; legacy remains a rollback option and must stay deployable.
+- Protected-route intent is static; switching mode must not require per-route manifest edits.
+- Callback, denied, and logged-out helper routes remain shared across both modes.
+
+## Terraform ownership boundaries
+
+- Terraform may later own mode selector values and secret references, but not alter runtime auth semantics.
+- Gateway object names and route contracts should remain stable so ownership can transition without path changes.
+- SecurityPolicy resources remain authoritative for deny-by-default behavior regardless of tool ownership.

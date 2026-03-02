@@ -15,9 +15,9 @@ ______________________________________________________________________
 
 **Purpose**: Prepare shared configuration and documentation touchpoints for implementation.
 
-- [ ] T001 Document Authentik migration scope and operator prechecks in specs/005-migrate-authentik-auth/quickstart.md
-- [ ] T002 [P] Record auth-mode implementation assumptions in specs/005-migrate-authentik-auth/research.md
-- [ ] T003 [P] Define endpoint and decision payload expectations in specs/005-migrate-authentik-auth/contracts/auth-mode-management.openapi.yaml
+- [x] T001 Document Authentik migration scope and operator prechecks in specs/005-migrate-authentik-auth/quickstart.md
+- [x] T002 [P] Record auth-mode implementation assumptions in specs/005-migrate-authentik-auth/research.md
+- [x] T003 [P] Define endpoint and decision payload expectations in specs/005-migrate-authentik-auth/contracts/auth-mode-management.openapi.yaml
 
 ______________________________________________________________________
 
@@ -25,11 +25,11 @@ ______________________________________________________________________
 
 **Purpose**: Establish cluster-wide auth foundations that block all user stories until complete.
 
-- [ ] T004 Add cluster-wide authentication mode values and defaults in kubernetes/apps/network/envoy-gateway/app/helmrelease.yaml
-- [ ] T005 [P] Add Authentik external authorization provider wiring in kubernetes/apps/network/envoy-gateway/app/envoy.yaml
-- [ ] T006 [P] Update Envoy OAuth policy resources for centralized decision enforcement in kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml
-- [ ] T007 [P] Update internal OAuth policy resource parity in kubernetes/apps/network/envoy-gateway/app/oauth-policy-internal.sops.yaml
-- [ ] T008 Ensure foundational resources are referenced consistently in kubernetes/apps/network/envoy-gateway/app/kustomization.yaml
+- [x] T004 Add cluster-wide authentication mode values and defaults in kubernetes/apps/network/envoy-gateway/app/helmrelease.yaml
+- [x] T005 [P] Add Authentik external authorization provider wiring in kubernetes/apps/network/envoy-gateway/app/envoy.yaml
+- [x] T006 [P] Update Envoy OAuth policy resources for centralized decision enforcement in kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml
+- [x] T007 [P] Update internal OAuth policy resource parity in kubernetes/apps/network/envoy-gateway/app/oauth-policy-internal.sops.yaml
+- [x] T008 Ensure foundational resources are referenced consistently in kubernetes/apps/network/envoy-gateway/app/kustomization.yaml
 
 **Checkpoint**: Foundation ready - user story implementation can now begin.
 
@@ -43,14 +43,14 @@ ______________________________________________________________________
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] Configure Envoy auth flow routing to Authentik decision path in kubernetes/apps/network/envoy-gateway/app/envoy.yaml
-- [ ] T010 [P] [US1] Configure Authentik-backed credential/secret mapping in kubernetes/apps/network/envoy-gateway/app/oauth-client-secret.sops.yaml
-- [ ] T011 [P] [US1] Enforce group-based allow/deny claims mapping in kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml
-- [ ] T012 [P] [US1] Mirror centralized auth behavior for internal gateway path in kubernetes/apps/network/envoy-gateway/app/oauth-policy-internal.sops.yaml
-- [ ] T013 [US1] Ensure oauth callback and protected host routing reaches oauth gateway first in kubernetes/apps/network/cloudflare-tunnel/app/helmrelease.yaml
-- [ ] T014 [US1] Validate US1 flow steps and expected outcomes in specs/005-migrate-authentik-auth/quickstart.md
-- [ ] T015 [US1] Define explicit fail-closed deny behavior when Authentik/extAuth is unavailable in kubernetes/apps/network/envoy-gateway/app/envoy.yaml
-- [ ] T016 [US1] Document fail-closed outage-path validation steps in specs/005-migrate-authentik-auth/quickstart.md
+- [x] T009 [US1] Configure Envoy auth flow routing to Authentik decision path in kubernetes/apps/network/envoy-gateway/app/envoy.yaml
+- [x] T010 [P] [US1] Configure Authentik-backed credential/secret mapping in kubernetes/apps/network/envoy-gateway/app/oauth-client-secret.sops.yaml
+- [x] T011 [P] [US1] Enforce group-based allow/deny claims mapping in kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml
+- [x] T012 [P] [US1] Mirror centralized auth behavior for internal gateway path in kubernetes/apps/network/envoy-gateway/app/oauth-policy-internal.sops.yaml
+- [x] T013 [US1] Ensure oauth callback and protected host routing reaches oauth gateway first in kubernetes/apps/network/cloudflare-tunnel/app/helmrelease.yaml
+- [x] T014 [US1] Validate US1 flow steps and expected outcomes in specs/005-migrate-authentik-auth/quickstart.md
+- [x] T015 [US1] Define explicit fail-closed deny behavior when Authentik/extAuth is unavailable in kubernetes/apps/network/envoy-gateway/app/envoy.yaml
+- [x] T016 [US1] Document fail-closed outage-path validation steps in specs/005-migrate-authentik-auth/quickstart.md
 
 **Checkpoint**: User Story 1 is independently functional and verifiable.
 
@@ -64,12 +64,12 @@ ______________________________________________________________________
 
 ### Implementation for User Story 2
 
-- [ ] T017 [US2] Implement explicit cluster-wide auth mode selector behavior in kubernetes/apps/network/envoy-gateway/app/helmrelease.yaml
-- [ ] T018 [US2] Add legacy fallback routing behavior without protected-route intent drift in kubernetes/apps/network/envoy-gateway/app/envoy.yaml
-- [ ] T019 [P] [US2] Update denied/logged-out route compatibility for both modes in kubernetes/apps/default/oauth-pages/app/httproute.yaml
-- [ ] T020 [US2] Add rollback and mode-switch operator steps in specs/005-migrate-authentik-auth/quickstart.md
-- [ ] T021 [US2] Define Terraform-transition auth-mode invariants and non-behavioral constraints in specs/005-migrate-authentik-auth/plan.md
-- [ ] T022 [US2] Document Terraform ownership boundaries for auth resources in specs/005-migrate-authentik-auth/research.md
+- [x] T017 [US2] Implement explicit cluster-wide auth mode selector behavior in kubernetes/apps/network/envoy-gateway/app/helmrelease.yaml
+- [x] T018 [US2] Add legacy fallback routing behavior without protected-route intent drift in kubernetes/apps/network/envoy-gateway/app/envoy.yaml
+- [x] T019 [P] [US2] Update denied/logged-out route compatibility for both modes in kubernetes/apps/default/oauth-pages/app/httproute.yaml
+- [x] T020 [US2] Add rollback and mode-switch operator steps in specs/005-migrate-authentik-auth/quickstart.md
+- [x] T021 [US2] Define Terraform-transition auth-mode invariants and non-behavioral constraints in specs/005-migrate-authentik-auth/plan.md
+- [x] T022 [US2] Document Terraform ownership boundaries for auth resources in specs/005-migrate-authentik-auth/research.md
 
 **Checkpoint**: User Story 2 is independently functional and verifiable.
 
@@ -83,11 +83,11 @@ ______________________________________________________________________
 
 ### Implementation for User Story 3
 
-- [ ] T023 [US3] Emit/retain required auth decision fields in gateway behavior configuration at kubernetes/apps/network/envoy-gateway/app/envoy.yaml
-- [ ] T024 [P] [US3] Add/adjust metrics and scrape coverage for auth outcome visibility in kubernetes/apps/network/envoy-gateway/app/podmonitor.yaml
-- [ ] T025 [P] [US3] Document operator verification workflow for decision evidence in docs/POST-MERGE-VERIFICATION.md
-- [ ] T026 [US3] Document security incident handling updates for deny and revocation cases in docs/SECURITYPOLICY-CHANGE-PLAYBOOK.md
-- [ ] T027 [US3] Define SC-003 measurement method and evidence collection for 95% investigations within 10 minutes in docs/POST-MERGE-VERIFICATION.md
+- [x] T023 [US3] Emit/retain required auth decision fields in gateway behavior configuration at kubernetes/apps/network/envoy-gateway/app/envoy.yaml
+- [x] T024 [P] [US3] Add/adjust metrics and scrape coverage for auth outcome visibility in kubernetes/apps/network/envoy-gateway/app/podmonitor.yaml
+- [x] T025 [P] [US3] Document operator verification workflow for decision evidence in docs/POST-MERGE-VERIFICATION.md
+- [x] T026 [US3] Document security incident handling updates for deny and revocation cases in docs/SECURITYPOLICY-CHANGE-PLAYBOOK.md
+- [x] T027 [US3] Define SC-003 measurement method and evidence collection for 95% investigations within 10 minutes in docs/POST-MERGE-VERIFICATION.md
 
 **Checkpoint**: User Story 3 is independently functional and verifiable.
 
@@ -97,9 +97,9 @@ ______________________________________________________________________
 
 **Purpose**: Final consistency, documentation, and full-flow validation across stories.
 
-- [ ] T028 [P] Align architecture documentation for Authentik-centered auth flow in docs/ARCHITECTURE.md
-- [ ] T029 [P] Update feature summary and app/component references in README.md
-- [ ] T030 Run full validation and branch-test checklist using specs/005-migrate-authentik-auth/quickstart.md
+- [x] T028 [P] Align architecture documentation for Authentik-centered auth flow in docs/ARCHITECTURE.md
+- [x] T029 [P] Update feature summary and app/component references in README.md
+- [x] T030 Run full validation and branch-test checklist using specs/005-migrate-authentik-auth/quickstart.md
 
 ______________________________________________________________________
 

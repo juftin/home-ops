@@ -11,6 +11,10 @@ spec:
     - port: metrics
       path: /stats/prometheus
       honorLabels: true
+      metricRelabelings:
+        - action: keep
+          sourceLabels: [__name__]
+          regex: "envoy_http_.*|envoy_cluster_upstream_.*|envoy_ext_authz_.*|envoy_oauth_.*"
   selector:
     matchLabels:
       app.kubernetes.io/component: proxy

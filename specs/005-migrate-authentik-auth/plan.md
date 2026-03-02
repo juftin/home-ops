@@ -93,3 +93,11 @@ No new constitution violations introduced by Phase 1 outputs.
 > **Fill ONLY if Constitution Check has violations that must be justified**
 
 No constitution violations; complexity tracking not required.
+
+## Terraform-transition invariants (US2)
+
+- Authentication mode remains a single explicit cluster-wide selector (`authentik` or `legacy`).
+- Protected-route definitions are mode-agnostic and must not fork per mode.
+- Fail-closed behavior is invariant across tooling ownership boundaries.
+- OAuth helper paths (`/oauth2/callback`, `/denied`, `/logged-out`) remain contract-stable.
+- Secret material continues to be encrypted-at-rest in Git until Terraform migration is formally adopted.

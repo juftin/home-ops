@@ -10,6 +10,14 @@ spec:
   values:
     global:
       imageRegistry: mirror.gcr.io
+    homeOps:
+      auth:
+        mode: authentik
+        allowedModes:
+          - authentik
+          - legacy
+        failClosed: true
+        decisionSource: authentik
     config:
       envoyGateway:
         provider:

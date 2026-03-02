@@ -19,7 +19,7 @@ ______________________________________________________________________
 - **[Renovate](https://renovatebot.com/)**: Automated dependency updates.
 - **[GitHub Actions](https://github.com/features/actions)**: CI/CD workflows for automation.
 - **[Cloudflare](https://www.cloudflare.com/)**: DNS Services.
-- **[Google SSO](https://github.com/envoyproxy/gateway)**: Protect selected endpoints behind Google OAuth2.
+- **[Authentik](https://goauthentik.io/)**: Centralized authentication and authorization for protected endpoints (with legacy OAuth fallback mode).
 
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f48e/512.gif" alt="🎡" width="20" height="20"> Components
 

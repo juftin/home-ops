@@ -23,6 +23,10 @@ talosconfig
 .private/
 .task/
 .venv/
+__pycache__/
+*.pyc
+*.log
+.env*
 .DS_Store
 Thumbs.db
 *.tmp

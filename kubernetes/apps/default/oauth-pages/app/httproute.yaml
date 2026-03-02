@@ -13,6 +13,8 @@ spec:
       namespace: network
     - name: envoy-external
       namespace: network
+    - name: envoy-internal
+      namespace: network
   hostnames:
     - oauth.${SECRET_DOMAIN}
     - oauth-internal.${SECRET_DOMAIN}
@@ -20,6 +22,7 @@ spec:
     - headlamp.${SECRET_DOMAIN}
     - echo.${SECRET_DOMAIN}
     - external.${SECRET_DOMAIN}
+    - internal.${SECRET_DOMAIN}
   rules:
     - name: callback
       matches:

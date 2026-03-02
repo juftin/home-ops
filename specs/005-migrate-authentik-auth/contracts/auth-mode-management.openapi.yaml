@@ -22,6 +22,7 @@ paths:
     put:
       summary: Set cluster-wide authentication mode
       operationId: setAuthMode
+      description: Applies mode atomically to all protected routes.
       requestBody:
         required: true
         content:
@@ -42,6 +43,8 @@ paths:
                 $ref: '#/components/schemas/AuthenticationMode'
         '409':
           description: Mode transition conflict
+        '422':
+          description: Unsupported mode value
   /auth-decisions:
     get:
       summary: List authorization decisions
@@ -101,3 +104,10 @@ components:
         sourceMode:
           type: string
           enum: [authentik, legacy]
+      allOf:
+        - if:
+            properties:
+              outcome:
+                const: deny
+          then:
+            required: [denialReason]

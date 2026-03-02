@@ -8,9 +8,12 @@
 
 ## 1) Edit manifests for Authentik-mode support
 
-1. Update Envoy gateway auth resources to support external authorization flow through Authentik.
-2. Preserve legacy auth configuration path for cluster-wide rollback.
-3. Ensure protected routes continue to express auth intent without per-route mode branching.
+1. Set cluster-wide auth mode in:
+   - `kubernetes/apps/network/envoy-gateway/app/helmrelease.yaml`
+   - `kubernetes/apps/network/envoy-gateway/app/envoy.yaml` (`ConfigMap/envoy-auth-mode`)
+2. Update Envoy gateway auth resources so OAuth entrypoint routes through Authentik-managed gateways first.
+3. Preserve legacy fallback by retaining legacy gateway + SecurityPolicy resources and mode annotations.
+4. Ensure protected routes continue to express auth intent without per-route mode branching.
 
 ## 2) Validate locally
 
@@ -26,6 +29,7 @@ task dev:start
 # verify protected route behavior for allow and deny cases
 # verify mode switch legacy <-> authentik
 # verify denied/logged-out utility routes remain reachable
+# verify callback path /oauth2/callback is served by oauth gateway
 task dev:stop
 ```
 
@@ -41,4 +45,15 @@ For allow and deny attempts, confirm auth outcomes expose:
 
 ## 5) Rollback
 
-If issues occur, switch cluster-wide mode back to `legacy` and reconcile; if urgent, revert the feature commit and reconcile back to known-good behavior.
+If issues occur:
+
+1. Switch cluster-wide mode back to `legacy` in the auth mode values/ConfigMap.
+2. Reconcile and re-run the protected-route checks.
+3. If urgent, revert the feature commit and reconcile back to known-good behavior.
+
+## 6) Fail-closed outage validation
+
+1. Temporarily block Authentik decision endpoint reachability from Envoy.
+2. Attempt protected-route access as a previously authorized user.
+3. Confirm request is denied (no fail-open behavior), and `/denied` route remains reachable.
+4. Restore Authentik reachability and verify access returns for authorized users.
