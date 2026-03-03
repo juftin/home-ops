@@ -1,0 +1,164 @@
+openapi: 3.0.3
+info:
+  title: Auth Routing Control Contract
+  version: 0.1.0
+  description: >-
+    Contract for route auth-path assignment evaluation and authentication outcome querying used by phased Authentik rollout planning. This contract covers runtime auth routing and outcome visibility only; Authentik provisioning lifecycle is documented in plan/tasks artifacts.
+paths:
+  /routes/{routeId}/auth-assignment:
+    get:
+      summary: Get auth-path assignment for a protected route
+      parameters:
+        - name: routeId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Current assignment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RouteAssignment'
+        '404':
+          description: Route not found
+    put:
+      summary: Set auth-path assignment for a protected route
+      parameters:
+        - name: routeId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RouteAssignmentUpdate'
+      responses:
+        '200':
+          description: Assignment updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RouteAssignment'
+        '400':
+          description: Invalid assignment
+  /auth/evaluate:
+    post:
+      summary: Evaluate an incoming protected request against route auth policy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthEvaluationRequest'
+      responses:
+        '200':
+          description: Evaluation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthEvaluationResponse'
+        '409':
+          description: Protected route has no auth-path assignment
+  /auth/outcomes:
+    get:
+      summary: Query authentication outcome records
+      parameters:
+        - name: routeId
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: authPath
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [authentik, google-proxy]
+        - name: since
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Matching outcome records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuthOutcomeRecord'
+components:
+  schemas:
+    RouteAssignment:
+      type: object
+      required: [routeId, protected, authPath, migrationPhase]
+      properties:
+        routeId:
+          type: string
+        protected:
+          type: boolean
+        authPath:
+          type: string
+          enum: [authentik, google-proxy]
+        migrationPhase:
+          type: string
+          enum: [legacy, pilot, migrated]
+    RouteAssignmentUpdate:
+      type: object
+      required: [authPath, migrationPhase]
+      properties:
+        authPath:
+          type: string
+          enum: [authentik, google-proxy]
+        migrationPhase:
+          type: string
+          enum: [legacy, pilot, migrated]
+    AuthEvaluationRequest:
+      type: object
+      required: [routeId, requestTime]
+      properties:
+        routeId:
+          type: string
+        requestTime:
+          type: string
+          format: date-time
+    AuthEvaluationResponse:
+      type: object
+      required: [routeId, authPath, decision, reasonCode]
+      properties:
+        routeId:
+          type: string
+        authPath:
+          type: string
+          enum: [authentik, google-proxy]
+        decision:
+          type: string
+          enum: [challenge, allow, deny]
+        reasonCode:
+          type: string
+    AuthOutcomeRecord:
+      type: object
+      required: [eventId, occurredAt, routeId, authPath, outcome, reasonCode]
+      properties:
+        eventId:
+          type: string
+        occurredAt:
+          type: string
+          format: date-time
+        routeId:
+          type: string
+        authPath:
+          type: string
+          enum: [authentik, google-proxy]
+        outcome:
+          type: string
+          enum: [allowed, denied, error]
+        reasonCode:
+          type: string
