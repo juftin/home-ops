@@ -67,6 +67,7 @@ paths:
   /auth/outcomes:
     get:
       summary: Query authentication outcome records
+      description: Returns route-level auth outcomes with fields required for 30-day operational parity checks.
       parameters:
         - name: routeId
           in: query
@@ -162,3 +163,12 @@ components:
           enum: [allowed, denied, error]
         reasonCode:
           type: string
+x-parity-notes:
+  requiredOutcomeFields:
+    - routeId
+    - authPath
+    - outcome
+    - occurredAt
+  supportedAuthPaths:
+    - authentik
+    - google-proxy

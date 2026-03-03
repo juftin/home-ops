@@ -141,6 +141,7 @@ kubernetes/apps/<namespace>/
 | `flux-system`      | Flux itself                                                                                                      |
 | `default`          | General applications (e.g. `echo` test server, `oauth-pages` for OIDC error pages)                               |
 | `observability`    | headlamp dashboard, Grafana UI, Prometheus, Alertmanager, Loki, and Alloy                                        |
+| `security`         | Authentik identity provider resources and related auth bootstrap secrets                                         |
 
 #### Shared components
 

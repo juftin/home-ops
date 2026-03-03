@@ -104,3 +104,10 @@ kubernetes/apps/<namespace>/<app>/
 ## Complexity Tracking
 
 No constitution violations identified.
+
+## PR Readiness Summary
+
+- Added `security/authentik` app manifests (namespace, Flux Kustomization, OCI source, HelmRelease, ExternalSecrets).
+- Updated Envoy, oauth-pages, and Cloudflare tunnel routing for phased Authentik pilot with explicit callback handling.
+- Added route/auth-path inventory artifacts and operator quickstart guidance for mixed-mode rollback and 30-day outcome queries.
+- Validation gates (`task lint`, `task dev:validate`) must pass before merge.

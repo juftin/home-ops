@@ -70,3 +70,13 @@
 - **Alternatives considered**:
   - Hardcoded bootstrap credentials in manifests (rejected: security violation)
   - Auto-generated unmanaged credentials (rejected: poor reproducibility and rotation control)
+
+## Decision 9: Auth-path outage diagnosis runbook
+
+- **Decision**: Add explicit operator diagnosis steps for unavailable `authentik` or `google-proxy` auth paths using route assignment and oauth host routing checks.
+- **Rationale**: Operators need deterministic fail-closed triage to recover quickly without exposing routes unsecured.
+- **Diagnosis Steps**:
+  1. Confirm route assignment in `files/auth-path-matrix.yaml` for impacted host.
+  2. Confirm Cloudflare tunnel ingress entry for auth callback and route hostname ordering.
+  3. Confirm Envoy SecurityPolicy issuer/client secret references reconcile successfully.
+  4. If Authentik is unavailable, roll impacted pilot routes back to `google-proxy` assignment until healthy.

@@ -34,7 +34,7 @@ ______________________________________________________________________
 
 ### User Story 2 - Keep Google SSO alternative available (Priority: P2)
 
-As a platform administrator, I can keep Google-based SSO available as an alternative path while Authentik is introduced.
+As a platform administrator, I can keep google-proxy SSO available as an alternative path while Authentik is introduced.
 
 **Why this priority**: This minimizes rollout risk and preserves continuity for users and apps that still rely on Google SSO.
 
@@ -75,12 +75,12 @@ ______________________________________________________________________
 - **FR-001**: The cluster gateway MUST support authentication via Authentik for protected application routes.
 - **FR-002**: Unauthenticated requests to Authentik-protected routes MUST be challenged for sign-in before application access is granted.
 - **FR-003**: After successful Authentik sign-in, users MUST be returned to their originally requested protected route.
-- **FR-004**: The platform MUST preserve Google-based SSO via proxy as an alternative authentication path during Authentik rollout.
+- **FR-004**: The platform MUST preserve google-proxy SSO path as an alternative authentication path during Authentik rollout.
 - **FR-005**: Each protected route MUST be explicitly assigned to one authentication path (Authentik or Google-proxy) to avoid ambiguous behavior.
 - **FR-006**: If the assigned authentication service for a route is unavailable, users MUST receive a clear access failure response and no unsecured fallback access.
 - **FR-007**: The platform MUST provide route-level records of authentication outcomes, including success and denial events.
 - **FR-008**: Administrators MUST be able to identify which authentication path is applied to each protected route.
-- **FR-009**: Existing protected routes that are not explicitly migrated to Authentik MUST continue to function with their current Google-proxy authentication behavior.
+- **FR-009**: Existing protected routes that are not explicitly migrated to Authentik MUST continue to function with their current google-proxy authentication behavior.
 - **FR-010**: This feature MUST define and migrate an initial subset of protected routes to Authentik, while non-selected routes remain on Google-proxy during the same release window.
 - **FR-011**: Authentication outcome records MUST remain queryable for at least 30 days.
 - **FR-012**: Requests for protected routes with missing auth-path assignment MUST be denied with a configuration error response.
@@ -96,7 +96,7 @@ ______________________________________________________________________
 
 ## Assumptions
 
-- Google-based SSO must remain available during initial rollout as a fallback and migration path.
+- google-proxy SSO must remain available during initial rollout as a fallback and migration path.
 - Route-level assignment is the unit of control for selecting Authentik vs Google-proxy behavior.
 - Authentication identity and session lifecycle policy continue to follow existing cluster standards unless explicitly changed in a later feature.
 

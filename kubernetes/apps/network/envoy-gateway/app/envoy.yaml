@@ -199,9 +199,11 @@ metadata:
   labels:
     home-ops.io/cloudflare-dns: "true"
     home-ops.io/oauth-gateway: "true"
+    home-ops.io/auth-path: authentik
   annotations:
     external-dns.alpha.kubernetes.io/target: external.${SECRET_DOMAIN}
     lbipam.cilium.io/ips: "192.168.1.149"
+    home-ops.io/auth-outcome-fields: routeId,authPath,outcome,occurredAt
 spec:
   gatewayClassName: envoy
   infrastructure:
@@ -232,9 +234,11 @@ metadata:
   labels:
     home-ops.io/cloudflare-dns: "true"
     home-ops.io/oauth-gateway: "true"
+    home-ops.io/auth-path: authentik
   annotations:
     external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
     lbipam.cilium.io/ips: "192.168.1.150"
+    home-ops.io/auth-outcome-fields: routeId,authPath,outcome,occurredAt
 spec:
   gatewayClassName: envoy
   infrastructure:

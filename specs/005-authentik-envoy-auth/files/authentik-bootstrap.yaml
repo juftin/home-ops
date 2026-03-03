@@ -1,0 +1,19 @@
+apiVersion: home-ops.io/v1alpha1
+kind: AuthentikBootstrapNotes
+metadata:
+  name: authentik-bootstrap
+spec:
+  namespace: security
+  releaseName: authentik
+  requiredSecrets:
+    - authentik-bootstrap
+    - authentik-secret-key
+    - oauth-client-secret
+  externalSecretStoreRef:
+    kind: ClusterSecretStore
+    name: onepassword
+  failureMode: fail-closed
+  notes:
+    - Bootstrap/admin credentials must be provided via ExternalSecret or encrypted secret references.
+    - Authentik ingress host must route through envoy-external.
+    - Missing bootstrap secret material must block ready state.

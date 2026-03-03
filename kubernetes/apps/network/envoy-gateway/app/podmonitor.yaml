@@ -2,6 +2,8 @@ apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
 metadata:
   name: envoy-proxy
+  annotations:
+    home-ops.io/auth-metrics: routeId,authPath,outcome,occurredAt
 spec:
   jobLabel: envoy-proxy
   namespaceSelector:

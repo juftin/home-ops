@@ -1,0 +1,23 @@
+apiVersion: home-ops.io/v1alpha1
+kind: AuthPathAssignmentMatrix
+metadata:
+  name: auth-path-assignment-matrix
+spec:
+  denyUnassignedProtectedRoutes: true
+  assignments:
+    - routeId: grafana
+      hostname: grafana.${SECRET_DOMAIN}
+      authPath: authentik
+      migrationPhase: pilot
+    - routeId: headlamp
+      hostname: headlamp.${SECRET_DOMAIN}
+      authPath: authentik
+      migrationPhase: pilot
+    - routeId: echo
+      hostname: echo.${SECRET_DOMAIN}
+      authPath: google-proxy
+      migrationPhase: legacy
+    - routeId: external-utility
+      hostname: external.${SECRET_DOMAIN}
+      authPath: google-proxy
+      migrationPhase: legacy

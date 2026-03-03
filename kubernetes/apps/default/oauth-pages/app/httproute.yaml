@@ -20,12 +20,16 @@ spec:
     - headlamp.${SECRET_DOMAIN}
     - echo.${SECRET_DOMAIN}
     - external.${SECRET_DOMAIN}
+    - auth.${SECRET_DOMAIN}
   rules:
     - name: callback
       matches:
         - path:
             type: Exact
             value: /oauth2/callback
+        - path:
+            type: PathPrefix
+            value: /oauth2/
       backendRefs:
         - name: oauth-pages
           port: 80

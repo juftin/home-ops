@@ -11,10 +11,10 @@
 
 **Purpose**: Prepare migration inventory and bootstrap structure for a new Authentik app.
 
-- [ ] T001 Create pilot route inventory in /Users/juftin/git/home-ops/specs/005-authentik-envoy-auth/files/pilot-routes.yaml
-- [ ] T002 [P] Create auth-path assignment matrix in /Users/juftin/git/home-ops/specs/005-authentik-envoy-auth/files/auth-path-matrix.yaml
-- [ ] T003 [P] Create Authentik bootstrap values notes in /Users/juftin/git/home-ops/specs/005-authentik-envoy-auth/files/authentik-bootstrap.yaml
-- [ ] T004 [P] Update quickstart pre-reqs for first-time Authentik install in /Users/juftin/git/home-ops/specs/005-authentik-envoy-auth/quickstart.md
+- [x] T001 Create pilot route inventory in /Users/juftin/git/home-ops/specs/005-authentik-envoy-auth/files/pilot-routes.yaml
+- [x] T002 [P] Create auth-path assignment matrix in /Users/juftin/git/home-ops/specs/005-authentik-envoy-auth/files/auth-path-matrix.yaml
+- [x] T003 [P] Create Authentik bootstrap values notes in /Users/juftin/git/home-ops/specs/005-authentik-envoy-auth/files/authentik-bootstrap.yaml
+- [x] T004 [P] Update quickstart pre-reqs for first-time Authentik install in /Users/juftin/git/home-ops/specs/005-authentik-envoy-auth/quickstart.md
 
 ______________________________________________________________________
 
@@ -24,20 +24,20 @@ ______________________________________________________________________
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T005 Create security namespace manifest in /Users/juftin/git/home-ops/kubernetes/apps/security/namespace.yaml
-- [ ] T006 Create security namespace kustomization in /Users/juftin/git/home-ops/kubernetes/apps/security/kustomization.yaml
-- [ ] T007 Create Authentik Flux kustomization in /Users/juftin/git/home-ops/kubernetes/apps/security/authentik/ks.yaml
-- [ ] T008 [P] Create Authentik app kustomization in /Users/juftin/git/home-ops/kubernetes/apps/security/authentik/app/kustomization.yaml
-- [ ] T009 [P] Create Authentik OCIRepository source in /Users/juftin/git/home-ops/kubernetes/apps/security/authentik/app/ocirepository.yaml
-- [ ] T010 Create Authentik HelmRelease with ingress host config in /Users/juftin/git/home-ops/kubernetes/apps/security/authentik/app/helmrelease.yaml
-- [ ] T011 [P] Create Authentik ExternalSecret references in /Users/juftin/git/home-ops/kubernetes/apps/security/authentik/app/externalsecret.yaml
-- [ ] T012 [P] Register security namespace apps in cluster app tree at /Users/juftin/git/home-ops/kubernetes/flux/cluster/cluster-apps.yaml
-- [ ] T013 Define Authentik gateway SecurityPolicy values in /Users/juftin/git/home-ops/kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml
-- [ ] T014 [P] Define internal Authentik gateway SecurityPolicy values in /Users/juftin/git/home-ops/kubernetes/apps/network/envoy-gateway/app/oauth-policy-internal.sops.yaml
-- [ ] T015 [P] Add Authentik OAuth client secret reference in /Users/juftin/git/home-ops/kubernetes/apps/network/envoy-gateway/app/oauth-client-secret.sops.yaml
-- [ ] T016 Add explicit Authentik and oauth callback ingress ordering in /Users/juftin/git/home-ops/kubernetes/apps/network/cloudflare-tunnel/app/helmrelease.yaml
-- [ ] T017 [P] Ensure oauth utility routes stay public in /Users/juftin/git/home-ops/kubernetes/apps/default/oauth-pages/app/securitypolicy.yaml
-- [ ] T018 [P] Ensure oauth denied/logout host coverage in /Users/juftin/git/home-ops/kubernetes/apps/default/oauth-pages/app/httproute.yaml
+- [x] T005 Create security namespace manifest in /Users/juftin/git/home-ops/kubernetes/apps/security/namespace.yaml
+- [x] T006 Create security namespace kustomization in /Users/juftin/git/home-ops/kubernetes/apps/security/kustomization.yaml
+- [x] T007 Create Authentik Flux kustomization in /Users/juftin/git/home-ops/kubernetes/apps/security/authentik/ks.yaml
+- [x] T008 [P] Create Authentik app kustomization in /Users/juftin/git/home-ops/kubernetes/apps/security/authentik/app/kustomization.yaml
+- [x] T009 [P] Create Authentik OCIRepository source in /Users/juftin/git/home-ops/kubernetes/apps/security/authentik/app/ocirepository.yaml
+- [x] T010 Create Authentik HelmRelease with ingress host config in /Users/juftin/git/home-ops/kubernetes/apps/security/authentik/app/helmrelease.yaml
+- [x] T011 [P] Create Authentik ExternalSecret references in /Users/juftin/git/home-ops/kubernetes/apps/security/authentik/app/externalsecret.yaml
+- [x] T012 [P] Register security namespace apps in cluster app tree at /Users/juftin/git/home-ops/kubernetes/flux/cluster/cluster-apps.yaml
+- [x] T013 Define Authentik gateway SecurityPolicy values in /Users/juftin/git/home-ops/kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml
+- [x] T014 [P] Define internal Authentik gateway SecurityPolicy values in /Users/juftin/git/home-ops/kubernetes/apps/network/envoy-gateway/app/oauth-policy-internal.sops.yaml
+- [x] T015 [P] Add Authentik OAuth client secret reference in /Users/juftin/git/home-ops/kubernetes/apps/network/envoy-gateway/app/oauth-client-secret.sops.yaml
+- [x] T016 Add explicit Authentik and oauth callback ingress ordering in /Users/juftin/git/home-ops/kubernetes/apps/network/cloudflare-tunnel/app/helmrelease.yaml
+- [x] T017 [P] Ensure oauth utility routes stay public in /Users/juftin/git/home-ops/kubernetes/apps/default/oauth-pages/app/securitypolicy.yaml
+- [x] T018 [P] Ensure oauth denied/logout host coverage in /Users/juftin/git/home-ops/kubernetes/apps/default/oauth-pages/app/httproute.yaml
 
 **Checkpoint**: Authentik is deployed and base gateway/auth routing is ready.
 
@@ -51,11 +51,11 @@ ______________________________________________________________________
 
 ### Implementation for User Story 1
 
-- [ ] T019 [US1] Configure envoy auth listener/policy attachment in /Users/juftin/git/home-ops/kubernetes/apps/network/envoy-gateway/app/envoy.yaml
-- [ ] T020 [P] [US1] Move Headlamp route to envoy-oauth parentRef in /Users/juftin/git/home-ops/kubernetes/apps/observability/headlamp/app/httproute.yaml
-- [ ] T021 [P] [US1] Move Grafana route to envoy-oauth parentRef in /Users/juftin/git/home-ops/kubernetes/apps/observability/kube-prometheus-stack/app/httproute.yaml
-- [ ] T022 [US1] Record pilot migration phase updates in /Users/juftin/git/home-ops/specs/005-authentik-envoy-auth/files/pilot-routes.yaml
-- [ ] T023 [US1] Align Authentik redirect and callback host mapping in /Users/juftin/git/home-ops/kubernetes/apps/network/cloudflare-tunnel/app/helmrelease.yaml
+- [x] T019 [US1] Configure envoy auth listener/policy attachment in /Users/juftin/git/home-ops/kubernetes/apps/network/envoy-gateway/app/envoy.yaml
+- [x] T020 [P] [US1] Move Headlamp route to envoy-oauth parentRef in /Users/juftin/git/home-ops/kubernetes/apps/observability/headlamp/app/httproute.yaml
+- [x] T021 [P] [US1] Move Grafana route to envoy-oauth parentRef in /Users/juftin/git/home-ops/kubernetes/apps/observability/kube-prometheus-stack/app/httproute.yaml
+- [x] T022 [US1] Record pilot migration phase updates in /Users/juftin/git/home-ops/specs/005-authentik-envoy-auth/files/pilot-routes.yaml
+- [x] T023 [US1] Align Authentik redirect and callback host mapping in /Users/juftin/git/home-ops/kubernetes/apps/network/cloudflare-tunnel/app/helmrelease.yaml
 
 **Checkpoint**: User Story 1 is independently functional and demoable.
 
@@ -69,11 +69,11 @@ ______________________________________________________________________
 
 ### Implementation for User Story 2
 
-- [ ] T024 [US2] Declare non-pilot route assignments to google-proxy in /Users/juftin/git/home-ops/specs/005-authentik-envoy-auth/files/auth-path-matrix.yaml
-- [ ] T025 [P] [US2] Keep wildcard non-pilot traffic routed to envoy-external in /Users/juftin/git/home-ops/kubernetes/apps/network/cloudflare-tunnel/app/helmrelease.yaml
-- [ ] T026 [P] [US2] Verify oauth-pages callback compatibility for Google-proxy paths in /Users/juftin/git/home-ops/kubernetes/apps/default/oauth-pages/app/httproute.yaml
-- [ ] T027 [US2] Preserve Google-proxy behavior for non-migrated routes in /Users/juftin/git/home-ops/kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml
-- [ ] T028 [US2] Update rollback guidance for mixed auth-path mode in /Users/juftin/git/home-ops/specs/005-authentik-envoy-auth/quickstart.md
+- [x] T024 [US2] Declare non-pilot route assignments to google-proxy in /Users/juftin/git/home-ops/specs/005-authentik-envoy-auth/files/auth-path-matrix.yaml
+- [x] T025 [P] [US2] Keep wildcard non-pilot traffic routed to envoy-external in /Users/juftin/git/home-ops/kubernetes/apps/network/cloudflare-tunnel/app/helmrelease.yaml
+- [x] T026 [P] [US2] Verify oauth-pages callback compatibility for Google-proxy paths in /Users/juftin/git/home-ops/kubernetes/apps/default/oauth-pages/app/httproute.yaml
+- [x] T027 [US2] Preserve Google-proxy behavior for non-migrated routes in /Users/juftin/git/home-ops/kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml
+- [x] T028 [US2] Update rollback guidance for mixed auth-path mode in /Users/juftin/git/home-ops/specs/005-authentik-envoy-auth/quickstart.md
 
 **Checkpoint**: User Stories 1 and 2 both work independently.
 
@@ -87,10 +87,10 @@ ______________________________________________________________________
 
 ### Implementation for User Story 3
 
-- [ ] T029 [US3] Add auth outcome signal fields in /Users/juftin/git/home-ops/kubernetes/apps/network/envoy-gateway/app/envoy.yaml
-- [ ] T030 [P] [US3] Verify auth metrics scrape coverage in /Users/juftin/git/home-ops/kubernetes/apps/network/envoy-gateway/app/podmonitor.yaml
-- [ ] T031 [P] [US3] Document 30-day auth outcome query procedure in /Users/juftin/git/home-ops/specs/005-authentik-envoy-auth/quickstart.md
-- [ ] T032 [US3] Add outage diagnosis steps for unavailable auth-path in /Users/juftin/git/home-ops/specs/005-authentik-envoy-auth/research.md
+- [x] T029 [US3] Add auth outcome signal fields in /Users/juftin/git/home-ops/kubernetes/apps/network/envoy-gateway/app/envoy.yaml
+- [x] T030 [P] [US3] Verify auth metrics scrape coverage in /Users/juftin/git/home-ops/kubernetes/apps/network/envoy-gateway/app/podmonitor.yaml
+- [x] T031 [P] [US3] Document 30-day auth outcome query procedure in /Users/juftin/git/home-ops/specs/005-authentik-envoy-auth/quickstart.md
+- [x] T032 [US3] Add outage diagnosis steps for unavailable auth-path in /Users/juftin/git/home-ops/specs/005-authentik-envoy-auth/research.md
 
 **Checkpoint**: All user stories are independently functional.
 
@@ -100,12 +100,12 @@ ______________________________________________________________________
 
 **Purpose**: Final consistency, validation, and readiness for PR.
 
-- [ ] T033 [P] Normalize route/auth terminology in /Users/juftin/git/home-ops/specs/005-authentik-envoy-auth/spec.md
-- [ ] T034 [P] Validate contract-doc parity in /Users/juftin/git/home-ops/specs/005-authentik-envoy-auth/contracts/auth-routing.openapi.yaml
-- [ ] T035 Run repository validation gates and capture results in /Users/juftin/git/home-ops/specs/005-authentik-envoy-auth/quickstart.md
-- [ ] T036 Prepare PR readiness summary in /Users/juftin/git/home-ops/specs/005-authentik-envoy-auth/plan.md
-- [ ] T037 [P] Add Authentik app entry in /Users/juftin/git/home-ops/README.md
-- [ ] T038 [P] Add security/authentik architecture coverage in /Users/juftin/git/home-ops/docs/ARCHITECTURE.md
+- [x] T033 [P] Normalize route/auth terminology in /Users/juftin/git/home-ops/specs/005-authentik-envoy-auth/spec.md
+- [x] T034 [P] Validate contract-doc parity in /Users/juftin/git/home-ops/specs/005-authentik-envoy-auth/contracts/auth-routing.openapi.yaml
+- [x] T035 Run repository validation gates and capture results in /Users/juftin/git/home-ops/specs/005-authentik-envoy-auth/quickstart.md
+- [x] T036 Prepare PR readiness summary in /Users/juftin/git/home-ops/specs/005-authentik-envoy-auth/plan.md
+- [x] T037 [P] Add Authentik app entry in /Users/juftin/git/home-ops/README.md
+- [x] T038 [P] Add security/authentik architecture coverage in /Users/juftin/git/home-ops/docs/ARCHITECTURE.md
 
 ______________________________________________________________________
 

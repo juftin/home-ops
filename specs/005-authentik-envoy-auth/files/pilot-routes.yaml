@@ -1,0 +1,21 @@
+apiVersion: home-ops.io/v1alpha1
+kind: PilotRouteInventory
+metadata:
+  name: authentik-pilot-routes
+spec:
+  generatedAt: 2026-03-03T00:00:00Z
+  routes:
+    - routeId: grafana
+      hostname: grafana.${SECRET_DOMAIN}
+      namespace: observability
+      serviceName: kube-prometheus-stack-grafana
+      protected: true
+      authPath: authentik
+      migrationPhase: pilot
+    - routeId: headlamp
+      hostname: headlamp.${SECRET_DOMAIN}
+      namespace: observability
+      serviceName: headlamp
+      protected: true
+      authPath: authentik
+      migrationPhase: pilot
