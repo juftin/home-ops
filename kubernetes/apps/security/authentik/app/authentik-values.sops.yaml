@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: authentik-values
+  namespace: security
+type: Opaque
+stringData:
+  values.yaml: ENC[AES256_GCM,data:7PTESimeW7CI11WYfGt5lekNEvio6zKbRabVaf/VNpUmG7FfdOnIEUEV/XqtWak4UXPWBRjdaGtzs6tFtxVuWqHofpPttrVW7xna1fh3R9gNWwLP3QE8yrb7QBY=,iv:HVWyplIt6RDTwtpm/9ec8asSUCEit1PVDfAsYSMX6pU=,tag:3YToE2nPZJ4J8AKKZ+MR8A==,type:str]
+sops:
+  age:
+    - recipient: age1d7ltdyge970mha3gqyenf9mrn8ezg60nexy99vzndvl592q2zcxqkytdwd
+      enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSB6cW53d0wxNm5LOCtLK0FQ
+        S3JOQ1N0cmd4WHJMWkhOV29uMkZDQ2pPNm5BCk9mYTR6Z2g2ejI3OTNtajlnb1Fx
+        a2JCY1dtQXp0c2hsblRnZG51VVpNM2cKLS0tIGxDaE1ZcEE5aGQ3c0ZpWW1kdGhE
+        ang3ZFk2aVBodjUyKzBrNk5ockQ3RXcK1arMRYdeMu54giyybLj6RrKy9d5isfuS
+        FdxneQ54qM3nAOr3Wq9vna84F8+qFUBxIzGVW0VR9YTDtH8yfPNy5w==
+        -----END AGE ENCRYPTED FILE-----
+  lastmodified: "2026-03-03T05:48:47Z"
+  mac: ENC[AES256_GCM,data:X0buYYj5oG1qetnhtbv0LlqG2gt0kAYWMTYfsYNcDC5OQsSIkuW4CBkn1HMi54mIEwf19xir2f7Gdn3mmKetO5VaMniXnVSRVMLMmuH8rJDGMrYPWV/fp6LemXkXD5jndhndNFOH92Ohb2COE+xSNUGXns5dZLTz7smtNtJcivM=,iv:K1++nEOkYwSMPCHu1y7FgZyAA0hETrdiPzdBiZyVi3Q=,tag:PZZgfkeeeww254R5ycceiQ==,type:str]
+  encrypted_regex: ^(data|stringData)$
+  mac_only_encrypted: true
+  version: 3.12.1

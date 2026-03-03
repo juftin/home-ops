@@ -30,4 +30,5 @@ resources:
   - ./helmrelease.yaml
   - ./ocirepository.yaml
   - ./externalsecret.yaml
+  - ./authentik-values.sops.yaml
   - ./authentik-envoy-provider-blueprint.sops.yaml

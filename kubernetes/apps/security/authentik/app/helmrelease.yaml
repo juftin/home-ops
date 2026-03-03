@@ -7,6 +7,10 @@ spec:
     kind: OCIRepository
     name: authentik
   interval: 1h
+  valuesFrom:
+    - kind: Secret
+      name: authentik-values
+      valuesKey: values.yaml
   values:
     postgresql:
       enabled: true
@@ -16,8 +20,6 @@ spec:
       secrets:
         - authentik-envoy-provider-blueprint
     authentik:
-      existingSecret:
-        secretName: authentik-secret-key
       error_reporting:
         enabled: false
     server:
