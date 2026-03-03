@@ -31,10 +31,3 @@ tasks:
     preconditions:
       - test -f {{.KUBECONFIG}}
       - which flux
-  authentik:bootstrap:
-    desc: Bootstrap Authentik OIDC provider/application for Envoy OAuth gateways
-    cmd: '{{.SCRIPTS_DIR}}/bootstrap-authentik-oidc.sh'
-    preconditions:
-      - test -f {{.KUBECONFIG}}
-      - which kubectl
-      - which openssl

@@ -12,6 +12,9 @@ spec:
       enabled: true
     redis:
       enabled: true
+    blueprints:
+      secrets:
+        - authentik-envoy-provider-blueprint
     authentik:
       secret_key: "${AUTHENTIK_SECRET_KEY}"
       error_reporting:

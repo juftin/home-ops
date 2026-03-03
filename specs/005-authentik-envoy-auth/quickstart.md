@@ -7,8 +7,8 @@
    - `authentik-bootstrap` ExternalSecret source in 1Password.
    - `authentik-secret-key` ExternalSecret source in 1Password.
    - Envoy OIDC secret (`oauth-client-secret`) includes an Authentik client secret value.
-3. Run `task authentik:bootstrap` to upsert the Authentik `envoy-gateway` provider and `envoy` application.
-4. Confirm Cloudflare tunnel and DNS host coverage includes `auth.${SECRET_DOMAIN}`, `oauth.${SECRET_DOMAIN}`, and pilot app hosts.
+3. Confirm Cloudflare tunnel and DNS host coverage includes `auth.${SECRET_DOMAIN}`, `oauth.${SECRET_DOMAIN}`, and pilot app hosts.
+4. Confirm Flux applies `authentik-envoy-provider-blueprint` in `security` so Authentik provider/app objects are reconciled declaratively.
 
 ## Rollout
 
