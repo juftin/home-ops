@@ -10,6 +10,24 @@ tasks:
       docker run --rm -v {{.ROOT_DIR}}:/github/workspace -w /github/workspace {{.FLUX_LOCAL_IMAGE}} test --enable-helm --all-namespaces --path /github/workspace/kubernetes/flux/cluster -v
     preconditions:
       - which docker
+  worktree:create:
+    desc: Create a feature worktree under ./worktrees and link required local files
+    requires:
+      vars: [NAME, BRANCH]
+    cmds:
+      - mkdir -p {{.ROOT_DIR}}/worktrees
+      - git worktree add {{.ROOT_DIR}}/worktrees/{{.NAME}} -b {{.BRANCH}}
+      - ln -snf {{.ROOT_DIR}}/age.key {{.ROOT_DIR}}/worktrees/{{.NAME}}/age.key
+      - ln -snf {{.ROOT_DIR}}/kubeconfig {{.ROOT_DIR}}/worktrees/{{.NAME}}/kubeconfig
+    preconditions:
+      - which git
+  worktree:remove:
+    desc: Remove a feature worktree from ./worktrees
+    requires:
+      vars: [NAME]
+    cmd: git worktree remove {{.ROOT_DIR}}/worktrees/{{.NAME}}
+    preconditions:
+      - which git
   start:
     desc: Switch Flux to reconcile the current git branch [must not be on main]
     vars:

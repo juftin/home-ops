@@ -59,13 +59,9 @@ task dev:validate   # renders all Flux HelmReleases and Kustomizations — no cl
 Always work in a git worktree to keep the main checkout on `main` and isolate feature branches:
 
 ```bash
-# Create a worktree for the feature branch (sibling of the main checkout)
-git worktree add ../home-ops-my-change -b feature/my-change
-cd ../home-ops-my-change
-
-# Symlink gitignored files required by dev tasks (Taskfile resolves these from ROOT_DIR)
-ln -s ../home-ops/age.key age.key
-ln -s ../home-ops/kubeconfig kubeconfig
+# Create a worktree for the feature branch under ./worktrees/
+task dev:worktree:create NAME=home-ops-my-change BRANCH=feature/my-change
+cd worktrees/home-ops-my-change
 
 # edit kubernetes/ manifests
 task lint             # auto-fix formatting
@@ -75,8 +71,8 @@ task dev:sync         # push additional commits and reconcile
 task dev:stop         # ALWAYS run this — restores flux-instance and points cluster back at main
 
 # Clean up the worktree when done (must be run from outside the worktree)
-cd ../home-ops
-git worktree remove ../home-ops-my-change
+cd ../..
+git worktree remove worktrees/home-ops-my-change
 ```
 
 > Always run `task dev:stop` when done, even if something went wrong. It restores the
@@ -147,9 +143,8 @@ Replicate CI locally with `task dev:validate` before opening a PR.
 - **`yamlfmt` reformats indentation and multiline strings** — do not manually fight its style;
   always let `task lint` normalize files before committing.
 - **Worktrees share the `.git` directory but not gitignored files** — `age.key` and `kubeconfig`
-  exist only in the main working tree. Symlink them into the worktree before running `dev:` tasks —
-  the Taskfile resolves these from `ROOT_DIR` so env var overrides won't work:
-  `ln -s ../home-ops/age.key age.key && ln -s ../home-ops/kubeconfig kubeconfig`.
+  exist only in the main working tree. Use `task dev:worktree:create` to create the worktree and
+  symlink these files correctly before running `dev:` tasks.
 - **`components/sops` is the only Kustomize component on `main`** — namespace-level
   `kustomization.yaml` files must use `../../components/sops`. Do not copy namespace kustomizations
   from feature branches that used `../../components/common`; that directory does not exist on `main`.
