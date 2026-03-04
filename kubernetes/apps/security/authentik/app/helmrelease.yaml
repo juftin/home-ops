@@ -12,6 +12,10 @@ spec:
       name: authentik-values
       valuesKey: values.yaml
   values:
+    global:
+      envFrom:
+        - secretRef:
+            name: authentik-bootstrap
     postgresql:
       enabled: true
     redis:
