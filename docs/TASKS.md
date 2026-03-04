@@ -96,23 +96,21 @@ ______________________________________________________________________
 Defined in `.taskfiles/dev/Taskfile.yaml`. Enables testing changes against the live cluster
 **without pushing to `main`** by temporarily redirecting Flux to watch the current git branch.
 
-| Task                | Description                                                                                                                                              |
-| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `task dev:validate` | Run `flux-local test` locally via Docker — validates all Helm renders and Kustomization builds with no cluster required                                  |
-| `task dev:start`    | Push current branch, suspend the `flux-instance` HelmRelease, patch the `flux-system` GitRepository to watch the current branch, and trigger a reconcile |
-| `task dev:sync`     | Push new commits on the current branch and trigger Flux to reconcile them                                                                                |
-| `task dev:stop`     | Restore the GitRepository to `refs/heads/main`, resume the `flux-instance` HelmRelease, and trigger a reconcile                                          |
+| Task                                                   | Description                                                                                                                                              |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `task dev:validate`                                    | Run `flux-local test` locally via Docker — validates all Helm renders and Kustomization builds with no cluster required                                  |
+| `task dev:worktree:create NAME=<name> BRANCH=<branch>` | Create a feature worktree under `./worktrees/` and symlink `age.key`/`kubeconfig` into it                                                                |
+| `task dev:worktree:remove NAME=<name>`                 | Remove a feature worktree from `./worktrees/`                                                                                                            |
+| `task dev:start`                                       | Push current branch, suspend the `flux-instance` HelmRelease, patch the `flux-system` GitRepository to watch the current branch, and trigger a reconcile |
+| `task dev:sync`                                        | Push new commits on the current branch and trigger Flux to reconcile them                                                                                |
+| `task dev:stop`                                        | Restore the GitRepository to `refs/heads/main`, resume the `flux-instance` HelmRelease, and trigger a reconcile                                          |
 
 **Typical workflow:**
 
 ```bash
-# Create a worktree to isolate the feature branch (sibling of the main checkout)
-git worktree add ../home-ops-my-change -b feature/my-change
-cd ../home-ops-my-change
-
-# Symlink gitignored files required by dev tasks (Taskfile resolves these from ROOT_DIR)
-ln -s ../home-ops/age.key age.key
-ln -s ../home-ops/kubeconfig kubeconfig
+# Create a worktree to isolate the feature branch under ./worktrees/
+task dev:worktree:create NAME=home-ops-my-change BRANCH=feature/my-change
+cd worktrees/home-ops-my-change
 
 # edit kubernetes/ manifests ...
 task dev:start      # redirect Flux at this branch
@@ -122,8 +120,8 @@ task dev:sync       # push + reconcile after each change
 task dev:stop       # restore Flux to main
 
 # Clean up (must be run from outside the worktree)
-cd ../home-ops
-git worktree remove ../home-ops-my-change
+cd ../..
+task dev:worktree:remove NAME=home-ops-my-change
 ```
 
 > `dev:start` suspends the `flux-instance` HelmRelease so the flux-operator does not fight the
