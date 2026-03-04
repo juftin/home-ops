@@ -1,0 +1,13 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: authentik
+spec:
+  interval: 15m
+  layerSelector:
+    mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
+    operation: copy
+  ref:
+    # renovate: datasource=helm depName=authentik registryUrl=oci://ghcr.io/goauthentik/helm-charts
+    tag: 2026.2.0
+  url: oci://ghcr.io/goauthentik/helm-charts/authentik

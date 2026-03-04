@@ -19,7 +19,7 @@ ______________________________________________________________________
 - **[Renovate](https://renovatebot.com/)**: Automated dependency updates.
 - **[GitHub Actions](https://github.com/features/actions)**: CI/CD workflows for automation.
 - **[Cloudflare](https://www.cloudflare.com/)**: DNS Services.
-- **[Google SSO](https://github.com/envoyproxy/gateway)**: Protect selected endpoints behind Google OAuth2.
+- **[Authentik](https://goauthentik.io/)**: Centralized authentication and authorization for protected endpoints (with legacy OAuth fallback mode).
 
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f48e/512.gif" alt="🎡" width="20" height="20"> Components
 
@@ -62,6 +62,8 @@ ______________________________________________________________________
   labels pod logs and forwards them to Loki.
 - **[oauth-pages](https://nginx.org/)**: Static access-denied and logout confirmation pages for
   Envoy Gateway OIDC, including route rewrites from friendly paths to static HTML files.
+- **[Authentik](https://goauthentik.io/)**: Identity provider serving OIDC issuer metadata and login
+  flows for protected routes.
 
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f52e/512.gif" alt="🔮" width="20" height="20"> Hardware
 

@@ -10,6 +10,7 @@ Primary files:
 
 - `kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml`
 - `kubernetes/apps/network/envoy-gateway/app/oauth-policy-internal.sops.yaml`
+- `kubernetes/apps/network/envoy-gateway/app/envoy.yaml` (cluster auth mode + fail-closed metadata)
 
 Related secret:
 
@@ -28,8 +29,8 @@ sops --decrypt kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml 
 ## 2) Edit
 
 - Keep `authorization.defaultAction: Deny`
-- Keep `email_verified=true` check
-- Add/remove only lowercase emails in `email` claim values
+- Keep deny-by-default behavior in both Authentik and legacy mode resources
+- Keep group/identity checks aligned between external and internal policies
 
 ## 3) Re-encrypt and clean up
 
@@ -70,7 +71,8 @@ ______________________________________________________________________
 When immediate access revocation is required:
 
 1. Remove affected email(s) from allowlist and push
-2. Restart Envoy Gateway pods to invalidate active sessions quickly
+2. Remove affected group mapping if Authentik-managed authorization is active
+3. Restart Envoy Gateway pods to invalidate active sessions quickly
 
 ```bash
 kubectl rollout restart deployment -n network -l app.kubernetes.io/name=envoy-gateway
@@ -84,4 +86,5 @@ ______________________________________________________________________
 - [ ] Policy file still SOPS-encrypted (`ENC[AES256` present)
 - [ ] `targetRefs` still point at intended Gateway
 - [ ] Redirect URLs still match gateway hostname
+- [ ] Fail-closed behavior remains documented and validated
 - [ ] Branch test completed and `task dev:stop` run

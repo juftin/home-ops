@@ -46,8 +46,11 @@ metadata:
   name: envoy-external
   labels:
     home-ops.io/cloudflare-dns: "true"
+    home-ops.io/auth-mode: protected
   annotations:
     external-dns.alpha.kubernetes.io/target: external.${SECRET_DOMAIN}
+    home-ops.io/auth-mode-selector: cluster
+    home-ops.io/auth-decision-source: authentik
 spec:
   gatewayClassName: envoy
   infrastructure:
@@ -76,8 +79,12 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: envoy-internal
+  labels:
+    home-ops.io/auth-mode: protected
   annotations:
     external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
+    home-ops.io/auth-mode-selector: cluster
+    home-ops.io/auth-decision-source: authentik
 spec:
   gatewayClassName: envoy
   infrastructure:
@@ -191,6 +198,19 @@ spec:
           type: ReplaceFullPath
           replaceFullPath: /denied
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: envoy-auth-mode
+  namespace: network
+data:
+  mode: authentik
+  allowedModes: authentik,legacy
+  failClosed: "true"
+  decisionSource: authentik
+  legacyFallback: securitypolicy-oidc
+  switchScope: cluster-wide
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
@@ -199,9 +219,13 @@ metadata:
   labels:
     home-ops.io/cloudflare-dns: "true"
     home-ops.io/oauth-gateway: "true"
+    home-ops.io/auth-mode: authentik
   annotations:
     external-dns.alpha.kubernetes.io/target: external.${SECRET_DOMAIN}
     lbipam.cilium.io/ips: "192.168.1.149"
+    home-ops.io/auth-mode-selector: cluster
+    home-ops.io/auth-fail-closed: "true"
+    home-ops.io/auth-legacy-gateway: envoy-external
 spec:
   gatewayClassName: envoy
   infrastructure:
@@ -232,9 +256,13 @@ metadata:
   labels:
     home-ops.io/cloudflare-dns: "true"
     home-ops.io/oauth-gateway: "true"
+    home-ops.io/auth-mode: authentik
   annotations:
     external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
     lbipam.cilium.io/ips: "192.168.1.150"
+    home-ops.io/auth-mode-selector: cluster
+    home-ops.io/auth-fail-closed: "true"
+    home-ops.io/auth-legacy-gateway: envoy-internal
 spec:
   gatewayClassName: envoy
   infrastructure:

@@ -139,7 +139,7 @@ kubernetes/apps/<namespace>/
 | `network`          | envoy-gateway, OAuth Gateways, SecurityPolicies, cloudflared tunnel, external-dns (k8s-gateway + cloudflare-dns) |
 | `external-secrets` | external-secrets operator, 1Password Connect                                                                     |
 | `flux-system`      | Flux itself                                                                                                      |
-| `default`          | General applications (e.g. `echo` test server, `oauth-pages` for OIDC error pages)                               |
+| `default`          | General applications (e.g. `echo` test server, `oauth-pages` error pages, `authentik` IdP service)               |
 | `observability`    | headlamp dashboard, Grafana UI, Prometheus, Alertmanager, Loki, and Alloy                                        |
 
 #### Shared components
@@ -179,14 +179,15 @@ ______________________________________________________________________
 
 ### 5. Networking
 
-| Component                         | Role                                                               |
-| --------------------------------- | ------------------------------------------------------------------ |
-| **Cilium**                        | eBPF CNI, kube-proxy replacement, network policy                   |
-| **CoreDNS**                       | In-cluster DNS                                                     |
-| **Envoy Gateway**                 | Kubernetes Gateway API implementation (ingress/traffic routing)    |
-| **cloudflared**                   | Cloudflare Tunnel – exposes services externally without open ports |
-| **external-dns (k8s-gateway)**    | Internal DNS resolution for cluster services                       |
-| **external-dns (cloudflare-dns)** | Syncs DNS records to Cloudflare for external access                |
+| Component                         | Role                                                                   |
+| --------------------------------- | ---------------------------------------------------------------------- |
+| **Cilium**                        | eBPF CNI, kube-proxy replacement, network policy                       |
+| **CoreDNS**                       | In-cluster DNS                                                         |
+| **Envoy Gateway**                 | Kubernetes Gateway API implementation (ingress/traffic routing)        |
+| **Authentik**                     | Central identity and authorization decision point for protected routes |
+| **cloudflared**                   | Cloudflare Tunnel – exposes services externally without open ports     |
+| **external-dns (k8s-gateway)**    | Internal DNS resolution for cluster services                           |
+| **external-dns (cloudflare-dns)** | Syncs DNS records to Cloudflare for external access                    |
 
 ______________________________________________________________________
 

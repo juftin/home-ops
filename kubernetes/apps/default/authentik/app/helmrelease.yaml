@@ -1,0 +1,33 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: authentik
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: authentik
+  interval: 1h
+  valuesFrom:
+    - kind: Secret
+      name: authentik-values
+      valuesKey: values.yaml
+  values:
+    postgresql:
+      enabled: true
+    blueprints:
+      secrets:
+        - home-ops-provider-blueprint
+    server:
+      route:
+        main:
+          enabled: true
+          hostnames:
+            - auth.${SECRET_DOMAIN}
+          parentRefs:
+            - name: envoy-external
+              namespace: network
+              sectionName: https
+          matches:
+            - path:
+                type: PathPrefix
+                value: /
