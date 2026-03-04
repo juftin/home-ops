@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/v1/configmap_v1.json
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-cluster-health
+  namespace: observability
+  labels:
+    grafana_dashboard: "1"
+data:
+  cluster-health-overview.json: |-
+    {
+      "title": "Cluster Health Overview",
+      "uid": "cluster-health-overview",
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "30s",
+      "tags": ["kubernetes", "home-ops"],
+      "panels": [
+        {
+          "type": "stat",
+          "title": "Ready Nodes",
+          "gridPos": { "h": 8, "w": 8, "x": 0, "y": 0 },
+          "targets": [
+            {
+              "expr": "sum(kube_node_status_condition{condition=\"Ready\",status=\"true\"})",
+              "legendFormat": "Ready"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "CPU Usage (cores)",
+          "gridPos": { "h": 8, "w": 16, "x": 8, "y": 0 },
+          "targets": [
+            {
+              "expr": "sum(rate(container_cpu_usage_seconds_total{container!=\"\",image!=\"\"}[5m]))",
+              "legendFormat": "cluster"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Memory Usage (bytes)",
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+          "targets": [
+            {
+              "expr": "sum(container_memory_working_set_bytes{container!=\"\",image!=\"\"})",
+              "legendFormat": "working set"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Pod Restarts (15m)",
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+          "targets": [
+            {
+              "expr": "sum(increase(kube_pod_container_status_restarts_total[15m]))",
+              "legendFormat": "restarts"
+            }
+          ]
+        }
+      ]
+    }

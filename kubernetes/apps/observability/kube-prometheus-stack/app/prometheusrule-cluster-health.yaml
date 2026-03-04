@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/monitoring.coreos.com/prometheusrule_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: cluster-health
+  namespace: observability
+spec:
+  groups:
+    - name: cluster-health.rules
+      rules:
+        - alert: KubernetesNodeNotReady
+          expr: kube_node_status_condition{condition="Ready", status="true"} == 0
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: One or more nodes are not Ready
+            description: At least one Kubernetes node has been in NotReady state for more than 10 minutes.
+        - alert: KubernetesPodCrashLooping
+          expr: sum by (namespace, pod) (increase(kube_pod_container_status_restarts_total[15m])) > 3
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: Pod is repeatedly restarting
+            description: Pod {{ $labels.namespace }}/{{ $labels.pod }} restarted more than 3 times in the last 15 minutes.

@@ -6,4 +6,6 @@ resources:
   - ./ocirepository.yaml
   - ./externalsecret.yaml
   - ./httproute.yaml
+  - ./grafana-dashboard-cluster-health.yaml
+  - ./prometheusrule-cluster-health.yaml
   - ./helmrelease.yaml
