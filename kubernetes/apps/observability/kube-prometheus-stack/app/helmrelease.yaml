@@ -17,6 +17,9 @@ spec:
       retries: 3
   values:
     fullnameOverride: kube-prometheus-stack
+    defaultRules:
+      disabled:
+        KubeProxyDown: true
     prometheus:
       prometheusSpec:
         scrapeInterval: 30s
