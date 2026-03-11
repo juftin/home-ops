@@ -208,7 +208,7 @@ Renovate runs on a weekend schedule (`.renovaterc.json5`) and opens PRs to updat
 - Tool versions in `.mise.toml`
 
 Annotated inline comments (`# renovate: datasource=...`) drive version tracking for values that
-Renovate cannot auto-detect. GitHub Actions minor/patch updates are auto-merged after 3 days.
+Renovate cannot auto-detect. GitHub Actions minor/patch updates and mise minor updates are auto-merged after 3 days.
 
 ______________________________________________________________________
 
