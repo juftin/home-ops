@@ -59,7 +59,7 @@
       matchManagers: ["mise"],
       automerge: true,
       automergeType: "branch",
-      matchUpdateTypes: ["minor"],
+      matchUpdateTypes: ["minor", "patch"],
       minimumReleaseAge: "3 days",
       ignoreTests: true,
     },
