@@ -18,8 +18,11 @@ spec:
   values:
     fullnameOverride: kube-prometheus-stack
     defaultRules:
+      rules:
+        kubeProxy: false
       disabled:
         KubeProxyDown: true
+        Watchdog: true
     prometheus:
       prometheusSpec:
         scrapeInterval: 30s
@@ -69,8 +72,12 @@ spec:
           group_wait: 30s
           group_interval: 5m
           repeat_interval: 4h
-          routes: []
+          routes:
+            - receiver: "null"
+              matchers:
+                - alertname = "Watchdog"
         receivers:
+          - name: "null"
           - name: slack
             slack_configs:
               - channel: "#alerts"
