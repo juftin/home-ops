@@ -20,9 +20,6 @@ spec:
     defaultRules:
       rules:
         kubeProxy: false
-      disabled:
-        KubeProxyDown: true
-        Watchdog: true
     prometheus:
       prometheusSpec:
         scrapeInterval: 30s
