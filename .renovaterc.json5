@@ -55,11 +55,11 @@
       ignoreTests: true,
     },
     {
-      description: "Auto-merge Mise minor updates",
+      description: "Auto-merge Mise",
       matchManagers: ["mise"],
       automerge: true,
       automergeType: "branch",
-      matchUpdateTypes: ["minor", "patch"],
+      matchUpdateTypes: ["minor", "patch", "digest"],
       minimumReleaseAge: "3 days",
       ignoreTests: true,
     },
