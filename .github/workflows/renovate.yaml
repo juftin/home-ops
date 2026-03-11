@@ -28,6 +28,7 @@ jobs:
         with:
           token: ${{ secrets.RENOVATE_TOKEN }}
           configurationFile: .github/renovate-config.js
+          # renovate: datasource=github-releases depName=renovatebot/renovate
           renovate-version: 43.29.2
         env:
           RENOVATE_REPOSITORY: ${{ github.repository }}
