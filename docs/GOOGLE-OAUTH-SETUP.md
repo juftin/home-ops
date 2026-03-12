@@ -24,6 +24,7 @@ ______________________________________________________________________
    - `https://oauth.<YOUR_DOMAIN>/oauth2/callback`
    - `https://oauth-users.<YOUR_DOMAIN>/oauth2/callback` (users group gateway)
    - `https://oauth-internal.<YOUR_DOMAIN>/oauth2/callback` (if using internal gateway)
+   - `https://headlamp.<YOUR_DOMAIN>/oidc-callback` (Headlamp sign-in button)
 5. Save and copy the Client ID + Client Secret
 
 ______________________________________________________________________
@@ -68,6 +69,19 @@ Store in each policy file above:
 - `spec.oidc.logoutRedirectURL`
 
 These must match the Google OAuth redirect URI hostnames exactly.
+
+## Headlamp in-cluster OIDC values
+
+Headlamp OIDC is sourced from 1Password via ExternalSecret:
+
+- `kubernetes/apps/observability/headlamp/app/externalsecret.yaml`
+
+Create/update a 1Password item named `headlamp-oidc` with these fields:
+
+- `OIDC_CLIENT_ID`
+- `OIDC_CLIENT_SECRET`
+- `OIDC_ISSUER_URL` (for Google, `https://accounts.google.com`)
+- `OIDC_SCOPES` (recommended: `openid,email,profile`)
 
 ______________________________________________________________________
 

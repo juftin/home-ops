@@ -44,6 +44,13 @@ spec:
           - mountPath: /build/plugins
             name: headlamp-plugins
     config:
+      oidc:
+        callbackURL: https://headlamp.${SECRET_DOMAIN}/oidc-callback
+        secret:
+          create: false
+        externalSecret:
+          enabled: true
+          name: headlamp-oidc
       pluginsDir: /build/plugins
     serviceAccount:
       create: false
