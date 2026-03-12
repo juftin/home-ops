@@ -60,7 +60,7 @@ Always work in a git worktree to keep the main checkout on `main` and isolate fe
 
 ```bash
 # Create a worktree for the feature branch under ./worktrees/
-task dev:worktree:create NAME=home-ops-my-change BRANCH=feature/my-change
+task dev:worktree:create NAME=home-ops-my-change
 cd worktrees/home-ops-my-change
 
 # edit kubernetes/ manifests
