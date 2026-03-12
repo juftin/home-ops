@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/batch/v1/cronjob-v1.json
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: headlamp-token-sync-check
+  namespace: observability
+spec:
+  schedule: "*/1 * * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: headlamp-token-sync-check
+          restartPolicy: OnFailure
+          containers:
+            - name: sync-check
+              image: bitnami/kubectl:1.33.1
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/sh
+                - -ec
+                - |
+                  NOW="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+                  SECRET_DATA="$(kubectl get secret -n observability headlamp-admin-token -o go-template='{{range $k, $v := .data}}{{printf "%s=%s\n" $k $v}}{{end}}' | sort)"
+                  SECRET_FINGERPRINT="$(printf '%s' "${SECRET_DATA}" | sha256sum | awk '{print $1}')"
+
+                  PREVIOUS_FINGERPRINT="$(kubectl get configmap -n observability headlamp-token-sync-state -o jsonpath='{.data.lastSecretFingerprint}')"
+                  if [ -n "${PREVIOUS_FINGERPRINT}" ] && [ "${PREVIOUS_FINGERPRINT}" != "${SECRET_FINGERPRINT}" ]; then
+                    STATE="out_of_sync"
+                    REASON_CODE="fingerprint_mismatch"
+                    DETAILS="Detected rotated secret fingerprint since previous check."
+                  else
+                    STATE="in_sync"
+                    REASON_CODE=""
+                    DETAILS="Authoritative source and observed fingerprint are aligned."
+                  fi
+
+                  kubectl patch configmap -n observability headlamp-token-sync-state --type merge -p "$(cat <<EOF
+                  {
+                    "data": {
+                      "lastSecretFingerprint": "${SECRET_FINGERPRINT}",
+                      "lastObservedAt": "${NOW}",
+                      "lastReasonCode": "${REASON_CODE}",
+                      "lastState": "${STATE}",
+                      "lastDetails": "${DETAILS}"
+                    }
+                  }
+                  EOF
+                  )"

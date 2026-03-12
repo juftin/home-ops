@@ -1,0 +1,182 @@
+openapi: 3.0.3
+info:
+  title: Headlamp Token Sync Operations API
+  version: 0.1.0
+  description: >
+    Contract for operator-visible token synchronization status, incident history, and manual reconciliation triggers for Headlamp authentication reliability.
+
+servers:
+  - url: https://ops.example.internal
+paths:
+  /token-sync/status:
+    get:
+      summary: Get current token sync state
+      operationId: getTokenSyncStatus
+      responses:
+        '200':
+          description: Current sync state returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenSyncStatus'
+  /token-sync/sources:
+    get:
+      summary: List token sources and observed fingerprints
+      operationId: listTokenSources
+      responses:
+        '200':
+          description: Token source inventory
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenSourcesResponse'
+  /token-sync/incidents:
+    get:
+      summary: List token sync incidents
+      operationId: listTokenSyncIncidents
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [open, mitigating, resolved]
+      responses:
+        '200':
+          description: Incidents returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenSyncIncidentsResponse'
+  /token-sync/reconcile:
+    post:
+      summary: Trigger a reconciliation check
+      operationId: triggerTokenSyncReconcile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason:
+                  type: string
+                requestedBy:
+                  type: string
+      responses:
+        '202':
+          description: Reconciliation accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [jobId, acceptedAt]
+                properties:
+                  jobId:
+                    type: string
+                  acceptedAt:
+                    type: string
+                    format: date-time
+components:
+  schemas:
+    TokenSourcesResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TokenSource'
+    TokenSyncIncidentsResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyncIncident'
+    TokenSource:
+      type: object
+      required:
+        - name
+        - kind
+        - fingerprint
+        - observedAt
+        - priority
+        - availability
+      properties:
+        name:
+          type: string
+        kind:
+          type: string
+          enum: [materialized_secret, upstream_secret_store, session_token]
+        fingerprint:
+          type: string
+          description: Non-sensitive digest of token value
+        observedAt:
+          type: string
+          format: date-time
+        priority:
+          type: integer
+          minimum: 1
+        availability:
+          type: string
+          enum: [available, degraded, unavailable]
+    TokenSyncStatus:
+      type: object
+      required:
+        - state
+        - authoritativeSource
+        - lastVerifiedAt
+      properties:
+        state:
+          type: string
+          enum: [in_sync, degraded, out_of_sync]
+        authoritativeSource:
+          type: string
+        lastVerifiedAt:
+          type: string
+          format: date-time
+        lastFailureAt:
+          type: string
+          format: date-time
+          nullable: true
+        reasonCode:
+          type: string
+          enum: [sources_match, source_unavailable, fingerprint_mismatch]
+          nullable: true
+        details:
+          type: string
+          nullable: true
+    SyncIncident:
+      type: object
+      required:
+        - incidentId
+        - openedAt
+        - status
+        - trigger
+        - affectedDecisions
+        - remediationHint
+      properties:
+        incidentId:
+          type: string
+        openedAt:
+          type: string
+          format: date-time
+        closedAt:
+          type: string
+          format: date-time
+          nullable: true
+        status:
+          type: string
+          enum: [open, mitigating, resolved]
+        trigger:
+          type: string
+          enum: [scheduled_check, login_failure, manual_check]
+        affectedDecisions:
+          type: integer
+          minimum: 0
+        remediationHint:
+          type: string

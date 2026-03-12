@@ -55,7 +55,23 @@ If any check fails:
 
 ______________________________________________________________________
 
-## 5. Change Record
+## 5. Token Sync Follow-up (Headlamp)
+
+- [ ] `headlamp-admin-token` ExternalSecret reports Ready after rotation
+- [ ] Headlamp login accepts only the rotated token within 5 minutes
+- [ ] `https://headlamp.<domain>/token-sync/status` returns current sync state
+- [ ] `https://headlamp.<domain>/token-sync/sources` returns source fingerprints metadata
+- [ ] `https://headlamp.<domain>/token-sync/incidents` returns incident list payload
+
+```bash
+kubectl get externalsecret -n observability headlamp-admin-token
+kubectl get configmap -n observability headlamp-token-sync-state -o yaml
+kubectl get httproute -n observability token-sync-status
+```
+
+______________________________________________________________________
+
+## 6. Change Record
 
 Record in PR comment or handoff note:
 

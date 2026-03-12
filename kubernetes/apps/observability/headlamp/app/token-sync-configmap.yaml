@@ -1,0 +1,90 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/v1/configmap-v1.json
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: headlamp-token-sync-config
+  namespace: observability
+data:
+  authoritativeSource: k8s-secret
+  sourcePriority: |
+    k8s-secret=10
+    onepassword=20
+    envoy-session=30
+  reasonCodes: |
+    in_sync=sources_match
+    degraded=source_unavailable
+    out_of_sync=fingerprint_mismatch
+  incidentRetentionDays: "14"
+  propagationObjective: 5m
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/v1/configmap-v1.json
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: headlamp-token-sync-state
+  namespace: observability
+data:
+  status.json: |
+    {
+      "state": "in_sync",
+      "authoritativeSource": "k8s-secret",
+      "lastVerifiedAt": "1970-01-01T00:00:00Z",
+      "lastFailureAt": null,
+      "reasonCode": null,
+      "details": null
+    }
+  sources.json: |
+    {
+      "items": [
+        {
+          "name": "k8s-secret",
+          "kind": "materialized_secret",
+          "fingerprint": "unknown",
+          "observedAt": "1970-01-01T00:00:00Z",
+          "priority": 10,
+          "availability": "degraded"
+        },
+        {
+          "name": "onepassword",
+          "kind": "upstream_secret_store",
+          "fingerprint": "unknown",
+          "observedAt": "1970-01-01T00:00:00Z",
+          "priority": 20,
+          "availability": "degraded"
+        }
+      ]
+    }
+  incidents.json: |
+    {
+      "items": []
+    }
+  incident-template-open.json: |
+    {
+      "incidentId": "template-open",
+      "openedAt": "1970-01-01T00:00:00Z",
+      "closedAt": null,
+      "status": "open",
+      "trigger": "scheduled_check",
+      "affectedDecisions": 0,
+      "remediationHint": "Verify ExternalSecret readiness and restart Headlamp if drift persists."
+    }
+  incident-template-mitigating.json: |
+    {
+      "incidentId": "template-mitigating",
+      "openedAt": "1970-01-01T00:00:00Z",
+      "closedAt": null,
+      "status": "mitigating",
+      "trigger": "manual_check",
+      "affectedDecisions": 0,
+      "remediationHint": "Rotation propagation in progress; monitor next scheduled sync check."
+    }
+  incident-template-resolved.json: |
+    {
+      "incidentId": "template-resolved",
+      "openedAt": "1970-01-01T00:00:00Z",
+      "closedAt": "1970-01-01T00:00:00Z",
+      "status": "resolved",
+      "trigger": "scheduled_check",
+      "affectedDecisions": 0,
+      "remediationHint": "No action required."
+    }
