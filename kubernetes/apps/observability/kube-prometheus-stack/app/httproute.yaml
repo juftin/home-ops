@@ -7,7 +7,7 @@ metadata:
 spec:
   hostnames: ["grafana.${SECRET_DOMAIN}"]
   parentRefs:
-    - name: envoy-oauth-admin
+    - name: envoy-oauth-users
       namespace: network
       sectionName: https
   rules:
