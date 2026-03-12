@@ -8,3 +8,6 @@ resources:
   - ./helmrelease.yaml
   - ./httproute.yaml
   - ./serviceaccount.yaml
+  - ./token-sync-configmap.yaml
+  - ./token-sync-rbac.yaml
+  - ./token-sync-cronjob.yaml

@@ -143,6 +143,36 @@ kubectl get secret -n network <secret-domain-production-tls-secret>
 
 ______________________________________________________________________
 
+## 6) Headlamp token appears stale after secret rotation
+
+### Check
+
+```bash
+kubectl get externalsecret -n observability headlamp-admin-token -o yaml
+kubectl get secret -n observability headlamp-admin-token -o yaml
+kubectl get configmap -n observability headlamp-token-sync-config headlamp-token-sync-state -o yaml
+kubectl get cronjob -n observability headlamp-token-sync-check
+kubectl get httproute -n observability token-sync-status -o yaml
+```
+
+### Expected
+
+- `ExternalSecret` refresh interval is 1 minute and target secret is Ready
+- `headlamp` HelmRelease pod annotations include `secret.reloader.stakater.com/reload: headlamp-admin-token`
+- Token sync ConfigMaps include an authoritative source and current status payload
+- Cron-based sync checks run every minute and update state metadata
+- `/token-sync/*` routes are attached to `envoy-oauth`
+
+### Fix
+
+- Confirm 1Password item update reached `headlamp-admin-token` Secret
+- Force reloader-driven rollout if pods did not recycle on secret change
+- Inspect latest sync-check job logs, then reconcile if state remains `out_of_sync`
+- Keep Envoy OAuth policies unchanged; token authority for Headlamp is the materialized
+  `headlamp-admin-token` Secret
+
+______________________________________________________________________
+
 ## Emergency Session Invalidation
 
 When access must be revoked immediately after allowlist updates:
