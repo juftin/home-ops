@@ -22,6 +22,7 @@ ______________________________________________________________________
 3. Choose **Web application**
 4. Add authorized redirect URIs for each OAuth Gateway:
    - `https://oauth.<YOUR_DOMAIN>/oauth2/callback`
+   - `https://oauth-users.<YOUR_DOMAIN>/oauth2/callback` (users group gateway)
    - `https://oauth-internal.<YOUR_DOMAIN>/oauth2/callback` (if using internal gateway)
 5. Save and copy the Client ID + Client Secret
 
@@ -47,6 +48,13 @@ Store in:
 
 - `kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml`
 - `kubernetes/apps/network/envoy-gateway/app/oauth-policy-internal.sops.yaml` (if used)
+
+`oauth-policy.sops.yaml` contains both external group policies:
+
+- `envoy-oauth-admin-policy` (admins)
+- `envoy-oauth-users-policy` (users; include admin emails in this list too)
+
+There are only two external email lists to maintain: admins and users.
 
 Field:
 
@@ -76,7 +84,8 @@ sops --encrypt /tmp/oauth-policy.yaml > kubernetes/apps/network/envoy-gateway/ap
 rm /tmp/oauth-policy.yaml
 ```
 
-Use the same flow for `oauth-policy-internal.sops.yaml` and `oauth-client-secret.sops.yaml`.
+Use the same flow for `oauth-policy.sops.yaml`, `oauth-policy-internal.sops.yaml`, and
+`oauth-client-secret.sops.yaml`.
 
 ______________________________________________________________________
 
@@ -104,8 +113,8 @@ For branch testing:
 
 ```bash
 task dev:start
-kubectl get gateway -n network envoy-oauth envoy-oauth-internal --show-labels
-kubectl get securitypolicy -n network envoy-oauth-policy envoy-oauth-internal-policy
+kubectl get gateway -n network envoy-oauth-admin envoy-oauth-users envoy-oauth-internal --show-labels
+kubectl get securitypolicy -n network envoy-oauth-admin-policy envoy-oauth-users-policy envoy-oauth-internal-policy
 task dev:stop
 ```
 

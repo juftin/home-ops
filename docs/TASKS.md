@@ -137,9 +137,9 @@ task lint
 task dev:validate
 task dev:start
 
-kubectl get gateway -n network envoy-oauth envoy-oauth-internal
-kubectl get gateway -n network envoy-oauth envoy-oauth-internal --show-labels
-kubectl get securitypolicy -n network envoy-oauth-policy envoy-oauth-internal-policy
+kubectl get gateway -n network envoy-oauth-admin envoy-oauth-users envoy-oauth-internal
+kubectl get gateway -n network envoy-oauth-admin envoy-oauth-users envoy-oauth-internal --show-labels
+kubectl get securitypolicy -n network envoy-oauth-admin-policy envoy-oauth-users-policy envoy-oauth-internal-policy
 kubectl get httproute -n default oauth-pages
 
 # manual/browser checks:

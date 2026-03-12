@@ -9,6 +9,7 @@ ______________________________________________________________________
 Primary files:
 
 - `kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml`
+  - contains `envoy-oauth-admin-policy` (admins) and `envoy-oauth-users-policy` (users)
 - `kubernetes/apps/network/envoy-gateway/app/oauth-policy-internal.sops.yaml`
 
 Related secret:
@@ -30,6 +31,8 @@ sops --decrypt kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml 
 - Keep `authorization.defaultAction: Deny`
 - Keep `email_verified=true` check
 - Add/remove only lowercase emails in `email` claim values
+- Keep two external lists only: admins (`envoy-oauth-admin-policy`) and users (`envoy-oauth-users-policy`)
+- Include admin emails in the users list when admins should also have users access
 
 ## 3) Re-encrypt and clean up
 

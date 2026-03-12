@@ -7,8 +7,8 @@ ______________________________________________________________________
 ## 1. Reconciliation and Resource Presence
 
 ```bash
-kubectl get gateway -n network envoy-oauth envoy-oauth-internal
-kubectl get securitypolicy -n network envoy-oauth-policy envoy-oauth-internal-policy
+kubectl get gateway -n network envoy-oauth-admin envoy-oauth-users envoy-oauth-internal
+kubectl get securitypolicy -n network envoy-oauth-admin-policy envoy-oauth-users-policy envoy-oauth-internal-policy
 kubectl get httproute -n default oauth-pages
 kubectl get helmrelease -n network cloudflare-dns
 ```
@@ -24,12 +24,12 @@ ______________________________________________________________________
 
 ## 2. DNS and TLS Sanity
 
-- [ ] OAuth hostnames resolve (`oauth.<domain>`, `oauth-internal.<domain>`)
-- [ ] TLS certificate is served for both hosts
+- [ ] OAuth hostnames resolve (`oauth.<domain>`, `oauth-users.<domain>`, `oauth-internal.<domain>`)
+- [ ] TLS certificate is served for all OAuth hosts
 - [ ] Gateway labels still include `home-ops.io/cloudflare-dns=true`
 
 ```bash
-kubectl get gateway -n network envoy-oauth envoy-oauth-internal --show-labels
+kubectl get gateway -n network envoy-oauth-admin envoy-oauth-users envoy-oauth-internal --show-labels
 ```
 
 ______________________________________________________________________
