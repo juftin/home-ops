@@ -24,7 +24,7 @@ spec:
       - --gateway-label-filter=home-ops.io/cloudflare-dns=true
     triggerLoopOnEvent: true
     policy: sync
-    sources: ["crd", "gateway-httproute"]
+    sources: ["crd"]
     txtPrefix: k8s.
     txtOwnerId: default
     domainFilters: ["${SECRET_DOMAIN}"]
