@@ -13,10 +13,10 @@ tasks:
   worktree:create:
     desc: Create a feature worktree under ./worktrees and link required local files
     requires:
-      vars: [NAME, BRANCH]
+      vars: [NAME]
     cmds:
       - mkdir -p {{.ROOT_DIR}}/worktrees
-      - git worktree add {{.ROOT_DIR}}/worktrees/{{.NAME}} -b {{.BRANCH}}
+      - git worktree add {{.ROOT_DIR}}/worktrees/{{.NAME}} -b {{.NAME}}
       - ln -snf {{.ROOT_DIR}}/age.key {{.ROOT_DIR}}/worktrees/{{.NAME}}/age.key
       - ln -snf {{.ROOT_DIR}}/kubeconfig {{.ROOT_DIR}}/worktrees/{{.NAME}}/kubeconfig
     preconditions:
