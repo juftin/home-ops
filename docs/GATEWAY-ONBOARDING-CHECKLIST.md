@@ -6,7 +6,7 @@ ______________________________________________________________________
 
 ## 1. Design Inputs
 
-- [ ] Pick gateway name (`envoy-oauth` or `envoy-oauth-<group>`)
+- [ ] Pick gateway name (`envoy-oauth-admin` or `envoy-oauth-<group>`)
 - [ ] Reserve unique LB IP from MetalLB/Cilium IPAM pool
 - [ ] Pick DNS hostname under `${SECRET_DOMAIN}`
 - [ ] Decide external vs internal DNS target annotation

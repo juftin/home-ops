@@ -7,8 +7,8 @@ ______________________________________________________________________
 ## Quick Triage
 
 ```bash
-kubectl get gateway -n network envoy-oauth envoy-oauth-internal --show-labels
-kubectl get securitypolicy -n network envoy-oauth-policy envoy-oauth-internal-policy
+kubectl get gateway -n network envoy-oauth-admin envoy-oauth-users envoy-oauth-internal --show-labels
+kubectl get securitypolicy -n network envoy-oauth-admin-policy envoy-oauth-users-policy envoy-oauth-internal-policy
 kubectl get securitypolicy -n default oauth-pages-public -o yaml
 kubectl get secret -n network google-oauth-client-secret
 kubectl get httproute -n default oauth-pages
@@ -30,7 +30,7 @@ ______________________________________________________________________
 ### Check
 
 ```bash
-kubectl get gateway -n network envoy-oauth envoy-oauth-internal --show-labels
+kubectl get gateway -n network envoy-oauth-admin envoy-oauth-users envoy-oauth-internal --show-labels
 kubectl get helmrelease -n network cloudflare-dns -o yaml | grep gateway-label-filter
 ```
 
@@ -55,17 +55,15 @@ ______________________________________________________________________
 - Redirect URI is registered in Google OAuth client
 - `oauth-pages` includes the exact `/oauth2/callback` route
 - `oauth-pages-public` policy does **not** broadly allow the callback route
-- `cloudflare-tunnel` has an explicit `oauth.${SECRET_DOMAIN}` ingress entry to `envoy-oauth`
-  before `*.${SECRET_DOMAIN}` in
-  `kubernetes/apps/network/cloudflare-tunnel/app/helmrelease.yaml`
+- `cloudflare-tunnel` has explicit OAuth host ingress entries before `*.${SECRET_DOMAIN}`:
+  - `oauth.${SECRET_DOMAIN}` -> `envoy-oauth-admin`
+  - `oauth-users.${SECRET_DOMAIN}` -> `envoy-oauth-users`
 
-Primary policy file:
+Policy files:
 
 - `kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml`
-
-Secondary policy file:
-
-- `kubernetes/apps/network/envoy-gateway/app/oauth-policy-internal.sops.yaml`
+  (contains both `envoy-oauth-admin-policy` for admins and `envoy-oauth-users-policy` for users)
+- `kubernetes/apps/network/envoy-gateway/app/oauth-policy-internal.sops.yaml` (internal)
 
 ### Fix
 
@@ -73,8 +71,8 @@ Secondary policy file:
 - Ensure callback handling stays on the OIDC flow:
   - `oauth-pages` route rule `callback` matches `/oauth2/callback`
   - `oauth-pages-public` only targets `sectionName: denied` and `sectionName: logged-out`
-- Ensure `cloudflare-tunnel` sends `oauth.${SECRET_DOMAIN}` to `envoy-oauth` with an explicit
-  hostname rule before the wildcard route
+- Ensure `cloudflare-tunnel` sends OAuth hostnames to the matching OAuth Gateway services with
+  explicit hostname rules before the wildcard route
 - Re-encrypt SOPS file if edited in plaintext
 - Push and reconcile
 
@@ -109,7 +107,8 @@ kubectl get httproute -n default oauth-pages -o yaml
 
 ### Expected
 
-- `parentRefs` include both `envoy-oauth` and `envoy-oauth-internal` (and `envoy-external` if used)
+- `parentRefs` include `envoy-oauth-admin`, `envoy-oauth-users`, and `envoy-oauth-internal`
+  (and `envoy-external` if used)
 - route rules include exact `/denied` and `/logged-out`
 - rules rewrite to `/denied.html` and `/logged-out.html`
 - `oauth-pages-public` allows only `sectionName: denied` and `sectionName: logged-out`
@@ -127,7 +126,7 @@ ______________________________________________________________________
 ### Check
 
 ```bash
-kubectl get gateway -n network envoy-oauth envoy-oauth-internal -o wide
+kubectl get gateway -n network envoy-oauth-admin envoy-oauth-users envoy-oauth-internal -o wide
 kubectl get secret -n network <secret-domain-production-tls-secret>
 ```
 

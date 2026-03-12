@@ -108,9 +108,10 @@ Use `kubernetes/apps/default/echo/` as a working reference. After adding files:
 **If the app is OAuth-protected**:
 
 1. Add an explicit hostname entry in
-   `kubernetes/apps/network/cloudflare-tunnel/app/helmrelease.yaml` that routes to
-   `https://envoy-oauth.<namespace>.svc.cluster.local:443` **before** the wildcard
-   `*.${SECRET_DOMAIN}` rule.
+   `kubernetes/apps/network/cloudflare-tunnel/app/helmrelease.yaml` **before** the wildcard
+   `*.${SECRET_DOMAIN}` rule. Route by group:
+   - admins: `https://envoy-oauth-admin.<namespace>.svc.cluster.local:443` with `originServerName: oauth.${SECRET_DOMAIN}`
+   - users: `https://envoy-oauth-users.<namespace>.svc.cluster.local:443` with `originServerName: oauth-users.${SECRET_DOMAIN}`
 2. Add the app hostname to
    `kubernetes/apps/default/oauth-pages/app/httproute.yaml` so `/denied` and `/logged-out` work on
    that host.
