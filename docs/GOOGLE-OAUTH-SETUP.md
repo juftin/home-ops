@@ -83,6 +83,31 @@ Create/update a 1Password item named `headlamp-oidc` with these fields:
 - `OIDC_ISSUER_URL` (for Google, `https://accounts.google.com`)
 - `OIDC_SCOPES` (recommended: `openid,email,profile`)
 
+## Kubernetes API OIDC for Headlamp (required)
+
+Headlamp's Google sign-in flow must be accepted by the Kubernetes API server, otherwise Headlamp
+login completes but `/clusters/main/healthz` returns `401`.
+
+These Talos API server flags are configured in:
+
+- `talos/patches/controller/cluster.yaml`
+- `templates/config/talos/patches/controller/cluster.yaml.j2`
+
+Key settings:
+
+- `oidc-issuer-url: https://accounts.google.com`
+- `oidc-client-id: <GOOGLE_CLIENT_ID>`
+- `oidc-username-claim: email`
+- `oidc-username-prefix: oidc:`
+- `oidc-required-claim: email_verified=true`
+
+RBAC for Headlamp OIDC users is managed in:
+
+- `kubernetes/apps/observability/headlamp/app/clusterrolebinding-oidc.sops.yaml`
+
+The OIDC user subject should match the configured username claim + prefix (example:
+`oidc:user@example.com`).
+
 ______________________________________________________________________
 
 ## 3) Update files safely (SOPS workflow)

@@ -6,6 +6,12 @@ cluster:
     extraArgs:
       # https://kubernetes.io/docs/tasks/extend-kubernetes/configure-aggregation-layer/
       enable-aggregator-routing: true
+      # Required for Headlamp in-cluster OIDC login against Google.
+      oidc-issuer-url: https://accounts.google.com
+      oidc-client-id: 706743218818-jp4s5vunfp9ac1euuu4j0sh5t46palg6.apps.googleusercontent.com
+      oidc-username-claim: email
+      oidc-username-prefix: "oidc:"
+      oidc-required-claim: email_verified=true
   controllerManager:
     extraArgs:
       bind-address: 0.0.0.0
