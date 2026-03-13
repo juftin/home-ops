@@ -11,7 +11,17 @@ spec:
       namespace: network
       sectionName: https
   rules:
-    - backendRefs:
+    - name: oidc-callback
+      backendRefs:
+        - name: headlamp
+          namespace: observability
+          port: 80
+      matches:
+        - path:
+            type: Exact
+            value: /oidc-callback
+    - name: app
+      backendRefs:
         - name: headlamp
           namespace: observability
           port: 80
