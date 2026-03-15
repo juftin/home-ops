@@ -1,0 +1,242 @@
+openapi: 3.0.3
+info:
+  title: IaC Foundation Planning Contract
+  version: 1.0.0
+  description: >
+    Contract for planning and validating IaC category/module/live-stack structure for OpenTofu foundation work.
+
+servers:
+  - url: https://home-ops.local/api
+paths:
+  /iac/categories:
+    post:
+      summary: Register a new IaC category structure
+      operationId: createCategory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCategoryRequest'
+      responses:
+        '201':
+          description: Category registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+  /iac/categories/{category}/modules:
+    post:
+      summary: Register a reusable module under a category
+      operationId: createModule
+      parameters:
+        - in: path
+          name: category
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateModuleRequest'
+      responses:
+        '201':
+          description: Module registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModuleDefinition'
+  /iac/categories/{category}/stacks:
+    post:
+      summary: Register a live environment stack for a category
+      operationId: createLiveStack
+      parameters:
+        - in: path
+          name: category
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLiveStackRequest'
+      responses:
+        '201':
+          description: Live stack registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LiveStack'
+  /iac/validations:
+    post:
+      summary: Execute a validation run for IaC configuration
+      operationId: runValidation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ValidationRequest'
+      responses:
+        '200':
+          description: Validation outcome
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationRun'
+  /iac/structure:
+    get:
+      summary: Retrieve current category/module/live-stack structure summary
+      operationId: getStructure
+      responses:
+        '200':
+          description: Structure summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StructureSummary'
+components:
+  schemas:
+    CreateCategoryRequest:
+      type: object
+      required: [name, modulePath, livePath]
+      properties:
+        name:
+          type: string
+          pattern: '^[a-z0-9-]+$'
+        modulePath:
+          type: string
+        livePath:
+          type: string
+    CreateModuleRequest:
+      type: object
+      required: [name, inputs]
+      properties:
+        name:
+          type: string
+        inputs:
+          type: array
+          items:
+            type: string
+        outputs:
+          type: array
+          items:
+            type: string
+        versionPolicy:
+          type: string
+    CreateLiveStackRequest:
+      type: object
+      required: [environment, moduleRefs, backendStrategy]
+      properties:
+        environment:
+          type: string
+        moduleRefs:
+          type: array
+          items:
+            type: string
+        backendStrategy:
+          type: string
+        variablesSource:
+          type: array
+          items:
+            type: string
+    ValidationRequest:
+      type: object
+      required: [scope]
+      properties:
+        scope:
+          type: string
+          enum: [format, validate, full]
+    Category:
+      type: object
+      required: [name, modulePath, livePath, status]
+      properties:
+        name:
+          type: string
+        modulePath:
+          type: string
+        livePath:
+          type: string
+        status:
+          type: string
+          enum: [planned, active, deprecated]
+    ModuleDefinition:
+      type: object
+      required: [category, name, inputs]
+      properties:
+        category:
+          type: string
+        name:
+          type: string
+        inputs:
+          type: array
+          items:
+            type: string
+        outputs:
+          type: array
+          items:
+            type: string
+        versionPolicy:
+          type: string
+    LiveStack:
+      type: object
+      required: [category, environment, moduleRefs, backendStrategy]
+      properties:
+        category:
+          type: string
+        environment:
+          type: string
+        moduleRefs:
+          type: array
+          items:
+            type: string
+        backendStrategy:
+          type: string
+        variablesSource:
+          type: array
+          items:
+            type: string
+    ValidationRun:
+      type: object
+      required: [scope, status, startedAt, finishedAt]
+      properties:
+        scope:
+          type: string
+          enum: [format, validate, full]
+        status:
+          type: string
+          enum: [passed, failed]
+        startedAt:
+          type: string
+          format: date-time
+        finishedAt:
+          type: string
+          format: date-time
+        errors:
+          type: array
+          items:
+            type: string
+    StructureSummary:
+      type: object
+      required: [categories]
+      properties:
+        categories:
+          type: array
+          items:
+            type: object
+            required: [name, modules, stacks]
+            properties:
+              name:
+                type: string
+              modules:
+                type: array
+                items:
+                  type: string
+              stacks:
+                type: array
+                items:
+                  type: string
