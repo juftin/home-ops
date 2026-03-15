@@ -1,0 +1,312 @@
+openapi: 3.1.0
+info:
+  title: ArgoCD Rollout Operations API
+  version: 0.1.0
+  description: >
+    Contract for planning and validating Flux-to-ArgoCD rollout operations. This contract models operator actions and verification checkpoints.
+
+servers:
+  - url: https://rollout.internal
+tags:
+  - name: bootstrap
+  - name: migration
+  - name: verification
+  - name: rollback
+  - name: access
+paths:
+  /bootstrap-runs:
+    post:
+      tags: [bootstrap]
+      summary: Start a bootstrap run
+      operationId: startBootstrapRun
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartBootstrapRunRequest'
+      responses:
+        '202':
+          description: Bootstrap accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BootstrapRun'
+  /bootstrap-runs/{runId}:
+    get:
+      tags: [bootstrap]
+      summary: Get bootstrap run status
+      operationId: getBootstrapRun
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+      responses:
+        '200':
+          description: Bootstrap run status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BootstrapRun'
+        '404':
+          description: Run not found
+  /migration-waves:
+    post:
+      tags: [migration]
+      summary: Start a migration wave
+      operationId: startMigrationWave
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartMigrationWaveRequest'
+      responses:
+        '202':
+          description: Migration wave accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MigrationWave'
+    get:
+      tags: [migration]
+      summary: List migration waves
+      operationId: listMigrationWaves
+      responses:
+        '200':
+          description: Wave list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MigrationWave'
+  /migration-waves/{waveId}:
+    get:
+      tags: [migration]
+      summary: Get migration wave status
+      operationId: getMigrationWave
+      parameters:
+        - $ref: '#/components/parameters/WaveId'
+      responses:
+        '200':
+          description: Wave status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MigrationWave'
+        '404':
+          description: Wave not found
+  /migration-waves/{waveId}/verify:
+    post:
+      tags: [verification]
+      summary: Submit verification results for a wave
+      operationId: verifyMigrationWave
+      parameters:
+        - $ref: '#/components/parameters/WaveId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitVerificationRequest'
+      responses:
+        '200':
+          description: Verification recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerificationResult'
+  /migration-waves/{waveId}/rollback:
+    post:
+      tags: [rollback]
+      summary: Trigger ArgoCD-only rollback for a wave
+      operationId: rollbackMigrationWave
+      parameters:
+        - $ref: '#/components/parameters/WaveId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartRollbackRequest'
+      responses:
+        '202':
+          description: Rollback accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RollbackRun'
+  /access-policies:
+    get:
+      tags: [access]
+      summary: List ArgoCD access policy bindings
+      operationId: listAccessPolicies
+      responses:
+        '200':
+          description: Access policy bindings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccessPolicyBinding'
+components:
+  parameters:
+    RunId:
+      name: runId
+      in: path
+      required: true
+      schema:
+        type: string
+    WaveId:
+      name: waveId
+      in: path
+      required: true
+      schema:
+        type: string
+  schemas:
+    StartBootstrapRunRequest:
+      type: object
+      required: [initiatedBy, targetCluster]
+      properties:
+        initiatedBy:
+          type: string
+        targetCluster:
+          type: string
+    BootstrapRun:
+      type: object
+      required: [runId, initiatedBy, startedAt, result]
+      properties:
+        runId:
+          type: string
+        initiatedBy:
+          type: string
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+        result:
+          type: string
+          enum: [success, failed, aborted]
+        failureReason:
+          type: string
+        artifacts:
+          type: array
+          items:
+            type: string
+    StartMigrationWaveRequest:
+      type: object
+      required: [groupId, namespaces, cutoverWindowMinutes]
+      properties:
+        groupId:
+          type: string
+        namespaces:
+          type: array
+          minItems: 1
+          items:
+            type: string
+        dependencies:
+          type: array
+          items:
+            type: string
+        cutoverWindowMinutes:
+          type: integer
+          minimum: 1
+          maximum: 10
+    MigrationWave:
+      type: object
+      required: [waveId, groupId, namespaces, status]
+      properties:
+        waveId:
+          type: string
+        groupId:
+          type: string
+        namespaces:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [pending, in_progress, verified, rolled_back]
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+    SubmitVerificationRequest:
+      type: object
+      required: [healthCheckPass, syncCheckPass, driftCheckPass]
+      properties:
+        healthCheckPass:
+          type: boolean
+        syncCheckPass:
+          type: boolean
+        driftCheckPass:
+          type: boolean
+        notes:
+          type: string
+    VerificationResult:
+      type: object
+      required: [verificationId, scope, healthCheckPass, syncCheckPass, driftCheckPass, verifiedAt]
+      properties:
+        verificationId:
+          type: string
+        scope:
+          type: string
+          enum: [wave, full-cutover]
+        scopeRef:
+          type: string
+        healthCheckPass:
+          type: boolean
+        syncCheckPass:
+          type: boolean
+        driftCheckPass:
+          type: boolean
+        verifiedAt:
+          type: string
+          format: date-time
+        notes:
+          type: string
+    StartRollbackRequest:
+      type: object
+      required: [triggerCondition]
+      properties:
+        triggerCondition:
+          type: string
+        notes:
+          type: string
+    RollbackRun:
+      type: object
+      required: [rollbackId, targetScope, restorationStatus]
+      properties:
+        rollbackId:
+          type: string
+        targetScope:
+          type: string
+        restorationStatus:
+          type: string
+          enum: [pending, in_progress, restored, failed]
+        restoredAt:
+          type: string
+          format: date-time
+    AccessPolicyBinding:
+      type: object
+      required: [bindingId, subjectType, subjectName, role, scope, status]
+      properties:
+        bindingId:
+          type: string
+        subjectType:
+          type: string
+          enum: [user, group, service-account]
+        subjectName:
+          type: string
+        role:
+          type: string
+          enum: [admin, read-only]
+        scope:
+          type: string
+        status:
+          type: string
+          enum: [active, revoked]
