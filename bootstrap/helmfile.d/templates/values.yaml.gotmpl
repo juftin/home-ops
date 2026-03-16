@@ -58,7 +58,18 @@ configs:
         generate:
           command: ["/bin/sh", "-c"]
           args:
-            - kustomize build --enable-helm . | sed 's#\${SECRET_DOMAIN}#'"${SECRET_DOMAIN}"'#g'
+            - |
+              set -eu
+              WORKDIR="$(mktemp -d)"
+              cp -R . "${WORKDIR}/src"
+              for file in $(find "${WORKDIR}/src" -type f \( -name '*.sops.yaml' -o -name '*.sops.yml' \)); do
+                /custom-tools/sops -d --input-type yaml --output-type yaml "$file" > "${file}.dec"
+                mv "${file}.dec" "$file"
+              done
+              SECRET_DOMAIN_DASHED="$(printf '%s' "${SECRET_DOMAIN}" | tr '.' '-')"
+              (cd "${WORKDIR}/src" && kustomize build --enable-helm .) \
+                | sed -e 's#\${SECRET_DOMAIN/./-}#'"${SECRET_DOMAIN_DASHED}"'#g' \
+                      -e 's#\${SECRET_DOMAIN}#'"${SECRET_DOMAIN}"'#g'
   params:
     server.insecure: "true"
   rbac:
@@ -78,6 +89,17 @@ configs:
       g, argocd-maintainers, role:readonly
     scopes: '[groups, email]'
 repoServer:
+  initContainers:
+    - name: install-sops
+      image: ghcr.io/getsops/sops:v3.9.4
+      command:
+        - /bin/sh
+        - -c
+      args:
+        - cp /usr/local/bin/sops /custom-tools/sops && chmod +x /custom-tools/sops
+      volumeMounts:
+        - mountPath: /custom-tools
+          name: custom-tools
   env:
     - name: SOPS_AGE_KEY_FILE
       value: /app/config/sops/age/keys.txt
@@ -91,6 +113,8 @@ repoServer:
       configMap:
         name: argocd-cmp-cm
     - name: cmp-tmp
+      emptyDir: {}
+    - name: custom-tools
       emptyDir: {}
   volumeMounts:
     - name: sops-age
@@ -107,6 +131,8 @@ repoServer:
       env:
         - name: SECRET_DOMAIN
           value: {{ $argocdSecretDomain | quote }}
+        - name: SOPS_AGE_KEY_FILE
+          value: /app/config/sops/age/keys.txt
       volumeMounts:
         - mountPath: /var/run/argocd
           name: var-files
@@ -117,6 +143,11 @@ repoServer:
           name: argocd-cmp-cm
         - mountPath: /tmp
           name: cmp-tmp
+        - mountPath: /custom-tools
+          name: custom-tools
+        - mountPath: /app/config/sops/age
+          name: sops-age
+          readOnly: true
 server:
   extraArgs:
     - --insecure
