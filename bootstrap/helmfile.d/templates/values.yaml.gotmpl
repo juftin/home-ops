@@ -49,6 +49,16 @@ configs:
     url: {{ printf "https://argocd.%s" $argocdSecretDomain | quote }}
     application.resourceTrackingMethod: annotation+label
     kustomize.buildOptions: --enable-helm
+  cmp:
+    create: true
+    plugins:
+      kustomize-substitute-secret-domain:
+        discover:
+          fileName: kustomization.yaml
+        generate:
+          command: ["/bin/sh", "-c"]
+          args:
+            - kustomize build --enable-helm . | sed 's#\${SECRET_DOMAIN}#'"${SECRET_DOMAIN}"'#g'
   params:
     server.insecure: "true"
   rbac:
@@ -71,14 +81,42 @@ repoServer:
   env:
     - name: SOPS_AGE_KEY_FILE
       value: /app/config/sops/age/keys.txt
+    - name: SECRET_DOMAIN
+      value: {{ $argocdSecretDomain | quote }}
   volumes:
     - name: sops-age
       secret:
         secretName: sops-age
+    - name: argocd-cmp-cm
+      configMap:
+        name: argocd-cmp-cm
+    - name: cmp-tmp
+      emptyDir: {}
   volumeMounts:
     - name: sops-age
       mountPath: /app/config/sops/age
       readOnly: true
+  extraContainers:
+    - name: cmp-kustomize-substitute-secret-domain
+      command:
+        - /var/run/argocd/argocd-cmp-server
+      image: quay.io/argoproj/argocd:v3.1.3
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+      env:
+        - name: SECRET_DOMAIN
+          value: {{ $argocdSecretDomain | quote }}
+      volumeMounts:
+        - mountPath: /var/run/argocd
+          name: var-files
+        - mountPath: /home/argocd/cmp-server/plugins
+          name: plugins
+        - mountPath: /home/argocd/cmp-server/config/plugin.yaml
+          subPath: kustomize-substitute-secret-domain.yaml
+          name: argocd-cmp-cm
+        - mountPath: /tmp
+          name: cmp-tmp
 server:
   extraArgs:
     - --insecure

@@ -26,7 +26,7 @@ spec:
                   wave: '5'
           - git:
               repoURL: https://github.com/juftin/home-ops.git
-              revision: main
+              revision: refs/heads/001-replace-flux-argocd
               directories:
                 - path: 'kubernetes/apps/{{ .namespace }}/*'
   template:
@@ -38,8 +38,10 @@ spec:
       project: home-ops
       source:
         repoURL: https://github.com/juftin/home-ops.git
-        targetRevision: main
+        targetRevision: refs/heads/001-replace-flux-argocd
         path: '{{ .path.path }}/app'
+        plugin:
+          name: kustomize-substitute-secret-domain
       destination:
         server: https://kubernetes.default.svc
         namespace: '{{ .namespace }}'
