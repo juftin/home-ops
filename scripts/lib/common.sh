@@ -105,3 +105,53 @@ function check_cli() {
 
     log debug "Deps are installed" "deps=${deps[*]}"
 }
+
+declare -ar ARGOCD_WAVE_ORDER=("platform" "core" "network" "observability" "apps")
+readonly ARGOCD_MIN_CUTOVER_WINDOW_MINUTES=1
+readonly ARGOCD_MAX_CUTOVER_WINDOW_MINUTES=10
+
+function require_file() {
+    local file="$1"
+    if [[ ! -f "${file}" ]]; then
+        log error "Required file does not exist" "file=${file}"
+    fi
+}
+
+function require_non_empty() {
+    local key="$1"
+    local value="$2"
+    if [[ -z "${value}" ]]; then
+        log error "Required argument is empty" "argument=${key}"
+    fi
+}
+
+function wave_index() {
+    local wave="$1"
+    local i
+    for i in "${!ARGOCD_WAVE_ORDER[@]}"; do
+        if [[ "${ARGOCD_WAVE_ORDER[$i]}" == "${wave}" ]]; then
+            echo "${i}"
+            return 0
+        fi
+    done
+    log error "Unknown migration wave" "wave=${wave}" "valid=${ARGOCD_WAVE_ORDER[*]}"
+}
+
+function validate_cutover_window() {
+    local minutes="$1"
+    if [[ ! "${minutes}" =~ ^[0-9]+$ ]]; then
+        log error "Cutover window must be a positive integer" "minutes=${minutes}"
+    fi
+    if ((minutes < ARGOCD_MIN_CUTOVER_WINDOW_MINUTES || minutes > ARGOCD_MAX_CUTOVER_WINDOW_MINUTES)); then
+        log error "Cutover window outside allowed range" \
+            "minutes=${minutes}" \
+            "min=${ARGOCD_MIN_CUTOVER_WINDOW_MINUTES}" \
+            "max=${ARGOCD_MAX_CUTOVER_WINDOW_MINUTES}"
+    fi
+}
+
+function print_wave_order() {
+    local joined
+    joined=$(printf ",%s" "${ARGOCD_WAVE_ORDER[@]}")
+    echo "${joined:1}"
+}

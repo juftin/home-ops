@@ -18,7 +18,11 @@
 !/nodes.enc.yaml
 # Kubernetes
 kubeconfig
+kubeconfig*
 talosconfig
+.kube/
+*.crt
+*.secret.yaml
 # Misc.
 .private/
 .task/

@@ -31,3 +31,18 @@ tasks:
     preconditions:
       - test -f {{.KUBECONFIG}}
       - which flux
+  argocd:bootstrap:
+    desc: Bootstrap the ArgoCD Helm release from bootstrap/helmfile.d/01-apps.yaml
+    cmd: helmfile --file {{.BOOTSTRAP_DIR}}/helmfile.d/01-apps.yaml --selector name=argocd sync --hide-notes
+    preconditions:
+      - test -f {{.KUBECONFIG}}
+      - test -f {{.BOOTSTRAP_DIR}}/helmfile.d/01-apps.yaml
+      - which helmfile
+  argocd:bootstrap:verify:
+    desc: Verify ArgoCD control-plane workloads after bootstrap
+    cmds:
+      - kubectl get deploy -n argocd argocd-server argocd-repo-server
+      - kubectl get statefulset -n argocd argocd-application-controller
+    preconditions:
+      - test -f {{.KUBECONFIG}}
+      - which kubectl

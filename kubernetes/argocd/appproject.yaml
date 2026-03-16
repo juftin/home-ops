@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: home-ops
+  namespace: argocd
+spec:
+  description: Home-ops ArgoCD project scope with guardrails for managed apps
+  sourceRepos:
+    - https://github.com/juftin/home-ops.git
+  destinations:
+    - namespace: '*'
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+    - group: source.toolkit.fluxcd.io
+      kind: OCIRepository
+    - group: '*'
+      kind: Namespace
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  orphanedResources:
+    warn: true
+  roles:
+    - name: admin
+      description: Platform administrators with write operations
+      policies:
+        - p, proj:home-ops:admin, applications, *, home-ops/*, allow
+      groups:
+        - argocd-admins
+    - name: readonly
+      description: Maintainers with read-only visibility
+      policies:
+        - p, proj:home-ops:readonly, applications, get, home-ops/*, allow
+        - p, proj:home-ops:readonly, applications, sync, home-ops/*, deny
+      groups:
+        - argocd-maintainers

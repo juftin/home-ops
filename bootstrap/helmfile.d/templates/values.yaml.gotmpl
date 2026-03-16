@@ -1,1 +1,47 @@
+{{- if and (eq .Release.Name "argocd") (eq .Release.Namespace "argocd") }}
+crds:
+  install: true
+configs:
+  cm:
+    admin.enabled: "false"
+    application.resourceTrackingMethod: annotation+label
+    kustomize.buildOptions: --enable-helm
+  params:
+    server.insecure: "true"
+  rbac:
+    policy.default: role:readonly
+    policy.csv: |
+      p, role:admin, applications, *, */*, allow
+      p, role:admin, applications, sync, */*, allow
+      p, role:admin, applications, override, */*, allow
+      p, role:admin, projects, *, *, allow
+      p, role:admin, repositories, *, *, allow
+      p, role:readonly, applications, get, */*, allow
+      p, role:readonly, projects, get, *, allow
+      p, role:readonly, repositories, get, *, allow
+      p, role:readonly, applications, sync, */*, deny
+      p, role:readonly, applications, override, */*, deny
+      g, argocd-admins, role:admin
+      g, argocd-maintainers, role:readonly
+    scopes: '[groups, email]'
+repoServer:
+  env:
+    - name: SOPS_AGE_KEY_FILE
+      value: /app/config/sops/age/keys.txt
+  volumes:
+    - name: sops-age
+      secret:
+        secretName: sops-age
+  volumeMounts:
+    - name: sops-age
+      mountPath: /app/config/sops/age
+      readOnly: true
+server:
+  extraArgs:
+    - --insecure
+controller:
+  metrics:
+    enabled: true
+{{- else }}
 {{ (fromYaml (readFile (printf "../../../kubernetes/apps/%s/%s/app/helmrelease.yaml" .Release.Namespace .Release.Name))).spec.values | toYaml }}
+{{- end }}

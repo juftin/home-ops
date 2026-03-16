@@ -1,0 +1,49 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: home-ops-apps
+  namespace: argocd
+spec:
+  goTemplate: true
+  generators:
+    - matrix:
+        generators:
+          - list:
+              elements:
+                - namespace: kube-system
+                  wave: '0'
+                - namespace: cert-manager
+                  wave: '1'
+                - namespace: external-secrets
+                  wave: '1'
+                - namespace: network
+                  wave: '2'
+                - namespace: default
+                  wave: '3'
+                - namespace: observability
+                  wave: '4'
+                - namespace: flux-system
+                  wave: '5'
+          - git:
+              repoURL: https://github.com/juftin/home-ops.git
+              revision: main
+              directories:
+                - path: 'kubernetes/apps/{{ .namespace }}/*'
+  template:
+    metadata:
+      name: '{{ printf "%s-%s" .namespace .path.basename }}'
+      annotations:
+        argocd.argoproj.io/sync-wave: '{{ .wave }}'
+    spec:
+      project: home-ops
+      source:
+        repoURL: https://github.com/juftin/home-ops.git
+        targetRevision: main
+        path: '{{ .path.path }}/app'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{ .namespace }}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true

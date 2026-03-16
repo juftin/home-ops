@@ -19,11 +19,11 @@ ______________________________________________________________________
 
 **Purpose**: Initialize ArgoCD rollout scaffolding in repository structure.
 
-- [ ] T001 Create ArgoCD manifest directory scaffold in `kubernetes/argocd/kustomization.yaml`
-- [ ] T002 Create ArgoCD resource skeletons in `kubernetes/argocd/appproject.yaml`, `kubernetes/argocd/applicationset.yaml`, and `kubernetes/argocd/rbac.yaml`
-- [ ] T003 [P] Add ArgoCD bootstrap release scaffold in `bootstrap/helmfile.d/01-apps.yaml`
-- [ ] T004 [P] Add ArgoCD values scaffold in `bootstrap/helmfile.d/templates/values.yaml.gotmpl`
-- [ ] T005 [P] Create rollout script entrypoints with strict mode in `scripts/migrate-argocd-wave.sh`, `scripts/verify-argocd-cutover.sh`, and `scripts/rollback-argocd-wave.sh`
+- [x] T001 Create ArgoCD manifest directory scaffold in `kubernetes/argocd/kustomization.yaml`
+- [x] T002 Create ArgoCD resource skeletons in `kubernetes/argocd/appproject.yaml`, `kubernetes/argocd/applicationset.yaml`, and `kubernetes/argocd/rbac.yaml`
+- [x] T003 [P] Add ArgoCD bootstrap release scaffold in `bootstrap/helmfile.d/01-apps.yaml`
+- [x] T004 [P] Add ArgoCD values scaffold in `bootstrap/helmfile.d/templates/values.yaml.gotmpl`
+- [x] T005 [P] Create rollout script entrypoints with strict mode in `scripts/migrate-argocd-wave.sh`, `scripts/verify-argocd-cutover.sh`, and `scripts/rollback-argocd-wave.sh`
 
 ______________________________________________________________________
 
@@ -33,11 +33,11 @@ ______________________________________________________________________
 
 **⚠️ CRITICAL**: No user story work starts until this phase completes.
 
-- [ ] T006 Implement shared rollout helper functions in `scripts/lib/common.sh`
-- [ ] T007 Define shared wave ordering and disruption-budget constants in `scripts/migrate-argocd-wave.sh` and `scripts/verify-argocd-cutover.sh`
-- [ ] T008 [P] Add ArgoCD-focused dev tasks in `.taskfiles/dev/Taskfile.yaml`
-- [ ] T009 Update bootstrap orchestration messaging/check hooks in `scripts/bootstrap-apps.sh`
-- [ ] T010 [P] Add rollout runbook placeholders and command index links in `docs/ARGOCD-ROLLOUT.md` and `docs/TASKS.md`
+- [x] T006 Implement shared rollout helper functions in `scripts/lib/common.sh`
+- [x] T007 Define shared wave ordering and disruption-budget constants in `scripts/migrate-argocd-wave.sh` and `scripts/verify-argocd-cutover.sh`
+- [x] T008 [P] Add ArgoCD-focused dev tasks in `.taskfiles/dev/Taskfile.yaml`
+- [x] T009 Update bootstrap orchestration messaging/check hooks in `scripts/bootstrap-apps.sh`
+- [x] T010 [P] Add rollout runbook placeholders and command index links in `docs/ARGOCD-ROLLOUT.md` and `docs/TASKS.md`
 
 **Checkpoint**: Foundation ready — user stories can proceed in priority order.
 
@@ -51,13 +51,13 @@ ______________________________________________________________________
 
 ### Implementation for User Story 1
 
-- [ ] T011 [US1] Implement ArgoCD Helm release dependency ordering in `bootstrap/helmfile.d/01-apps.yaml`
-- [ ] T012 [US1] Implement ArgoCD bootstrap values (controller config and decryption parity) in `bootstrap/helmfile.d/templates/values.yaml.gotmpl`
-- [ ] T013 [P] [US1] Define ArgoCD AppProject scope, required application health policies, and guardrails in `kubernetes/argocd/appproject.yaml`
-- [ ] T014 [P] [US1] Define ArgoCD ApplicationSet generation with explicit sync-wave annotations for ordered reconciliation of `kubernetes/apps/*` in `kubernetes/argocd/applicationset.yaml`
-- [ ] T015 [US1] Wire ArgoCD resources into root kustomization in `kubernetes/argocd/kustomization.yaml`
-- [ ] T016 [US1] Document bootstrap execution and readiness checks in `docs/ARGOCD-BOOTSTRAP.md`
-- [ ] T017 [US1] Add bootstrap command wrappers and usage notes in `Taskfile.yaml` and `docs/TASKS.md`
+- [x] T011 [US1] Implement ArgoCD Helm release dependency ordering in `bootstrap/helmfile.d/01-apps.yaml`
+- [x] T012 [US1] Implement ArgoCD bootstrap values (controller config and decryption parity) in `bootstrap/helmfile.d/templates/values.yaml.gotmpl`
+- [x] T013 [P] [US1] Define ArgoCD AppProject scope, required application health policies, and guardrails in `kubernetes/argocd/appproject.yaml`
+- [x] T014 [P] [US1] Define ArgoCD ApplicationSet generation with explicit sync-wave annotations for ordered reconciliation of `kubernetes/apps/*` in `kubernetes/argocd/applicationset.yaml`
+- [x] T015 [US1] Wire ArgoCD resources into root kustomization in `kubernetes/argocd/kustomization.yaml`
+- [x] T016 [US1] Document bootstrap execution and readiness checks in `docs/ARGOCD-BOOTSTRAP.md`
+- [x] T017 [US1] Add bootstrap command wrappers and usage notes in `Taskfile.yaml` and `docs/TASKS.md`
 
 **Checkpoint**: User Story 1 can bootstrap and validate ArgoCD reconciliation independently.
 
@@ -71,12 +71,12 @@ ______________________________________________________________________
 
 ### Implementation for User Story 2
 
-- [ ] T018 [US2] Implement wave cutover orchestration flow in `scripts/migrate-argocd-wave.sh`
-- [ ] T019 [P] [US2] Implement wave verification checks (health/sync/drift/ownership), secret-unavailable failure-path validation, and contract-conformance assertions from `specs/001-replace-flux-argocd/contracts/rollout-api.openapi.yaml` in `scripts/verify-argocd-cutover.sh`
-- [ ] T020 [P] [US2] Add migration, ArgoCD render validation, and post-cutover health verification task wrappers in `.taskfiles/dev/Taskfile.yaml`
-- [ ] T021 [US2] Implement phased Flux ownership retirement logic in `kubernetes/flux/cluster/ks.yaml`
-- [ ] T022 [US2] Document migration wave sequencing and communication steps in `docs/ARGOCD-MIGRATION.md`
-- [ ] T023 [US2] Update rollout quickstart migration section with representative workload group definition and first-pass success-rate evidence capture (SC-003) in `specs/001-replace-flux-argocd/quickstart.md`
+- [x] T018 [US2] Implement wave cutover orchestration flow in `scripts/migrate-argocd-wave.sh`
+- [x] T019 [P] [US2] Implement wave verification checks (health/sync/drift/ownership), secret-unavailable failure-path validation, and contract-conformance assertions from `specs/001-replace-flux-argocd/contracts/rollout-api.openapi.yaml` in `scripts/verify-argocd-cutover.sh`
+- [x] T020 [P] [US2] Add migration, ArgoCD render validation, and post-cutover health verification task wrappers in `.taskfiles/dev/Taskfile.yaml`
+- [x] T021 [US2] Implement phased Flux ownership retirement logic in `kubernetes/flux/cluster/ks.yaml`
+- [x] T022 [US2] Document migration wave sequencing and communication steps in `docs/ARGOCD-MIGRATION.md`
+- [x] T023 [US2] Update rollout quickstart migration section with representative workload group definition and first-pass success-rate evidence capture (SC-003) in `specs/001-replace-flux-argocd/quickstart.md`
 
 **Checkpoint**: User Story 2 migrates waves with verified ownership cutover and disruption limits.
 
@@ -90,11 +90,11 @@ ______________________________________________________________________
 
 ### Implementation for User Story 3
 
-- [ ] T024 [US3] Implement ArgoCD-only rollback workflow with safety guards in `scripts/rollback-argocd-wave.sh`
-- [ ] T025 [P] [US3] Implement admin/read-only ArgoCD policy bindings in `kubernetes/argocd/rbac.yaml`
-- [ ] T026 [P] [US3] Add rollback and RBAC validation tasks in `.taskfiles/dev/Taskfile.yaml`
-- [ ] T027 [US3] Document rollback drill, elapsed-time capture for SC-004, and access validation procedure in `docs/ARGOCD-ROLLOUT.md`
-- [ ] T028 [US3] Extend post-cutover operational checks in `docs/POST-MERGE-VERIFICATION.md`
+- [x] T024 [US3] Implement ArgoCD-only rollback workflow with safety guards in `scripts/rollback-argocd-wave.sh`
+- [x] T025 [P] [US3] Implement admin/read-only ArgoCD policy bindings in `kubernetes/argocd/rbac.yaml`
+- [x] T026 [P] [US3] Add rollback and RBAC validation tasks in `.taskfiles/dev/Taskfile.yaml`
+- [x] T027 [US3] Document rollback drill, elapsed-time capture for SC-004, and access validation procedure in `docs/ARGOCD-ROLLOUT.md`
+- [x] T028 [US3] Extend post-cutover operational checks in `docs/POST-MERGE-VERIFICATION.md`
 
 **Checkpoint**: User Story 3 supports safe rollback and least-privilege operations independently.
 
@@ -104,10 +104,10 @@ ______________________________________________________________________
 
 **Purpose**: Final consistency, documentation alignment, and validation evidence.
 
-- [ ] T029 [P] Update canonical docs from Flux-first to ArgoCD-first narrative in `README.md` and `docs/ARCHITECTURE.md`
-- [ ] T030 [P] Normalize script usage/help output and executable mode in `scripts/migrate-argocd-wave.sh`, `scripts/verify-argocd-cutover.sh`, and `scripts/rollback-argocd-wave.sh`
-- [ ] T031 Capture rollout verification command evidence in `specs/001-replace-flux-argocd/quickstart.md`
-- [ ] T032 Run repo validation gates and record outcomes in `specs/001-replace-flux-argocd/quickstart.md` using `task lint`, `task dev:validate`, and ArgoCD render/health checks exposed in `.taskfiles/dev/Taskfile.yaml`
+- [x] T029 [P] Update canonical docs from Flux-first to ArgoCD-first narrative in `README.md` and `docs/ARCHITECTURE.md`
+- [x] T030 [P] Normalize script usage/help output and executable mode in `scripts/migrate-argocd-wave.sh`, `scripts/verify-argocd-cutover.sh`, and `scripts/rollback-argocd-wave.sh`
+- [x] T031 Capture rollout verification command evidence in `specs/001-replace-flux-argocd/quickstart.md`
+- [x] T032 Run repo validation gates and record outcomes in `specs/001-replace-flux-argocd/quickstart.md` using `task lint`, `task dev:validate`, and ArgoCD render/health checks exposed in `.taskfiles/dev/Taskfile.yaml`
 
 ______________________________________________________________________
 
