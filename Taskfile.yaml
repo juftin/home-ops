@@ -33,11 +33,16 @@ tasks:
       - which flux
   argocd:bootstrap:
     desc: Bootstrap the ArgoCD Helm release from bootstrap/helmfile.d/01-apps.yaml
-    cmd: helmfile --file {{.BOOTSTRAP_DIR}}/helmfile.d/01-apps.yaml --selector name=argocd sync --hide-notes
+    vars:
+      BRANCH:
+        sh: git branch --show-current
+      SECRET_DOMAIN:
+        sh: "kubectl get secret -n flux-system cluster-secrets -o jsonpath='{.data.SECRET_DOMAIN}' | python -c \"import base64,sys;print(base64.b64decode(sys.stdin.read()).decode())\""
+    cmd: ARGOCD_TARGET_REVISION=refs/heads/{{.BRANCH}} ARGOCD_SECRET_DOMAIN={{.SECRET_DOMAIN}} helmfile --file {{.BOOTSTRAP_DIR}}/helmfile.d/01-apps.yaml --selector name=argocd sync --hide-notes
     preconditions:
       - test -f {{.KUBECONFIG}}
       - test -f {{.BOOTSTRAP_DIR}}/helmfile.d/01-apps.yaml
-      - which helmfile
+      - which helmfile git kubectl
   argocd:bootstrap:verify:
     desc: Verify ArgoCD control-plane workloads after bootstrap
     cmds:

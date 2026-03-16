@@ -1,9 +1,52 @@
 {{- if and (eq .Release.Name "argocd") (eq .Release.Namespace "argocd") }}
+{{- $argocdTargetRevision := env "ARGOCD_TARGET_REVISION" | default "refs/heads/main" }}
+{{- $argocdSecretDomain := env "ARGOCD_SECRET_DOMAIN" | default "example.com" }}
 crds:
   install: true
+extraObjects:
+  - apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      name: home-ops-root
+      namespace: argocd
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/juftin/home-ops.git
+        targetRevision: {{ $argocdTargetRevision | quote }}
+        path: kubernetes/argocd
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: argocd
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+  - apiVersion: gateway.networking.k8s.io/v1
+    kind: HTTPRoute
+    metadata:
+      name: argocd
+      namespace: argocd
+    spec:
+      hostnames:
+        - {{ printf "argocd.%s" $argocdSecretDomain | quote }}
+      parentRefs:
+        - name: envoy-oauth-admin
+          namespace: network
+          sectionName: https
+      rules:
+        - backendRefs:
+            - name: argocd-server
+              namespace: argocd
+              port: 80
+          matches:
+            - path:
+                type: PathPrefix
+                value: /
 configs:
   cm:
-    admin.enabled: "false"
+    admin.enabled: "true"
+    url: {{ printf "https://argocd.%s" $argocdSecretDomain | quote }}
     application.resourceTrackingMethod: annotation+label
     kustomize.buildOptions: --enable-helm
   params:

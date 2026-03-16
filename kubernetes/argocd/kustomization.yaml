@@ -4,5 +4,3 @@ namespace: argocd
 resources:
   - ./appproject.yaml
   - ./applicationset.yaml
-  - ./rbac.yaml
-  - ./httproute.yaml

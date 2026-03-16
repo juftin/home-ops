@@ -24,16 +24,16 @@ ______________________________________________________________________
 
 These tasks are defined directly in `Taskfile.yaml`.
 
-| Task                           | Description                                                                            |
-| ------------------------------ | -------------------------------------------------------------------------------------- |
-| `task init`                    | Initialize configuration files (age key, deploy key, push token, sample configs)       |
-| `task configure`               | Render and validate all configuration files from `cluster.yaml` / `nodes.yaml`         |
-| `task lint`                    | Run all pre-commit hooks against every file in the repo                                |
-| `task reconcile`               | Force Flux to pull in changes from Git immediately                                     |
-| `task argocd:bootstrap`        | Bootstrap the ArgoCD Helm release from `bootstrap/helmfile.d/01-apps.yaml`             |
-| `task argocd:bootstrap:verify` | Verify ArgoCD control-plane deployments are present and healthy                        |
-| `task encrypt`                 | Encrypt sensitive local files (cluster.yaml, kubeconfig, etc.) with SOPS to `secrets/` |
-| `task decrypt`                 | Decrypt files from `secrets/` back to their original paths                             |
+| Task                           | Description                                                                                               |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| `task init`                    | Initialize configuration files (age key, deploy key, push token, sample configs)                          |
+| `task configure`               | Render and validate all configuration files from `cluster.yaml` / `nodes.yaml`                            |
+| `task lint`                    | Run all pre-commit hooks against every file in the repo                                                   |
+| `task reconcile`               | Force Flux to pull in changes from Git immediately                                                        |
+| `task argocd:bootstrap`        | Bootstrap ArgoCD, seed `home-ops-root` from current branch, and inject `SECRET_DOMAIN` for ArgoCD ingress |
+| `task argocd:bootstrap:verify` | Verify ArgoCD control-plane deployments are present and healthy                                           |
+| `task encrypt`                 | Encrypt sensitive local files (cluster.yaml, kubeconfig, etc.) with SOPS to `secrets/`                    |
+| `task decrypt`                 | Decrypt files from `secrets/` back to their original paths                                                |
 
 ______________________________________________________________________
 

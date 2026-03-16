@@ -21,6 +21,11 @@ task dev:argocd:render
 task dev:argocd:health
 ```
 
+`task argocd:bootstrap` seeds the ArgoCD root `Application` (`home-ops-root`) pointing at
+`kubernetes/argocd` for the current git branch (`refs/heads/<branch>`) and injects
+`ARGOCD_SECRET_DOMAIN` from `flux-system/cluster-secrets` so the chart can create a valid ArgoCD
+`HTTPRoute` and URL.
+
 ______________________________________________________________________
 
 ## Readiness Checks
