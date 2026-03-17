@@ -61,8 +61,8 @@ spec:
             - .spec.oidc.refreshToken
             - .spec.oidc.clientSecret.group
             - .spec.oidc.clientSecret.kind
-            - .spec.extAuth[].jwt.claims[].valueType
-            - .spec.extAuth[].oidc.providers[].remoteJWKS.cacheDuration
+            - .spec.authorization.rules[].principal.jwt.claims[].valueType
+            - .spec.jwt.providers[].remoteJWKS.cacheDuration
         - group: apps
           kind: StatefulSet
           name: loki

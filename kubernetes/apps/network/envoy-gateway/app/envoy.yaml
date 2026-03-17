@@ -68,8 +68,10 @@ spec:
         namespaces:
           from: All
       tls:
+        mode: Terminate
         certificateRefs:
-          - kind: Secret
+          - group: ""
+            kind: Secret
             name: ${SECRET_DOMAIN/./-}-production-tls
 ---
 apiVersion: gateway.networking.k8s.io/v1
@@ -98,8 +100,10 @@ spec:
         namespaces:
           from: All
       tls:
+        mode: Terminate
         certificateRefs:
-          - kind: Secret
+          - group: ""
+            kind: Secret
             name: ${SECRET_DOMAIN/./-}-production-tls
 ---
 apiVersion: gateway.envoyproxy.io/v1alpha1
@@ -217,7 +221,8 @@ spec:
       tls:
         mode: Terminate
         certificateRefs:
-          - kind: Secret
+          - group: ""
+            kind: Secret
             name: ${SECRET_DOMAIN/./-}-production-tls
             namespace: network
       allowedRoutes:
@@ -250,7 +255,8 @@ spec:
       tls:
         mode: Terminate
         certificateRefs:
-          - kind: Secret
+          - group: ""
+            kind: Secret
             name: ${SECRET_DOMAIN/./-}-production-tls
             namespace: network
       allowedRoutes:
@@ -283,7 +289,8 @@ spec:
       tls:
         mode: Terminate
         certificateRefs:
-          - kind: Secret
+          - group: ""
+            kind: Secret
             name: ${SECRET_DOMAIN/./-}-production-tls
             namespace: network
       allowedRoutes:
@@ -298,19 +305,29 @@ metadata:
     external-dns.alpha.kubernetes.io/controller: none
 spec:
   parentRefs:
-    - name: envoy-external
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy-external
       namespace: network
       sectionName: http
-    - name: envoy-internal
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy-internal
       namespace: network
       sectionName: http
-    - name: envoy-oauth-admin
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy-oauth-admin
       namespace: network
       sectionName: http
-    - name: envoy-oauth-users
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy-oauth-users
       namespace: network
       sectionName: http
-    - name: envoy-oauth-internal
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy-oauth-internal
       namespace: network
       sectionName: http
   rules:
@@ -319,3 +336,7 @@ spec:
           requestRedirect:
             scheme: https
             statusCode: 301
+      matches:
+        - path:
+            type: PathPrefix
+            value: /
