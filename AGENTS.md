@@ -1,7 +1,7 @@
 # AGENTS.md
 
 This is the [juftin/home-ops](https://github.com/juftin/home-ops) repository — a GitOps-driven
-Kubernetes homelab on bare metal. Flux continuously reconciles `kubernetes/` from `main`. Talos
+Kubernetes homelab on bare metal. ArgoCD continuously reconciles `kubernetes/` from `main`. Talos
 Linux is the OS. Secrets are SOPS-encrypted with age. Dependencies are updated by Renovate.
 
 @README.md
@@ -36,7 +36,7 @@ Run these in order before considering any task complete:
 
 ```bash
 task lint           # auto-fixes YAML/Markdown formatting; run until clean (second run always passes)
-task dev:validate   # renders all Flux HelmReleases and Kustomizations — no cluster required
+task dev:validate   # renders ArgoCD app manifests (kustomize + helm + SOPS) — no cluster required
 ```
 
 ## Development Rules
@@ -46,8 +46,8 @@ task dev:validate   # renders all Flux HelmReleases and Kustomizations — no cl
   create a worktree so the main tree stays on `main` and work is fully isolated.
 - **Never store plaintext secrets** — all `*.sops.yaml` files must be SOPS-encrypted. `task configure`
   encrypts them automatically. Never leave decrypted secrets uncommitted.
-- **Do not use `kubectl apply` to test changes** — Flux has `prune: true` and will overwrite direct
-  applies at the next reconcile. Use the branch testing workflow instead.
+- **Do not use `kubectl apply` to test changes** — ArgoCD will reconcile drift from Git and overwrite
+  direct applies. Use the branch testing workflow instead.
 - **Always run `task lint` before committing** — `yamlfmt` and `mdformat` auto-fix files in place;
   committing un-formatted files fails CI.
 - **Use a single emoji to prefix commit messages** — one emoji followed by a short description,
@@ -66,17 +66,17 @@ cd worktrees/home-ops-my-change
 # edit kubernetes/ manifests
 task lint             # auto-fix formatting
 task dev:validate     # validate offline
-task dev:start        # push branch, suspend flux-instance HelmRelease, patch GitRepository, reconcile
-task dev:sync         # push additional commits and reconcile
-task dev:stop         # ALWAYS run this — restores flux-instance and points cluster back at main
+task dev:start        # push branch, patch ArgoCD root + ApplicationSet to branch refs, refresh
+task dev:sync         # push additional commits and refresh ArgoCD branch refs
+task dev:stop         # ALWAYS run this — restores ArgoCD root + ApplicationSet refs back to main
 
 # Clean up the worktree when done (must be run from outside the worktree)
 cd ../..
 git worktree remove worktrees/home-ops-my-change
 ```
 
-> Always run `task dev:stop` when done, even if something went wrong. It restores the
-> `flux-instance` HelmRelease and resets the cluster to track `main`.
+> Always run `task dev:stop` when done, even if something went wrong. It restores ArgoCD refs and
+> resets reconciliation back to `main`.
 
 ## Adding a New App
 
@@ -84,31 +84,29 @@ All apps live under `kubernetes/apps/<namespace>/<app-name>/`. Exact structure:
 
 ```
 kubernetes/apps/<namespace>/
-├── kustomization.yaml      # add a resources entry pointing at the new ks.yaml
+├── kustomization.yaml      # namespace-level metadata
 ├── namespace.yaml          # Namespace manifest (if new namespace)
 └── <app-name>/
-    ├── ks.yaml             # Flux Kustomization for this app
     └── app/
-        ├── kustomization.yaml
-        ├── ocirepository.yaml  # OCI Helm chart source
-        ├── helmrelease.yaml    # HelmRelease with chart values
+        ├── kustomization.yaml  # app resources + helmCharts
+        ├── values.yaml         # Helm values for helmCharts entry
         ├── externalsecret.yaml # ExternalSecret from 1Password (if needed, see below)
         └── *.sops.yaml         # SOPS-encrypted secrets (if needed)
 ```
 
 Use `kubernetes/apps/default/echo/` as a working reference. After adding files:
 
-1. Add a `resources:` entry in the parent namespace `kustomization.yaml` for the new `ks.yaml`
+1. Add or update the app directory under `kubernetes/apps/<namespace>/<app-name>/app`
 2. Run `task lint` then `task dev:validate`
 3. Use `task dev:start` / `task dev:sync` to test on the live cluster; run `task dev:stop` when
-   done — **always**, even if something went wrong
+   done — **always**, even if something goes wrong
 4. Update **`README.md`** — add the app to the `## Apps` or `## Components` section
 5. Update **`docs/ARCHITECTURE.md`** — add the app to the namespaces table and any relevant layer description
 
 **If the app is OAuth-protected**:
 
 1. Add an explicit hostname entry in
-   `kubernetes/apps/network/cloudflare-tunnel/app/helmrelease.yaml` **before** the wildcard
+   `kubernetes/apps/network/cloudflare-tunnel/app/values.yaml` **before** the wildcard
    `*.${SECRET_DOMAIN}` rule. Route by group:
    - admins: `https://envoy-oauth-admin.<namespace>.svc.cluster.local:443` with `originServerName: oauth.${SECRET_DOMAIN}`
    - users: `https://envoy-oauth-users.<namespace>.svc.cluster.local:443` with `originServerName: oauth-users.${SECRET_DOMAIN}`
@@ -125,20 +123,16 @@ See [`specs/001-external-secrets-1password/quickstart.md`](specs/001-external-se
 
 PRs to `main` with changes under `kubernetes/` trigger two jobs:
 
-1. **`flux-local test`** — renders all HelmReleases and Kustomizations; fails on any render error
-2. **`flux-local diff`** — diffs changed `helmrelease` and `kustomization` resources vs `main`, posted as a PR comment
+1. **`ArgoCD Render Validation`** — runs `task dev:validate` to render all app manifests offline
+2. **`e2e` checks** — include repository configure + render checks used by template validation
 
 Replicate CI locally with `task dev:validate` before opening a PR.
 
 ## Gotchas
 
-- **SOPS files are valid YAML with encrypted values** — never `kubectl apply` them directly. Flux
-  decrypts them in-cluster via the `sops-age` secret.
-- **`task dev:start` suspends `flux-instance` HelmRelease** — the flux-operator manages the
-  `flux-system` GitRepository and would immediately reset any branch patch without this suspension.
-- **`task dev:stop` must be run before the PR is considered ready** — the cluster tracks the feature
-  branch while testing; `dev:stop` resets it to `main`. Run it as soon as live testing is complete,
-  not only when explicitly asked.
+- **SOPS files are valid YAML with encrypted values** — never `kubectl apply` decrypted versions directly.
+- **`task dev:start` / `task dev:sync` patch ArgoCD refs for branch testing** — always run
+  `task dev:stop` before considering a PR ready so reconciliation is reset to `main`.
 - **`task lint` always fails on `main`** — the `no-commit-to-branch` hook is expected to fail on
   `main`. All other hooks must pass.
 - **`yamlfmt` reformats indentation and multiline strings** — do not manually fight its style;

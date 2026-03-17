@@ -1,5 +1,10 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-resources:
-  - ./helmrelease.yaml
-  - ./ocirepository.yaml
+helmCharts:
+  - name: local-path-provisioner
+    repo: oci://ghcr.io/rancher/local-path-provisioner/charts
+    version: 0.0.35
+    releaseName: local-path-provisioner
+    namespace: kube-system
+    includeCRDs: true
+    valuesFile: ./values.yaml

@@ -1,0 +1,8 @@
+podAnnotations:
+  reloader.stakater.com/auto: "true"
+fullnameOverride: headlamp
+serviceAccount:
+  create: false
+  name: headlamp-admin
+clusterRoleBinding:
+  create: false

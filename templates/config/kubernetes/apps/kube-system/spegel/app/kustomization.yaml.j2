@@ -1,8 +1,11 @@
-#% if spegel_enabled %#
 ---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-resources:
-  - ./helmrelease.yaml
-  - ./ocirepository.yaml
-#% endif %#
+helmCharts:
+  - name: spegel
+    repo: oci://ghcr.io/spegel-org/helm-charts
+    version: 0.6.0
+    releaseName: spegel
+    namespace: kube-system
+    includeCRDs: true
+    valuesFile: ./values.yaml

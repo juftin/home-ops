@@ -13,9 +13,6 @@
   dependencyDashboardTitle: "Renovate Dashboard 🤖",
   schedule: ["every weekend"],
   ignorePaths: ["**/*.sops.*"],
-  flux: {
-    managerFilePatterns: ["/(^|/)kubernetes/.+\\.ya?ml(?:\\.j2)?$/"],
-  },
   helmfile: {
     managerFilePatterns: [
       "/(^|/)helmfile\\.ya?ml(?:\\.gotmpl)?(?:\\.j2)?$/",
@@ -34,16 +31,6 @@
       matchDatasources: ["docker"],
       matchManagers: ["helmfile"],
       overrideDepName: "{{packageName}}",
-    },
-    {
-      description: "Flux Operator Group",
-      groupName: "flux-operator",
-      matchDatasources: ["docker"],
-      matchPackageNames: ["/flux-operator/", "/flux-instance/", "/flux-operator-manifests/"],
-      group: {
-        commitMessageTopic: "{{{groupName}}} group",
-      },
-      minimumGroupSize: 3,
     },
     {
       description: "Auto-merge GitHub Actions",

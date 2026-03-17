@@ -60,16 +60,7 @@ configs:
           args:
             - |
               set -eu
-              WORKDIR="$(mktemp -d)"
-              cp -R . "${WORKDIR}/src"
-              for file in $(find "${WORKDIR}/src" -type f \( -name '*.sops.yaml' -o -name '*.sops.yml' \)); do
-                /custom-tools/sops -d --input-type yaml --output-type yaml "$file" > "${file}.dec"
-                mv "${file}.dec" "$file"
-              done
-              SECRET_DOMAIN_DASHED="$(printf '%s' "${SECRET_DOMAIN}" | tr '.' '-')"
-              (cd "${WORKDIR}/src" && kustomize build --enable-helm .) \
-                | sed -e 's#\${SECRET_DOMAIN/./-}#'"${SECRET_DOMAIN_DASHED}"'#g' \
-                      -e 's#\${SECRET_DOMAIN}#'"${SECRET_DOMAIN}"'#g'
+              SOPS_BIN=/custom-tools/sops ../../../../../scripts/render-argocd-app.sh .
   params:
     server.insecure: "true"
   rbac:
@@ -155,5 +146,5 @@ controller:
   metrics:
     enabled: true
 {{- else }}
-{{ (fromYaml (readFile (printf "../../../kubernetes/apps/%s/%s/app/helmrelease.yaml" .Release.Namespace .Release.Name))).spec.values | toYaml }}
+{{ readFile (printf "../../../kubernetes/apps/%s/%s/app/values.yaml" .Release.Namespace .Release.Name) }}
 {{- end }}

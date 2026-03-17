@@ -1,6 +1,11 @@
 ---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-resources:
-  - ./helmrelease.yaml
-  - ./ocirepository.yaml
+helmCharts:
+  - name: k8s-gateway
+    repo: oci://ghcr.io/k8s-gateway/charts
+    version: 3.4.1
+    releaseName: k8s-gateway
+    namespace: network
+    includeCRDs: true
+    valuesFile: ./values.yaml

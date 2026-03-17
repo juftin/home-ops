@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: sops-age
-  namespace: flux-system
+  namespace: argocd
 stringData:
   age.agekey: ENC[AES256_GCM,data:bjHdm5ezS7XFpvD/aFoyqJXgov+63z6R3y1nSosd+B9vNzQ8t9vRA4Omo+uIJTgStutj9xXd4hcjoF2HhsLmNDfGcxgFxuzqAXw=,iv:8W3ioDmfa9wDns58KVwndirvzqVuF8tZSgyuowtr22E=,tag:sMeKP8iU8wY90g60unZabA==,type:str]
 sops:
