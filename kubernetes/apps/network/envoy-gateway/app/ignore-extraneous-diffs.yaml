@@ -1,0 +1,68 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: envoy-external
+  annotations:
+    argocd.argoproj.io/compare-options: IgnoreExtraneous
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: envoy-internal
+  annotations:
+    argocd.argoproj.io/compare-options: IgnoreExtraneous
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: envoy-oauth-admin
+  namespace: network
+  annotations:
+    argocd.argoproj.io/compare-options: IgnoreExtraneous
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: envoy-oauth-users
+  namespace: network
+  annotations:
+    argocd.argoproj.io/compare-options: IgnoreExtraneous
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: envoy-oauth-internal
+  namespace: network
+  annotations:
+    argocd.argoproj.io/compare-options: IgnoreExtraneous
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: https-redirect
+  annotations:
+    argocd.argoproj.io/compare-options: IgnoreExtraneous
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: envoy-oauth-admin-policy
+  namespace: network
+  annotations:
+    argocd.argoproj.io/compare-options: IgnoreExtraneous
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: envoy-oauth-users-policy
+  namespace: network
+  annotations:
+    argocd.argoproj.io/compare-options: IgnoreExtraneous
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: envoy-oauth-internal-policy
+  namespace: network
+  annotations:
+    argocd.argoproj.io/compare-options: IgnoreExtraneous

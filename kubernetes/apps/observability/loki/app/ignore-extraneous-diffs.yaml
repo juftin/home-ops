@@ -1,0 +1,7 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: loki
+  namespace: observability
+  annotations:
+    argocd.argoproj.io/compare-options: IgnoreExtraneous
