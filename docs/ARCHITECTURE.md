@@ -40,7 +40,7 @@ ______________________________________________________________________
 home-ops/
 ├── talos/               # Talos OS node configuration
 ├── kubernetes/          # All Kubernetes manifests (owned by ArgoCD)
-│   ├── argocd/          # ArgoCD project, ApplicationSet, and RBAC
+│   ├── argocd/          # ArgoCD AppProject + ApplicationSet source manifests
 │   ├── flux/            # Legacy Flux entrypoint used during migration waves
 │   ├── apps/            # Namespaced application definitions
 │   └── components/      # Shared reusable Kustomize components
@@ -108,14 +108,23 @@ ______________________________________________________________________
 
 ### 3. GitOps Layer – ArgoCD (with Flux migration bridge)
 
-Once bootstrapped, ArgoCD continuously reconciles `kubernetes/apps/` from the Git repository via an
-ApplicationSet definition under `kubernetes/argocd/`.
+Once bootstrapped, ArgoCD self-manages through a root `Application` (`home-ops-root`) that targets
+`kubernetes/argocd/`. The ApplicationSet in that directory then continuously reconciles
+`kubernetes/apps/` from the Git repository.
 
 #### Entrypoint
 
-`kubernetes/argocd/kustomization.yaml` is the ArgoCD root resource set (project, ApplicationSet,
-and RBAC). `kubernetes/flux/cluster/ks.yaml` remains as a migration bridge and supports phased
-retirement through `home-ops.io/gitops-controller=argocd` labels on child Flux Kustomizations.
+`kubernetes/argocd/kustomization.yaml` is the ArgoCD Git source of truth for AppProject and
+ApplicationSet resources. Bootstrap chart values seed `home-ops-root`, ArgoCD ingress (`HTTPRoute`),
+and `argocd-rbac-cm` so control-plane primitives are created before app reconciliation starts.
+`kubernetes/flux/cluster/ks.yaml` remains as a migration bridge and supports phased retirement
+through `home-ops.io/gitops-controller=argocd` labels on child Flux Kustomizations.
+
+The repo-server uses a CMP plugin (`kustomize-substitute-secret-domain`) to render apps by:
+
+1. decrypting `*.sops.yaml` / `*.sops.yml` files with SOPS and the mounted age key
+2. substituting `${SECRET_DOMAIN}` and `${SECRET_DOMAIN/./-}` placeholders
+3. passing rendered output back to ArgoCD for apply/diff
 
 #### App structure
 
@@ -165,8 +174,9 @@ defines encryption rules:
 The age public key is stored in `.sops.yaml`; the private key lives in `age.key` (gitignored) and
 is referenced by the `SOPS_AGE_KEY_FILE` environment variable.
 
-ArgoCD decrypts secrets using the existing `sops-age` key material mounted into repo-server. Flux
-decryption remains available until all workloads are retired from Flux ownership.
+ArgoCD decrypts secrets in repo-server through its CMP plugin using the existing `sops-age` key
+material and an init-installed `sops` binary. Flux decryption remains available until all workloads
+are retired from Flux ownership.
 
 #### External Secrets Operator + 1Password
 
@@ -242,7 +252,7 @@ Key tasks:
 | ------------------------------- | --------------------------------------------------------------------------- |
 | `task bootstrap:talos`          | Apply Talos machine configs to nodes                                        |
 | `task bootstrap:apps`           | Run the Helmfile bootstrap (installs ArgoCD and transitional Flux releases) |
-| `task argocd:bootstrap`         | Sync only the ArgoCD Helm release                                           |
+| `task argocd:bootstrap`         | Bootstrap ArgoCD and seed root app/ingress/CMP inputs for current branch    |
 | `task argocd:bootstrap:verify`  | Verify ArgoCD deployments after bootstrap                                   |
 | `task talos:generate-config`    | Render `talconfig.yaml` → node configs via talhelper                        |
 | `task reconcile`                | Force Flux reconciliation (legacy bridge during migration)                  |

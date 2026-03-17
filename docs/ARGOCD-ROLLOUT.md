@@ -78,3 +78,16 @@ Validate role-based policy after cutover:
 3. Confirm admins can sync and administer project resources.
 
 4. Record identities tested and observed permissions in the rollout handoff.
+
+## Common operational notes
+
+- If a previously failing app still shows stale `SyncFailed` after a fix, force hard refresh and
+  run sync from controller context:
+
+  ```bash
+  kubectl annotate application -n argocd <app-name> argocd.argoproj.io/refresh=hard --overwrite
+  kubectl exec -n argocd statefulset/argocd-application-controller -- argocd app sync <app-name> --core --timeout 180
+  ```
+
+- During feature-branch testing (`task dev:start`), `flux-system-flux-instance` may show
+  `OutOfSync`/`Suspended` by design.

@@ -34,3 +34,11 @@ task dev:argocd:migrate-wave WAVE=<wave> NAMESPACE=<namespace>
 task dev:argocd:verify-wave WAVE=<wave> NAMESPACE=<namespace>
 task dev:argocd:verify-cutover
 ```
+
+If verification still reports stale sync status after a successful fix, force a hard refresh and
+sync from controller context:
+
+```bash
+kubectl annotate application -n argocd <app-name> argocd.argoproj.io/refresh=hard --overwrite
+kubectl exec -n argocd statefulset/argocd-application-controller -- argocd app sync <app-name> --core --timeout 180
+```

@@ -24,16 +24,16 @@ ______________________________________________________________________
 
 These tasks are defined directly in `Taskfile.yaml`.
 
-| Task                           | Description                                                                                               |
-| ------------------------------ | --------------------------------------------------------------------------------------------------------- |
-| `task init`                    | Initialize configuration files (age key, deploy key, push token, sample configs)                          |
-| `task configure`               | Render and validate all configuration files from `cluster.yaml` / `nodes.yaml`                            |
-| `task lint`                    | Run all pre-commit hooks against every file in the repo                                                   |
-| `task reconcile`               | Force Flux to pull in changes from Git immediately                                                        |
-| `task argocd:bootstrap`        | Bootstrap ArgoCD, seed `home-ops-root` from current branch, and inject `SECRET_DOMAIN` for ArgoCD ingress |
-| `task argocd:bootstrap:verify` | Verify ArgoCD control-plane deployments are present and healthy                                           |
-| `task encrypt`                 | Encrypt sensitive local files (cluster.yaml, kubeconfig, etc.) with SOPS to `secrets/`                    |
-| `task decrypt`                 | Decrypt files from `secrets/` back to their original paths                                                |
+| Task                           | Description                                                                                                        |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| `task init`                    | Initialize configuration files (age key, deploy key, push token, sample configs)                                   |
+| `task configure`               | Render and validate all configuration files from `cluster.yaml` / `nodes.yaml`                                     |
+| `task lint`                    | Run all pre-commit hooks against every file in the repo                                                            |
+| `task reconcile`               | Force Flux to pull in changes from Git immediately                                                                 |
+| `task argocd:bootstrap`        | Bootstrap ArgoCD, seed `home-ops-root` from current branch, inject `SECRET_DOMAIN`, and wire CMP + SOPS decryption |
+| `task argocd:bootstrap:verify` | Verify ArgoCD control-plane deployments are present and healthy                                                    |
+| `task encrypt`                 | Encrypt sensitive local files (cluster.yaml, kubeconfig, etc.) with SOPS to `secrets/`                             |
+| `task decrypt`                 | Decrypt files from `secrets/` back to their original paths                                                         |
 
 ______________________________________________________________________
 
@@ -140,6 +140,13 @@ task dev:worktree:remove NAME=home-ops-my-change
 > `dev:start` suspends the `flux-instance` HelmRelease so the flux-operator does not fight the
 > GitRepository patch. `dev:stop` resumes it and restores everything to the production state.
 > Neither `dev:start` nor `dev:sync` can be run on `main`.
+
+If an ArgoCD app keeps stale `OutOfSync` state after fixes, refresh/sync from controller context:
+
+```bash
+kubectl annotate application -n argocd <app-name> argocd.argoproj.io/refresh=hard --overwrite
+kubectl exec -n argocd statefulset/argocd-application-controller -- argocd app sync <app-name> --core --timeout 180
+```
 
 ### OIDC / OAuth Gateway validation workflow
 
