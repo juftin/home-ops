@@ -8,3 +8,5 @@ helmCharts:
     namespace: observability
     includeCRDs: true
     valuesFile: ./values.yaml
+patchesStrategicMerge:
+  - ./ignore-extraneous-diffs.yaml

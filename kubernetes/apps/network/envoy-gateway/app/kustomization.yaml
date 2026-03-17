@@ -17,3 +17,4 @@ helmCharts:
     valuesFile: ./values.yaml
 patchesStrategicMerge:
   - ./remove-hook-annotations.yaml
+  - ./ignore-extraneous-diffs.yaml
