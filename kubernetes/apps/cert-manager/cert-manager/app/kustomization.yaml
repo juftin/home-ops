@@ -11,5 +11,5 @@ helmCharts:
     namespace: cert-manager
     includeCRDs: true
     valuesFile: ./values.yaml
-patches:
-  - path: ./remove-hook-annotations.yaml
+patchesStrategicMerge:
+  - ./remove-hook-annotations.yaml
