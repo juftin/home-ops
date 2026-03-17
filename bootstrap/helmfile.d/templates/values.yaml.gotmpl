@@ -63,7 +63,8 @@ configs:
               WORKDIR="$(mktemp -d)"
               cp -R . "${WORKDIR}/src"
               for file in $(find "${WORKDIR}/src" -type f \( -name '*.sops.yaml' -o -name '*.sops.yml' \)); do
-                /custom-tools/sops -d --input-type yaml --output-type yaml "$file" > "${file}.dec"
+                printf 'apiVersion: viaduct.ai/v1\nkind: ksops\nmetadata:\n  name: decrypt-file\nfiles:\n  - %s\n' "$file" > "${WORKDIR}/ksops-decrypt.yaml"
+                /custom-tools/ksops "${WORKDIR}/ksops-decrypt.yaml" > "${file}.dec"
                 mv "${file}.dec" "$file"
               done
               SECRET_DOMAIN_DASHED="$(printf '%s' "${SECRET_DOMAIN}" | tr '.' '-')"
@@ -90,13 +91,13 @@ configs:
     scopes: '[groups, email]'
 repoServer:
   initContainers:
-    - name: install-sops
-      image: ghcr.io/getsops/sops:v3.9.4
+    - name: install-ksops
+      image: viaductoss/ksops:v4.4.0
       command:
         - /bin/sh
         - -c
       args:
-        - cp /usr/local/bin/sops /custom-tools/sops && chmod +x /custom-tools/sops
+        - cp "$(command -v ksops)" /custom-tools/ksops && chmod +x /custom-tools/ksops
       volumeMounts:
         - mountPath: /custom-tools
           name: custom-tools

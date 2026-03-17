@@ -122,7 +122,7 @@ through `home-ops.io/gitops-controller=argocd` labels on child Flux Kustomizatio
 
 The repo-server uses a CMP plugin (`kustomize-substitute-secret-domain`) to render apps by:
 
-1. decrypting `*.sops.yaml` / `*.sops.yml` files with SOPS and the mounted age key
+1. decrypting `*.sops.yaml` / `*.sops.yml` files with KSOPS and the mounted age key
 2. substituting `${SECRET_DOMAIN}` and `${SECRET_DOMAIN/./-}` placeholders
 3. passing rendered output back to ArgoCD for apply/diff
 
@@ -175,7 +175,7 @@ The age public key is stored in `.sops.yaml`; the private key lives in `age.key`
 is referenced by the `SOPS_AGE_KEY_FILE` environment variable.
 
 ArgoCD decrypts secrets in repo-server through its CMP plugin using the existing `sops-age` key
-material and an init-installed `sops` binary. Flux decryption remains available until all workloads
+material and an init-installed `ksops` binary. Flux decryption remains available until all workloads
 are retired from Flux ownership.
 
 #### External Secrets Operator + 1Password

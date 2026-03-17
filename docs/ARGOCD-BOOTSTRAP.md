@@ -27,9 +27,9 @@ task dev:argocd:health
 `HTTPRoute` and URL.
 
 The bootstrap values also install the `kustomize-substitute-secret-domain` CMP plugin in
-`argocd-repo-server`. That plugin decrypts `*.sops.yaml` manifests with the mounted age key and
-substitutes both `${SECRET_DOMAIN}` and `${SECRET_DOMAIN/./-}` placeholders before ArgoCD applies
-resources.
+`argocd-repo-server`. That plugin decrypts `*.sops.yaml` manifests with KSOPS + the mounted age key
+and substitutes both `${SECRET_DOMAIN}` and `${SECRET_DOMAIN/./-}` placeholders before ArgoCD
+applies resources.
 
 ______________________________________________________________________
 
