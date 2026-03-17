@@ -7,14 +7,19 @@ metadata:
 spec:
   hostnames: ["headlamp.${SECRET_DOMAIN}"]
   parentRefs:
-    - name: envoy-oauth-admin
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy-oauth-admin
       namespace: network
       sectionName: https
   rules:
     - backendRefs:
-        - name: headlamp
+        - group: ""
+          kind: Service
+          name: headlamp
           namespace: observability
           port: 80
+          weight: 1
       matches:
         - path:
             type: PathPrefix

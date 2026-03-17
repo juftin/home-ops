@@ -7,13 +7,21 @@ metadata:
     external-dns.alpha.kubernetes.io/cloudflare-proxied: "true"
 spec:
   parentRefs:
-    - name: envoy-oauth-admin
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy-oauth-admin
       namespace: network
-    - name: envoy-oauth-users
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy-oauth-users
       namespace: network
-    - name: envoy-oauth-internal
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy-oauth-internal
       namespace: network
-    - name: envoy-external
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy-external
       namespace: network
   hostnames:
     - oauth.${SECRET_DOMAIN}
@@ -31,16 +39,22 @@ spec:
             type: Exact
             value: /oauth2/callback
       backendRefs:
-        - name: oauth-pages
+        - group: ""
+          kind: Service
+          name: oauth-pages
           port: 80
+          weight: 1
     - name: logout
       matches:
         - path:
             type: Exact
             value: /logout
       backendRefs:
-        - name: oauth-pages
+        - group: ""
+          kind: Service
+          name: oauth-pages
           port: 80
+          weight: 1
     - name: denied
       matches:
         - path:
@@ -53,8 +67,11 @@ spec:
               type: ReplaceFullPath
               replaceFullPath: /denied.html
       backendRefs:
-        - name: oauth-pages
+        - group: ""
+          kind: Service
+          name: oauth-pages
           port: 80
+          weight: 1
     - name: logged-out
       matches:
         - path:
@@ -67,5 +84,8 @@ spec:
               type: ReplaceFullPath
               replaceFullPath: /logged-out.html
       backendRefs:
-        - name: oauth-pages
+        - group: ""
+          kind: Service
+          name: oauth-pages
           port: 80
+          weight: 1

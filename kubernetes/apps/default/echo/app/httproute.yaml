@@ -7,10 +7,19 @@ spec:
   hostnames:
     - echo.${SECRET_DOMAIN}
   parentRefs:
-    - name: envoy-external
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy-external
       namespace: network
       sectionName: https
   rules:
     - backendRefs:
-        - name: echo
+        - group: ""
+          kind: Service
+          name: echo
           port: 80
+          weight: 1
+      matches:
+        - path:
+            type: PathPrefix
+            value: /
