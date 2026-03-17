@@ -5,4 +5,3 @@ components:
   - ../../components/sops
 resources:
   - ./namespace.yaml
-  - ./cert-manager/ks.yaml

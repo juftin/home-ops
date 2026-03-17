@@ -1,269 +1,54 @@
 # Architecture
 
-This document describes how the `home-ops` repository is structured and how its components work
-together to manage a GitOps-driven Kubernetes homelab.
+`home-ops` is an ArgoCD-first GitOps homelab running on Talos Linux.
 
 ______________________________________________________________________
 
-## Overview
+## Control Plane
 
-The cluster is a single-node Kubernetes cluster running on bare metal using
-[Talos Linux](https://talos.dev/) as the OS. All cluster state is declared in this Git repository
-and reconciled by [ArgoCD](https://argo-cd.readthedocs.io/) (with Flux retained only for phased
-retirement while migration completes). Secrets are encrypted at rest using
-[SOPS](https://github.com/getsops/sops) with an [age](https://github.com/FiloSottile/age) key.
-Dependency updates are automated with [Renovate](https://renovatebot.com/).
+- **ArgoCD** is the only GitOps reconciler.
+- `home-ops-root` (bootstrapped by Helmfile) points to `kubernetes/argocd`.
+- `kubernetes/argocd/applicationset.yaml` generates one ArgoCD `Application` per app directory under `kubernetes/apps/<namespace>/<app>/app`.
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  GitHub Repository (home-ops)                                   │
-│                                                                 │
-│  ┌──────────┐  ┌─────────────┐  ┌──────────┐  ┌────────────┐  │
-│  │  talos/  │  │ kubernetes/ │  │bootstrap/│  │  .github/  │  │
-│  │  (OS)    │  │  (GitOps)   │  │ (init)   │  │  (CI/CD)   │  │
-│  └──────────┘  └─────────────┘  └──────────┘  └────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
-         │               │
-         ▼               ▼
-  ┌─────────────┐  ┌───────────────────────────────┐
-  │ Talos Linux │  │  ArgoCD (in-cluster GitOps)   │
-  │  bare metal │  │  continuously reconciles       │
-  │  node       │  │  kubernetes/ from Git          │
-  └─────────────┘  └───────────────────────────────┘
+______________________________________________________________________
+
+## App Layout
+
+```text
+kubernetes/apps/<namespace>/<app>/app/
+├── kustomization.yaml   # static resources + helmCharts entries
+├── values.yaml          # chart values
+└── *.sops.yaml          # encrypted manifests/secrets (optional)
 ```
 
-______________________________________________________________________
-
-## Repository Layout
-
-```
-home-ops/
-├── talos/               # Talos OS node configuration
-├── kubernetes/          # All Kubernetes manifests (owned by ArgoCD)
-│   ├── argocd/          # ArgoCD AppProject + ApplicationSet source manifests
-│   ├── flux/            # Legacy Flux entrypoint used during migration waves
-│   ├── apps/            # Namespaced application definitions
-│   └── components/      # Shared reusable Kustomize components
-├── bootstrap/           # One-time cluster bootstrap (Helmfile)
-├── docs/                # Project documentation
-├── scripts/             # Helper scripts
-├── templates/           # makejinja templates for config generation
-├── .github/             # GitHub Actions workflows, Renovate config, Copilot instructions
-├── .taskfiles/          # Task runner task definitions
-├── AGENTS.md            # Agent instructions (Copilot, Codex, Cursor, etc.)
-├── CLAUDE.md            # Claude Code entry point (references AGENTS.md)
-├── cluster.yaml         # Cluster-level configuration values
-├── nodes.yaml           # Node-level configuration values
-├── Taskfile.yaml        # Task runner entrypoint
-└── .mise.toml           # Tool version pinning (mise)
-```
+`kustomization.yaml` uses `helmCharts`; ArgoCD’s CMP plugin decrypts SOPS files and substitutes
+`${SECRET_DOMAIN}` placeholders before apply.
 
 ______________________________________________________________________
 
-## Layers
+## Bootstrap
 
-### 1. OS Layer – Talos
+`bootstrap/helmfile.d/01-apps.yaml` installs foundational components in order:
 
-[Talos Linux](https://talos.dev/) is the immutable, API-driven OS running on the bare-metal
-node. Configuration is managed by [talhelper](https://github.com/budimanjojo/talhelper) using
-`talos/talconfig.yaml` which is rendered into per-node machine configs.
+1. `cilium`
+2. `coredns`
+3. `cert-manager`
+4. `argocd`
 
-Key files:
-
-| File                        | Purpose                                                 |
-| --------------------------- | ------------------------------------------------------- |
-| `talos/talconfig.yaml`      | Node definitions, IP config, Talos/Kubernetes versions  |
-| `talos/talenv.yaml`         | Version variables (`talosVersion`, `kubernetesVersion`) |
-| `talos/talsecret.sops.yaml` | Encrypted cluster PKI / join tokens                     |
-| `talos/patches/`            | Global and controller-specific Talos config patches     |
-| `talos/clusterconfig/`      | Generated output of `talhelper genconfig`               |
-
-The VIP (`192.168.1.145`) floats across control-plane nodes and is the stable API server address.
-
-Networking: pod CIDR `10.42.0.0/16`, service CIDR `10.43.0.0/16`. The built-in CNI is disabled
-in favor of Cilium.
+ArgoCD then continuously reconciles all apps from Git.
 
 ______________________________________________________________________
 
-### 2. Bootstrap Layer – Helmfile
+## Validation and CI
 
-The `bootstrap/helmfile.d/` directory installs the minimum set of components required to get
-GitOps running inside the cluster. This is a **one-time** operation (run via `task bootstrap:apps`).
-
-Bootstrap install order (each release `needs` the previous):
-
-1. **cilium** – CNI (networking)
-2. **coredns** – cluster DNS
-3. **cert-manager** – TLS certificate management
-4. **argocd** – installs ArgoCD control-plane components
-5. **flux-operator** – retained temporarily to support phased retirement
-6. **flux-instance** – retained temporarily for branch-testing compatibility
-
-`bootstrap/helmfile.d/00-crds.yaml` is a separate helmfile used only to extract CRDs from charts
-that need them installed before the main bootstrap run.
-
-After bootstrap, ArgoCD is the primary GitOps reconciler for app resources.
+- Local gate: `task lint` then `task dev:validate`
+- PR gate: GitHub Actions **ArgoCD Render Validation** workflow (`.github/workflows/argocd-validate.yaml`)
+- Template/e2e checks also run `task dev:validate`
 
 ______________________________________________________________________
 
-### 3. GitOps Layer – ArgoCD (with Flux migration bridge)
+## Security
 
-Once bootstrapped, ArgoCD self-manages through a root `Application` (`home-ops-root`) that targets
-`kubernetes/argocd/`. The ApplicationSet in that directory then continuously reconciles
-`kubernetes/apps/` from the Git repository.
-
-#### Entrypoint
-
-`kubernetes/argocd/kustomization.yaml` is the ArgoCD Git source of truth for AppProject and
-ApplicationSet resources. Bootstrap chart values seed `home-ops-root`, ArgoCD ingress (`HTTPRoute`),
-and `argocd-rbac-cm` so control-plane primitives are created before app reconciliation starts.
-`kubernetes/flux/cluster/ks.yaml` remains as a migration bridge and supports phased retirement
-through `home-ops.io/gitops-controller=argocd` labels on child Flux Kustomizations.
-
-The repo-server uses a CMP plugin (`kustomize-substitute-secret-domain`) to render apps by:
-
-1. decrypting `*.sops.yaml` / `*.sops.yml` files with SOPS and the mounted age key
-2. substituting `${SECRET_DOMAIN}` and `${SECRET_DOMAIN/./-}` placeholders
-3. passing rendered output back to ArgoCD for apply/diff
-
-#### App structure
-
-Each application under `kubernetes/apps/` follows this pattern:
-
-```
-kubernetes/apps/<namespace>/
-├── kustomization.yaml      # namespace-level Kustomization pointing to child ks.yaml files
-├── namespace.yaml          # Namespace manifest
-└── <app-name>/
-    ├── ks.yaml             # Legacy Flux Kustomization (retired per migration wave)
-    └── app/
-        ├── kustomization.yaml
-        ├── helmrelease.yaml     # HelmRelease (Helm chart + values)
-        ├── ocirepository.yaml   # OCI source reference
-        └── *.sops.yaml          # Encrypted secrets (if any)
-```
-
-#### Namespaces
-
-| Namespace          | Contents                                                                                                         |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------- |
-| `kube-system`      | cilium, coredns, local-path-provisioner, metrics-server, reloader                                                |
-| `cert-manager`     | cert-manager (TLS)                                                                                               |
-| `network`          | envoy-gateway, OAuth Gateways, SecurityPolicies, cloudflared tunnel, external-dns (k8s-gateway + cloudflare-dns) |
-| `external-secrets` | external-secrets operator, 1Password Connect                                                                     |
-| `argocd`           | ArgoCD control-plane and policy resources                                                                        |
-| `flux-system`      | Legacy Flux components retained during migration                                                                 |
-| `default`          | General applications (e.g. `echo` test server, `oauth-pages` for OIDC error pages)                               |
-| `observability`    | headlamp dashboard, Grafana UI, Prometheus, Alertmanager, Loki, and Alloy                                        |
-
-#### Shared components
-
-`kubernetes/components/sops/` is a reusable Kustomize component that injects the SOPS
-`cluster-secrets` `Secret` and decryption config into any `Kustomization` that references it.
-
-______________________________________________________________________
-
-### 4. Secrets – SOPS + age
-
-All secrets committed to Git are encrypted with SOPS using an age key. The `.sops.yaml` file
-defines encryption rules:
-
-- Files matching `talos/*.sops.yaml` → encrypt entire file
-- Files matching `(bootstrap|kubernetes)/*.sops.yaml` → encrypt only `data`/`stringData` fields
-
-The age public key is stored in `.sops.yaml`; the private key lives in `age.key` (gitignored) and
-is referenced by the `SOPS_AGE_KEY_FILE` environment variable.
-
-ArgoCD decrypts secrets in repo-server through its CMP plugin using the existing `sops-age` key
-material and an init-installed `sops` binary. Flux decryption remains available until all workloads
-are retired from Flux ownership.
-
-#### External Secrets Operator + 1Password
-
-For new secrets that don't need to live in Git, **External Secrets Operator (ESO)** syncs values
-directly from 1Password into Kubernetes `Secret` objects at runtime. The `ClusterSecretStore/onepassword`
-in the `external-secrets` namespace bridges ESO to a 1Password Connect server backed by the
-**homelab** vault.
-
-- **SOPS** — for secrets that must be versioned in Git (bootstrap credentials, cluster-wide values)
-- **ESO + 1Password** — for new app secrets that should be managed in 1Password and never committed
-
-See [`specs/001-external-secrets-1password/quickstart.md`](../specs/001-external-secrets-1password/quickstart.md) for the full workflow.
-
-______________________________________________________________________
-
-### 5. Networking
-
-| Component                         | Role                                                               |
-| --------------------------------- | ------------------------------------------------------------------ |
-| **Cilium**                        | eBPF CNI, kube-proxy replacement, network policy                   |
-| **CoreDNS**                       | In-cluster DNS                                                     |
-| **Envoy Gateway**                 | Kubernetes Gateway API implementation (ingress/traffic routing)    |
-| **cloudflared**                   | Cloudflare Tunnel – exposes services externally without open ports |
-| **external-dns (k8s-gateway)**    | Internal DNS resolution for cluster services                       |
-| **external-dns (cloudflare-dns)** | Syncs DNS records to Cloudflare for external access                |
-
-______________________________________________________________________
-
-### 6. Certificate Management
-
-**cert-manager** issues TLS certificates for in-cluster services. It is bootstrapped via Helmfile
-and subsequently managed by ArgoCD.
-
-______________________________________________________________________
-
-### 7. Dependency Updates – Renovate
-
-Renovate runs on a weekend schedule (`.renovaterc.json5`) and opens PRs to update:
-
-- Helm chart versions in `HelmRelease` manifests
-- Container image digests
-- OCI chart references
-- GitHub Actions versions
-- Tool versions in `.mise.toml`
-
-Annotated inline comments (`# renovate: datasource=...`) drive version tracking for values that
-Renovate cannot auto-detect. GitHub Actions minor/patch/digest updates and mise minor/patch/digest updates are auto-merged after 3 days.
-
-______________________________________________________________________
-
-### 8. CI – GitHub Actions
-
-| Workflow          | Trigger                                | Purpose                                                                                                            |
-| ----------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `flux-local.yaml` | PR to `main` (kubernetes/\*\* changes) | Validates Flux manifests with `flux-local test`; posts a diff of HelmRelease/Kustomization changes as a PR comment |
-| `renovate.yaml`   | Schedule + dispatch                    | Runs Renovate dependency updates                                                                                   |
-| `label-sync.yaml` | Push to `main`                         | Syncs GitHub labels from `labels.yaml`                                                                             |
-| `labeler.yaml`    | PR                                     | Auto-labels PRs based on changed paths                                                                             |
-| `release.yaml`    | Push to `main`                         | Creates GitHub releases                                                                                            |
-
-______________________________________________________________________
-
-### 9. Developer Tooling
-
-Tools are pinned in `.mise.toml` and managed by [mise](https://mise.jdx.dev/). Linting is handled
-by [pre-commit](https://pre-commit.com/) with hooks for YAML formatting (`yamlfmt`), Markdown
-formatting (`mdformat`), and whitespace. Common tasks are wrapped with
-[Task](https://taskfile.dev/) (`Taskfile.yaml` + `.taskfiles/`).
-
-Key tasks:
-
-| Task                            | Description                                                                 |
-| ------------------------------- | --------------------------------------------------------------------------- |
-| `task bootstrap:talos`          | Apply Talos machine configs to nodes                                        |
-| `task bootstrap:apps`           | Run the Helmfile bootstrap (installs ArgoCD and transitional Flux releases) |
-| `task argocd:bootstrap`         | Bootstrap ArgoCD and seed root app/ingress/CMP inputs for current branch    |
-| `task argocd:bootstrap:verify`  | Verify ArgoCD deployments after bootstrap                                   |
-| `task talos:generate-config`    | Render `talconfig.yaml` → node configs via talhelper                        |
-| `task reconcile`                | Force Flux reconciliation (legacy bridge during migration)                  |
-| `task configure`                | Re-render cluster config from `cluster.yaml` / `nodes.yaml` templates       |
-| `task lint`                     | Run all pre-commit hooks (yamlfmt, mdformat, YAML checks) against all files |
-| `task dev:validate`             | Validate all Flux manifests offline via `flux-local` (no cluster needed)    |
-| `task dev:argocd:render`        | Validate `kubernetes/argocd` manifests via `kustomize build`                |
-| `task dev:argocd:verify-health` | Run ArgoCD health/sync/drift verification helper                            |
-| `task dev:start`                | Redirect Flux to the current branch for live cluster testing                |
-| `task dev:stop`                 | Restore Flux to `main` after branch testing                                 |
-
-Configuration values in `cluster.yaml` and `nodes.yaml` are rendered through
-[makejinja](https://github.com/mirkolenz/makejinja) (`makejinja.toml`) to generate the actual YAML
-manifests and Talos configs from the `templates/` directory.
+- Secrets in Git are SOPS-encrypted with age.
+- ArgoCD repo-server mounts `sops-age` and decrypts during render.
+- New app secrets should prefer External Secrets Operator + 1Password over new committed SOPS files.

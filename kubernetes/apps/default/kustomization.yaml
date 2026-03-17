@@ -5,5 +5,3 @@ components:
   - ../../components/sops
 resources:
   - ./namespace.yaml
-  - ./echo/ks.yaml
-  - ./oauth-pages/ks.yaml

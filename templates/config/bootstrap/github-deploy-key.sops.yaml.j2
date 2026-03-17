@@ -4,7 +4,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: github-deploy-key
-  namespace: flux-system
+  namespace: argocd
 stringData:
   identity: |
     #% filter indent(width=4, first=False) %#

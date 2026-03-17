@@ -1,5 +1,10 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-resources:
-  - ./helmrelease.yaml
-  - ./ocirepository.yaml
+helmCharts:
+  - name: app-template
+    repo: oci://ghcr.io/bjw-s-labs/helm
+    version: 4.6.2
+    releaseName: echo
+    namespace: default
+    includeCRDs: true
+    valuesFile: ./values.yaml

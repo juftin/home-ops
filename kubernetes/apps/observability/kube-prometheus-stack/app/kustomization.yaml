@@ -1,9 +1,14 @@
-# yaml-language-server: $schema=https://json.schemastore.org/kustomization
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ./dnsendpoint.yaml
-  - ./ocirepository.yaml
   - ./externalsecret.yaml
   - ./httproute.yaml
-  - ./helmrelease.yaml
+helmCharts:
+  - name: kube-prometheus-stack
+    repo: oci://ghcr.io/prometheus-community/charts
+    version: 82.3.0
+    releaseName: kube-prometheus-stack
+    namespace: observability
+    includeCRDs: true
+    valuesFile: ./values.yaml
