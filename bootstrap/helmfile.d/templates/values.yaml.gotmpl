@@ -1,1 +1,159 @@
+{{- if and (eq .Release.Name "argocd") (eq .Release.Namespace "argocd") }}
+{{- $argocdTargetRevision := env "ARGOCD_TARGET_REVISION" | default "refs/heads/main" }}
+{{- $argocdSecretDomain := env "ARGOCD_SECRET_DOMAIN" | default "example.com" }}
+crds:
+  install: true
+extraObjects:
+  - apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      name: home-ops-root
+      namespace: argocd
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/juftin/home-ops.git
+        targetRevision: {{ $argocdTargetRevision | quote }}
+        path: kubernetes/argocd
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: argocd
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+  - apiVersion: gateway.networking.k8s.io/v1
+    kind: HTTPRoute
+    metadata:
+      name: argocd
+      namespace: argocd
+    spec:
+      hostnames:
+        - {{ printf "argocd.%s" $argocdSecretDomain | quote }}
+      parentRefs:
+        - name: envoy-oauth-admin
+          namespace: network
+          sectionName: https
+      rules:
+        - backendRefs:
+            - name: argocd-server
+              namespace: argocd
+              port: 80
+          matches:
+            - path:
+                type: PathPrefix
+                value: /
+configs:
+  cm:
+    admin.enabled: "true"
+    url: {{ printf "https://argocd.%s" $argocdSecretDomain | quote }}
+    application.resourceTrackingMethod: annotation+label
+    kustomize.buildOptions: --enable-helm
+  cmp:
+    create: true
+    plugins:
+      kustomize-substitute-secret-domain:
+        discover:
+          fileName: kustomization.yaml
+        generate:
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -eu
+              WORKDIR="$(mktemp -d)"
+              cp -R . "${WORKDIR}/src"
+              for file in $(find "${WORKDIR}/src" -type f \( -name '*.sops.yaml' -o -name '*.sops.yml' \)); do
+                /custom-tools/sops -d --input-type yaml --output-type yaml "$file" > "${file}.dec"
+                mv "${file}.dec" "$file"
+              done
+              SECRET_DOMAIN_DASHED="$(printf '%s' "${SECRET_DOMAIN}" | tr '.' '-')"
+              (cd "${WORKDIR}/src" && kustomize build --enable-helm .) \
+                | sed -e 's#\${SECRET_DOMAIN/./-}#'"${SECRET_DOMAIN_DASHED}"'#g' \
+                      -e 's#\${SECRET_DOMAIN}#'"${SECRET_DOMAIN}"'#g'
+  params:
+    server.insecure: "true"
+  rbac:
+    policy.default: role:readonly
+    policy.csv: |
+      p, role:admin, applications, *, */*, allow
+      p, role:admin, applications, sync, */*, allow
+      p, role:admin, applications, override, */*, allow
+      p, role:admin, projects, *, *, allow
+      p, role:admin, repositories, *, *, allow
+      p, role:readonly, applications, get, */*, allow
+      p, role:readonly, projects, get, *, allow
+      p, role:readonly, repositories, get, *, allow
+      p, role:readonly, applications, sync, */*, deny
+      p, role:readonly, applications, override, */*, deny
+      g, argocd-admins, role:admin
+      g, argocd-maintainers, role:readonly
+    scopes: '[groups, email]'
+repoServer:
+  initContainers:
+    - name: install-sops
+      image: ghcr.io/getsops/sops:v3.9.4
+      command:
+        - /bin/sh
+        - -c
+      args:
+        - cp /usr/local/bin/sops /custom-tools/sops && chmod +x /custom-tools/sops
+      volumeMounts:
+        - mountPath: /custom-tools
+          name: custom-tools
+  env:
+    - name: SOPS_AGE_KEY_FILE
+      value: /app/config/sops/age/keys.txt
+    - name: SECRET_DOMAIN
+      value: {{ $argocdSecretDomain | quote }}
+  volumes:
+    - name: sops-age
+      secret:
+        secretName: sops-age
+    - name: argocd-cmp-cm
+      configMap:
+        name: argocd-cmp-cm
+    - name: cmp-tmp
+      emptyDir: {}
+    - name: custom-tools
+      emptyDir: {}
+  volumeMounts:
+    - name: sops-age
+      mountPath: /app/config/sops/age
+      readOnly: true
+  extraContainers:
+    - name: cmp-kustomize-substitute-secret-domain
+      command:
+        - /var/run/argocd/argocd-cmp-server
+      image: quay.io/argoproj/argocd:v3.1.3
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+      env:
+        - name: SECRET_DOMAIN
+          value: {{ $argocdSecretDomain | quote }}
+        - name: SOPS_AGE_KEY_FILE
+          value: /app/config/sops/age/keys.txt
+      volumeMounts:
+        - mountPath: /var/run/argocd
+          name: var-files
+        - mountPath: /home/argocd/cmp-server/plugins
+          name: plugins
+        - mountPath: /home/argocd/cmp-server/config/plugin.yaml
+          subPath: kustomize-substitute-secret-domain.yaml
+          name: argocd-cmp-cm
+        - mountPath: /tmp
+          name: cmp-tmp
+        - mountPath: /custom-tools
+          name: custom-tools
+        - mountPath: /app/config/sops/age
+          name: sops-age
+          readOnly: true
+server:
+  extraArgs:
+    - --insecure
+controller:
+  metrics:
+    enabled: true
+{{- else }}
 {{ (fromYaml (readFile (printf "../../../kubernetes/apps/%s/%s/app/helmrelease.yaml" .Release.Namespace .Release.Name))).spec.values | toYaml }}
+{{- end }}

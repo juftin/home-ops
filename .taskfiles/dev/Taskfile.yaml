@@ -6,8 +6,10 @@ tasks:
     vars:
       # renovate: datasource=docker depName=ghcr.io/allenporter/flux-local
       FLUX_LOCAL_IMAGE: ghcr.io/allenporter/flux-local:v8.1.0
+      GIT_COMMON_DIR:
+        sh: git rev-parse --git-common-dir
     cmd: >-
-      docker run --rm -v {{.ROOT_DIR}}:/github/workspace -w /github/workspace {{.FLUX_LOCAL_IMAGE}} test --enable-helm --all-namespaces --path /github/workspace/kubernetes/flux/cluster -v
+      docker run --rm -v {{.ROOT_DIR}}:/github/workspace -v {{.GIT_COMMON_DIR}}:{{.GIT_COMMON_DIR}} -w /github/workspace {{.FLUX_LOCAL_IMAGE}} test --enable-helm --all-namespaces --path /github/workspace/kubernetes/flux/cluster -v
     preconditions:
       - which docker
   worktree:create:
@@ -68,6 +70,62 @@ tasks:
     preconditions:
       - test -f {{.KUBECONFIG}}
       - which flux kubectl
+  argocd:render:
+    desc: Render ArgoCD root manifests locally with kustomize
+    cmd: kustomize build {{.ROOT_DIR}}/kubernetes/argocd >/dev/null
+    preconditions:
+      - test -d {{.ROOT_DIR}}/kubernetes/argocd
+      - which kustomize
+  argocd:migrate-wave:
+    desc: Run one ArgoCD migration wave for a namespace
+    requires:
+      vars: [WAVE, NAMESPACE]
+    cmd: '{{.ROOT_DIR}}/scripts/migrate-argocd-wave.sh --wave {{.WAVE}} --namespace {{.NAMESPACE}}'
+    preconditions:
+      - test -f {{.KUBECONFIG}}
+      - which kubectl
+  argocd:verify-wave:
+    desc: Verify one migration wave (health, sync, drift, ownership)
+    requires:
+      vars: [WAVE, NAMESPACE]
+    cmd: '{{.ROOT_DIR}}/scripts/verify-argocd-cutover.sh --scope wave --wave {{.WAVE}} --namespace {{.NAMESPACE}}'
+    preconditions:
+      - test -f {{.KUBECONFIG}}
+      - which kubectl
+  argocd:verify-cutover:
+    desc: Verify full ArgoCD ownership cutover status
+    cmd: '{{.ROOT_DIR}}/scripts/verify-argocd-cutover.sh --scope full-cutover'
+    preconditions:
+      - test -f {{.KUBECONFIG}}
+      - which kubectl
+  argocd:rollback-wave:
+    desc: Run ArgoCD-only rollback for a migration wave
+    requires:
+      vars: [WAVE, REASON]
+    cmd: '{{.ROOT_DIR}}/scripts/rollback-argocd-wave.sh --wave {{.WAVE}} --reason "{{.REASON}}"'
+    preconditions:
+      - test -f {{.KUBECONFIG}}
+      - which kubectl
+  argocd:health:
+    desc: Check ArgoCD control-plane deployment health
+    cmds:
+      - kubectl get deploy -n argocd argocd-server argocd-repo-server
+      - kubectl get statefulset -n argocd argocd-application-controller
+    preconditions:
+      - test -f {{.KUBECONFIG}}
+      - which kubectl
+  argocd:verify-health:
+    desc: Verify ArgoCD application health and sync status for full cutover
+    cmd: '{{.ROOT_DIR}}/scripts/verify-argocd-cutover.sh --scope full-cutover'
+    preconditions:
+      - test -f {{.KUBECONFIG}}
+      - which kubectl
+  argocd:validate-rbac:
+    desc: Verify ArgoCD RBAC ConfigMap is present
+    cmd: kubectl get configmap -n argocd argocd-rbac-cm -o yaml >/dev/null
+    preconditions:
+      - test -f {{.KUBECONFIG}}
+      - which kubectl
   _guard-not-main:
     internal: true
     requires:

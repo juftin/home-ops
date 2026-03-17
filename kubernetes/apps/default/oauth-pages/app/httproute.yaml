@@ -19,6 +19,7 @@ spec:
     - oauth.${SECRET_DOMAIN}
     - oauth-users.${SECRET_DOMAIN}
     - oauth-internal.${SECRET_DOMAIN}
+    - argocd.${SECRET_DOMAIN}
     - grafana.${SECRET_DOMAIN}
     - headlamp.${SECRET_DOMAIN}
     - echo.${SECRET_DOMAIN}

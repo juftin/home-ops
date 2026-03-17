@@ -4,7 +4,7 @@
 
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/2604_fe0f/512.gif" alt="⚙️" width="20" height="20"> home-ops <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f680/512.gif" alt="🚀" width="20" height="20">
 
-_... Homelab managed with Flux, Renovate, and GitHub
+_... Homelab managed with ArgoCD, Renovate, and GitHub
 Actions_ <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f916/512.gif" alt="🤖" width="16" height="16">
 
 </div>
@@ -15,7 +15,7 @@ ______________________________________________________________________
 
 - **[Kubernetes](https://kubernetes.io/)**: The container orchestration platform running
   on [Talos](https://talos.dev/).
-- **[Flux](https://fluxcd.io/)**: GitOps tool for Kubernetes.
+- **[ArgoCD](https://argo-cd.readthedocs.io/)**: GitOps control plane for Kubernetes.
 - **[Renovate](https://renovatebot.com/)**: Automated dependency updates.
 - **[GitHub Actions](https://github.com/features/actions)**: CI/CD workflows for automation.
 - **[Cloudflare](https://www.cloudflare.com/)**: DNS Services.
@@ -23,8 +23,9 @@ ______________________________________________________________________
 
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f48e/512.gif" alt="🎡" width="20" height="20"> Components
 
-- **[Flux](https://fluxcd.io/)**: GitOps tool for keeping Kubernetes clusters in
-  sync with Git sources.
+- **[ArgoCD](https://argo-cd.readthedocs.io/)**: GitOps controller for keeping Kubernetes clusters
+  in sync with Git sources, bootstrapped via a root `home-ops-root` Application and a repo-server
+  CMP plugin for `SECRET_DOMAIN` substitution + SOPS-backed secret rendering.
 - **[cert-manager](https://github.com/cert-manager/cert-manager)**: Creates SSL certificates for
   services in the cluster.
 - **[spegel](https://github.com/spegel-org/spegel)**: Stateless cluster local OCI registry mirror.
@@ -50,8 +51,8 @@ ______________________________________________________________________
 
 - **[echo](https://github.com/mendhak/docker-http-https-echo)**: Simple HTTP/HTTPS echo server for
   testing.
-- **[headlamp](https://headlamp.dev/)**: Kubernetes dashboard with the
-  [Flux plugin](https://github.com/headlamp-k8s/headlamp-plugin-flux) for GitOps visibility.
+- **[headlamp](https://headlamp.dev/)**: Kubernetes dashboard for cluster visibility alongside
+  ArgoCD's application UI.
 - **[Grafana](https://grafana.com/)**: Cluster dashboards and Explore UI.
 - **[Prometheus](https://prometheus.io/)**: Scrapes and stores Kubernetes metrics with 30-day
   retention.

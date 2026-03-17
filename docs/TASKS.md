@@ -10,6 +10,9 @@ ______________________________________________________________________
 ## Related Operational Runbooks
 
 - [Google OAuth Setup](./GOOGLE-OAUTH-SETUP.md)
+- [ArgoCD Bootstrap](./ARGOCD-BOOTSTRAP.md)
+- [ArgoCD Migration Waves](./ARGOCD-MIGRATION.md)
+- [ArgoCD Rollout Runbook](./ARGOCD-ROLLOUT.md)
 - [OIDC Troubleshooting](./OIDC-TROUBLESHOOTING.md)
 - [Gateway Onboarding Checklist](./GATEWAY-ONBOARDING-CHECKLIST.md)
 - [SecurityPolicy Change Playbook](./SECURITYPOLICY-CHANGE-PLAYBOOK.md)
@@ -21,14 +24,16 @@ ______________________________________________________________________
 
 These tasks are defined directly in `Taskfile.yaml`.
 
-| Task             | Description                                                                            |
-| ---------------- | -------------------------------------------------------------------------------------- |
-| `task init`      | Initialize configuration files (age key, deploy key, push token, sample configs)       |
-| `task configure` | Render and validate all configuration files from `cluster.yaml` / `nodes.yaml`         |
-| `task lint`      | Run all pre-commit hooks against every file in the repo                                |
-| `task reconcile` | Force Flux to pull in changes from Git immediately                                     |
-| `task encrypt`   | Encrypt sensitive local files (cluster.yaml, kubeconfig, etc.) with SOPS to `secrets/` |
-| `task decrypt`   | Decrypt files from `secrets/` back to their original paths                             |
+| Task                           | Description                                                                                                        |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| `task init`                    | Initialize configuration files (age key, deploy key, push token, sample configs)                                   |
+| `task configure`               | Render and validate all configuration files from `cluster.yaml` / `nodes.yaml`                                     |
+| `task lint`                    | Run all pre-commit hooks against every file in the repo                                                            |
+| `task reconcile`               | Force Flux to pull in changes from Git immediately                                                                 |
+| `task argocd:bootstrap`        | Bootstrap ArgoCD, seed `home-ops-root` from current branch, inject `SECRET_DOMAIN`, and wire CMP + SOPS decryption |
+| `task argocd:bootstrap:verify` | Verify ArgoCD control-plane deployments are present and healthy                                                    |
+| `task encrypt`                 | Encrypt sensitive local files (cluster.yaml, kubeconfig, etc.) with SOPS to `secrets/`                             |
+| `task decrypt`                 | Decrypt files from `secrets/` back to their original paths                                                         |
 
 ______________________________________________________________________
 
@@ -104,6 +109,14 @@ Defined in `.taskfiles/dev/Taskfile.yaml`. Enables testing changes against the l
 | `task dev:start`                       | Push current branch, suspend the `flux-instance` HelmRelease, patch the `flux-system` GitRepository to watch the current branch, and trigger a reconcile |
 | `task dev:sync`                        | Push new commits on the current branch and trigger Flux to reconcile them                                                                                |
 | `task dev:stop`                        | Restore the GitRepository to `refs/heads/main`, resume the `flux-instance` HelmRelease, and trigger a reconcile                                          |
+| `task dev:argocd:render`               | Render `kubernetes/argocd/` locally with kustomize                                                                                                       |
+| `task dev:argocd:migrate-wave`         | Run one migration wave helper script for a namespace                                                                                                     |
+| `task dev:argocd:verify-wave`          | Run wave-level verification checks                                                                                                                       |
+| `task dev:argocd:verify-cutover`       | Run full-cutover verification checks                                                                                                                     |
+| `task dev:argocd:verify-health`        | Run post-cutover ArgoCD health/sync/drift verification                                                                                                   |
+| `task dev:argocd:rollback-wave`        | Trigger ArgoCD-only rollback helper for a wave                                                                                                           |
+| `task dev:argocd:health`               | Check ArgoCD control-plane deployment health                                                                                                             |
+| `task dev:argocd:validate-rbac`        | Validate ArgoCD RBAC ConfigMap presence                                                                                                                  |
 
 **Typical workflow:**
 
@@ -127,6 +140,13 @@ task dev:worktree:remove NAME=home-ops-my-change
 > `dev:start` suspends the `flux-instance` HelmRelease so the flux-operator does not fight the
 > GitRepository patch. `dev:stop` resumes it and restores everything to the production state.
 > Neither `dev:start` nor `dev:sync` can be run on `main`.
+
+If an ArgoCD app keeps stale `OutOfSync` state after fixes, refresh/sync from controller context:
+
+```bash
+kubectl annotate application -n argocd <app-name> argocd.argoproj.io/refresh=hard --overwrite
+kubectl exec -n argocd statefulset/argocd-application-controller -- argocd app sync <app-name> --core --timeout 180
+```
 
 ### OIDC / OAuth Gateway validation workflow
 

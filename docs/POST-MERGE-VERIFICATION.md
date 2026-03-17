@@ -1,6 +1,6 @@
 # Post-merge Verification
 
-Use this checklist after OIDC or Gateway changes merge to `main`.
+Use this checklist after OIDC, Gateway, or ArgoCD rollout changes merge to `main`.
 
 ______________________________________________________________________
 
@@ -62,3 +62,25 @@ Record in PR comment or handoff note:
 - What was validated
 - Which hostnames/gateways were tested
 - Any follow-up actions required
+
+______________________________________________________________________
+
+## 6. ArgoCD Post-cutover Operations
+
+Use this section when a merge affects ArgoCD bootstrap, migration, rollback, or RBAC:
+
+```bash
+task dev:argocd:render
+task dev:argocd:verify-health
+task dev:argocd:validate-rbac
+kubectl get applications -n argocd
+```
+
+Expected:
+
+- ArgoCD manifests render cleanly.
+- ArgoCD applications are healthy/synced with no critical drift.
+- RBAC policy object exists with admin and read-only mappings.
+
+When branch-testing with `task dev:start`, `flux-system-flux-instance` may remain
+`OutOfSync`/`Suspended` until `task dev:stop` restores normal Flux reconciliation.

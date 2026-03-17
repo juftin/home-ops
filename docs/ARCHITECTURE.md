@@ -9,7 +9,8 @@ ______________________________________________________________________
 
 The cluster is a single-node Kubernetes cluster running on bare metal using
 [Talos Linux](https://talos.dev/) as the OS. All cluster state is declared in this Git repository
-and continuously reconciled by [Flux](https://fluxcd.io/). Secrets are encrypted at rest using
+and reconciled by [ArgoCD](https://argo-cd.readthedocs.io/) (with Flux retained only for phased
+retirement while migration completes). Secrets are encrypted at rest using
 [SOPS](https://github.com/getsops/sops) with an [age](https://github.com/FiloSottile/age) key.
 Dependency updates are automated with [Renovate](https://renovatebot.com/).
 
@@ -25,7 +26,7 @@ Dependency updates are automated with [Renovate](https://renovatebot.com/).
          │               │
          ▼               ▼
   ┌─────────────┐  ┌───────────────────────────────┐
-  │ Talos Linux │  │  Flux (in-cluster GitOps)     │
+  │ Talos Linux │  │  ArgoCD (in-cluster GitOps)   │
   │  bare metal │  │  continuously reconciles       │
   │  node       │  │  kubernetes/ from Git          │
   └─────────────┘  └───────────────────────────────┘
@@ -38,8 +39,9 @@ ______________________________________________________________________
 ```
 home-ops/
 ├── talos/               # Talos OS node configuration
-├── kubernetes/          # All Kubernetes manifests (owned by Flux)
-│   ├── flux/            # Flux entrypoint Kustomization
+├── kubernetes/          # All Kubernetes manifests (owned by ArgoCD)
+│   ├── argocd/          # ArgoCD AppProject + ApplicationSet source manifests
+│   ├── flux/            # Legacy Flux entrypoint used during migration waves
 │   ├── apps/            # Namespaced application definitions
 │   └── components/      # Shared reusable Kustomize components
 ├── bootstrap/           # One-time cluster bootstrap (Helmfile)
@@ -85,33 +87,44 @@ ______________________________________________________________________
 
 ### 2. Bootstrap Layer – Helmfile
 
-The `bootstrap/helmfile.d/` directory installs the minimum set of components required to get Flux
-running inside the cluster. This is a **one-time** operation (run via `task bootstrap:apps`).
+The `bootstrap/helmfile.d/` directory installs the minimum set of components required to get
+GitOps running inside the cluster. This is a **one-time** operation (run via `task bootstrap:apps`).
 
 Bootstrap install order (each release `needs` the previous):
 
 1. **cilium** – CNI (networking)
 2. **coredns** – cluster DNS
 3. **cert-manager** – TLS certificate management
-4. **flux-operator** – installs the Flux operator
-5. **flux-instance** – creates a Flux `FluxInstance` pointing at this repo
+4. **argocd** – installs ArgoCD control-plane components
+5. **flux-operator** – retained temporarily to support phased retirement
+6. **flux-instance** – retained temporarily for branch-testing compatibility
 
 `bootstrap/helmfile.d/00-crds.yaml` is a separate helmfile used only to extract CRDs from charts
 that need them installed before the main bootstrap run.
 
-After bootstrap, Flux takes over and manages all further state from Git.
+After bootstrap, ArgoCD is the primary GitOps reconciler for app resources.
 
 ______________________________________________________________________
 
-### 3. GitOps Layer – Flux
+### 3. GitOps Layer – ArgoCD (with Flux migration bridge)
 
-Once bootstrapped, Flux continuously reconciles `kubernetes/` from the Git repository.
+Once bootstrapped, ArgoCD self-manages through a root `Application` (`home-ops-root`) that targets
+`kubernetes/argocd/`. The ApplicationSet in that directory then continuously reconciles
+`kubernetes/apps/` from the Git repository.
 
 #### Entrypoint
 
-`kubernetes/flux/cluster/ks.yaml` is the root `Kustomization` resource. It points Flux at
-`kubernetes/apps/` and applies global patches to every child `Kustomization` and `HelmRelease`
-(e.g. SOPS decryption, CRD install/upgrade strategy, rollback behavior).
+`kubernetes/argocd/kustomization.yaml` is the ArgoCD Git source of truth for AppProject and
+ApplicationSet resources. Bootstrap chart values seed `home-ops-root`, ArgoCD ingress (`HTTPRoute`),
+and `argocd-rbac-cm` so control-plane primitives are created before app reconciliation starts.
+`kubernetes/flux/cluster/ks.yaml` remains as a migration bridge and supports phased retirement
+through `home-ops.io/gitops-controller=argocd` labels on child Flux Kustomizations.
+
+The repo-server uses a CMP plugin (`kustomize-substitute-secret-domain`) to render apps by:
+
+1. decrypting `*.sops.yaml` / `*.sops.yml` files with SOPS and the mounted age key
+2. substituting `${SECRET_DOMAIN}` and `${SECRET_DOMAIN/./-}` placeholders
+3. passing rendered output back to ArgoCD for apply/diff
 
 #### App structure
 
@@ -122,7 +135,7 @@ kubernetes/apps/<namespace>/
 ├── kustomization.yaml      # namespace-level Kustomization pointing to child ks.yaml files
 ├── namespace.yaml          # Namespace manifest
 └── <app-name>/
-    ├── ks.yaml             # Flux Kustomization for this app
+    ├── ks.yaml             # Legacy Flux Kustomization (retired per migration wave)
     └── app/
         ├── kustomization.yaml
         ├── helmrelease.yaml     # HelmRelease (Helm chart + values)
@@ -138,7 +151,8 @@ kubernetes/apps/<namespace>/
 | `cert-manager`     | cert-manager (TLS)                                                                                               |
 | `network`          | envoy-gateway, OAuth Gateways, SecurityPolicies, cloudflared tunnel, external-dns (k8s-gateway + cloudflare-dns) |
 | `external-secrets` | external-secrets operator, 1Password Connect                                                                     |
-| `flux-system`      | Flux itself                                                                                                      |
+| `argocd`           | ArgoCD control-plane and policy resources                                                                        |
+| `flux-system`      | Legacy Flux components retained during migration                                                                 |
 | `default`          | General applications (e.g. `echo` test server, `oauth-pages` for OIDC error pages)                               |
 | `observability`    | headlamp dashboard, Grafana UI, Prometheus, Alertmanager, Loki, and Alloy                                        |
 
@@ -160,8 +174,9 @@ defines encryption rules:
 The age public key is stored in `.sops.yaml`; the private key lives in `age.key` (gitignored) and
 is referenced by the `SOPS_AGE_KEY_FILE` environment variable.
 
-Flux decrypts secrets in-cluster using a `Secret` containing the age private key, configured via
-the SOPS decryption provider on each `Kustomization`.
+ArgoCD decrypts secrets in repo-server through its CMP plugin using the existing `sops-age` key
+material and an init-installed `sops` binary. Flux decryption remains available until all workloads
+are retired from Flux ownership.
 
 #### External Secrets Operator + 1Password
 
@@ -192,8 +207,8 @@ ______________________________________________________________________
 
 ### 6. Certificate Management
 
-**cert-manager** issues TLS certificates for in-cluster services. It is bootstrapped via
-Helmfile and subsequently managed by Flux.
+**cert-manager** issues TLS certificates for in-cluster services. It is bootstrapped via Helmfile
+and subsequently managed by ArgoCD.
 
 ______________________________________________________________________
 
@@ -233,17 +248,21 @@ formatting (`mdformat`), and whitespace. Common tasks are wrapped with
 
 Key tasks:
 
-| Task                         | Description                                                                 |
-| ---------------------------- | --------------------------------------------------------------------------- |
-| `task bootstrap:talos`       | Apply Talos machine configs to nodes                                        |
-| `task bootstrap:apps`        | Run the Helmfile bootstrap (installs Flux)                                  |
-| `task talos:generate-config` | Render `talconfig.yaml` → node configs via talhelper                        |
-| `task reconcile`             | Force Flux to pull changes from Git immediately                             |
-| `task configure`             | Re-render cluster config from `cluster.yaml` / `nodes.yaml` templates       |
-| `task lint`                  | Run all pre-commit hooks (yamlfmt, mdformat, YAML checks) against all files |
-| `task dev:validate`          | Validate all Flux manifests offline via `flux-local` (no cluster needed)    |
-| `task dev:start`             | Redirect Flux to the current branch for live cluster testing                |
-| `task dev:stop`              | Restore Flux to `main` after branch testing                                 |
+| Task                            | Description                                                                 |
+| ------------------------------- | --------------------------------------------------------------------------- |
+| `task bootstrap:talos`          | Apply Talos machine configs to nodes                                        |
+| `task bootstrap:apps`           | Run the Helmfile bootstrap (installs ArgoCD and transitional Flux releases) |
+| `task argocd:bootstrap`         | Bootstrap ArgoCD and seed root app/ingress/CMP inputs for current branch    |
+| `task argocd:bootstrap:verify`  | Verify ArgoCD deployments after bootstrap                                   |
+| `task talos:generate-config`    | Render `talconfig.yaml` → node configs via talhelper                        |
+| `task reconcile`                | Force Flux reconciliation (legacy bridge during migration)                  |
+| `task configure`                | Re-render cluster config from `cluster.yaml` / `nodes.yaml` templates       |
+| `task lint`                     | Run all pre-commit hooks (yamlfmt, mdformat, YAML checks) against all files |
+| `task dev:validate`             | Validate all Flux manifests offline via `flux-local` (no cluster needed)    |
+| `task dev:argocd:render`        | Validate `kubernetes/argocd` manifests via `kustomize build`                |
+| `task dev:argocd:verify-health` | Run ArgoCD health/sync/drift verification helper                            |
+| `task dev:start`                | Redirect Flux to the current branch for live cluster testing                |
+| `task dev:stop`                 | Restore Flux to `main` after branch testing                                 |
 
 Configuration values in `cluster.yaml` and `nodes.yaml` are rendered through
 [makejinja](https://github.com/mirkolenz/makejinja) (`makejinja.toml`) to generate the actual YAML

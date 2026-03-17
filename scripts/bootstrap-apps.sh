@@ -127,9 +127,29 @@ function sync_helm_releases() {
     log info "Helm releases synced successfully"
 }
 
+function verify_gitops_releases() {
+    log debug "Verifying GitOps controller releases"
+
+    local -a releases=(
+        "flux-system flux-instance"
+        "argocd argocd"
+    )
+
+    local pair namespace release
+    for pair in "${releases[@]}"; do
+        namespace="${pair%% *}"
+        release="${pair##* }"
+        if helm status "${release}" --namespace "${namespace}" &>/dev/null; then
+            log info "Controller release is installed" "namespace=${namespace}" "release=${release}"
+        else
+            log warn "Controller release is not installed yet" "namespace=${namespace}" "release=${release}"
+        fi
+    done
+}
+
 function main() {
     check_env KUBECONFIG TALOSCONFIG
-    check_cli helmfile kubectl kustomize sops talhelper yq
+    check_cli helm helmfile kubectl kustomize sops talhelper yq
 
     # Apply resources and Helm releases
     wait_for_nodes
@@ -137,8 +157,9 @@ function main() {
     apply_sops_secrets
     apply_crds
     sync_helm_releases
+    verify_gitops_releases
 
-    log info "Congrats! The cluster is bootstrapped and Flux is syncing the Git repository"
+    log info "Congrats! Core bootstrap releases are installed and ready for GitOps reconciliation"
 }
 
 main "$@"
