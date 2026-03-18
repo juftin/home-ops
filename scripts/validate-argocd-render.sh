@@ -15,11 +15,16 @@ if [[ ! -f "${CLUSTER_SECRETS_FILE}" ]]; then
     exit 1
 fi
 
-SECRET_DOMAIN="$(sops -d --input-type yaml --output-type yaml "${CLUSTER_SECRETS_FILE}" | yq eval -r '.stringData.SECRET_DOMAIN' -)"
-
-if [[ -z "${SECRET_DOMAIN}" || "${SECRET_DOMAIN}" == "null" ]]; then
-    echo "Unable to resolve SECRET_DOMAIN from ${CLUSTER_SECRETS_FILE}" >&2
-    exit 1
+SECRET_DOMAIN="example.com"
+if [[ -n "${SOPS_AGE_KEY_FILE:-}" && -f "${SOPS_AGE_KEY_FILE}" ]] || [[ -f "${HOME}/.config/sops/age/keys.txt" ]]; then
+    RESOLVED_SECRET_DOMAIN="$(sops -d --input-type yaml --output-type yaml "${CLUSTER_SECRETS_FILE}" | yq eval -r '.stringData.SECRET_DOMAIN' -)"
+    if [[ -z "${RESOLVED_SECRET_DOMAIN}" || "${RESOLVED_SECRET_DOMAIN}" == "null" ]]; then
+        echo "Unable to resolve SECRET_DOMAIN from ${CLUSTER_SECRETS_FILE}" >&2
+        exit 1
+    fi
+    SECRET_DOMAIN="${RESOLVED_SECRET_DOMAIN}"
+else
+    echo "warning: no age key available, using SECRET_DOMAIN=${SECRET_DOMAIN} for render validation" >&2
 fi
 
 kustomize build "${ROOT_DIR}/kubernetes/argocd" >/dev/null

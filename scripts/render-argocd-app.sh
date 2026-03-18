@@ -18,10 +18,21 @@ trap cleanup EXIT
 
 cp -R "${APP_ABS}/." "${WORKDIR}/src"
 
-find "${WORKDIR}/src" -type f \( -name '*.sops.yaml' -o -name '*.sops.yml' \) | while IFS= read -r file; do
-    "${SOPS_BIN}" -d --input-type yaml --output-type yaml "${file}" >"${file}.dec"
-    mv "${file}.dec" "${file}"
-done
+HAS_AGE_KEY=false
+if [ -n "${SOPS_AGE_KEY_FILE:-}" ] && [ -f "${SOPS_AGE_KEY_FILE}" ]; then
+    HAS_AGE_KEY=true
+elif [ -f "${HOME}/.config/sops/age/keys.txt" ]; then
+    HAS_AGE_KEY=true
+fi
+
+if [ "${HAS_AGE_KEY}" = "true" ]; then
+    find "${WORKDIR}/src" -type f \( -name '*.sops.yaml' -o -name '*.sops.yml' \) | while IFS= read -r file; do
+        "${SOPS_BIN}" -d --input-type yaml --output-type yaml "${file}" >"${file}.dec"
+        mv "${file}.dec" "${file}"
+    done
+else
+    echo "warning: no age key available, skipping SOPS decryption during local render" >&2
+fi
 
 mkdir -p "${WORKDIR}/bin"
 cat >"${WORKDIR}/bin/helm" <<EOF
