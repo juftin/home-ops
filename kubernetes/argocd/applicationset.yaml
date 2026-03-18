@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: home-ops-apps
+  name: home-ops
   namespace: argocd
 spec:
   goTemplate: true
@@ -29,7 +29,9 @@ spec:
                 - path: 'kubernetes/apps/{{ .namespace }}/*'
   template:
     metadata:
-      name: '{{ printf "%s-%s" .namespace .path.basename }}'
+      name: '{{ .path.basename }}'
+      labels:
+        home-ops.io/namespace: '{{ .namespace }}'
       annotations:
         argocd.argoproj.io/sync-wave: '{{ .wave }}'
     spec:

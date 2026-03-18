@@ -34,9 +34,9 @@ tasks:
         vars: {BRANCH: '{{.BRANCH}}'}
       - git push origin {{.BRANCH}}
       - kubectl patch application home-ops-root -n argocd --type=merge -p '{"spec":{"source":{"targetRevision":"refs/heads/{{.BRANCH}}"}}}'
-      - kubectl patch applicationset home-ops-apps -n argocd --type=json -p='[{"op":"replace","path":"/spec/generators/0/matrix/generators/1/git/revision","value":"refs/heads/{{.BRANCH}}"},{"op":"replace","path":"/spec/template/spec/source/targetRevision","value":"refs/heads/{{.BRANCH}}"}]'
+      - kubectl patch applicationset home-ops -n argocd --type=json -p='[{"op":"replace","path":"/spec/generators/0/matrix/generators/1/git/revision","value":"refs/heads/{{.BRANCH}}"},{"op":"replace","path":"/spec/template/spec/source/targetRevision","value":"refs/heads/{{.BRANCH}}"}]'
       - kubectl annotate application -n argocd home-ops-root argocd.argoproj.io/refresh=hard --overwrite
-      - kubectl annotate applicationset -n argocd home-ops-apps argocd.argoproj.io/application-set-refresh=true --overwrite
+      - kubectl annotate applicationset -n argocd home-ops argocd.argoproj.io/application-set-refresh=true --overwrite
     preconditions:
       - test -f {{.KUBECONFIG}}
       - which kubectl git
@@ -49,9 +49,9 @@ tasks:
       - task: _guard-not-main
         vars: {BRANCH: '{{.BRANCH}}'}
       - git push origin {{.BRANCH}}
-      - kubectl patch applicationset home-ops-apps -n argocd --type=json -p='[{"op":"replace","path":"/spec/generators/0/matrix/generators/1/git/revision","value":"refs/heads/{{.BRANCH}}"},{"op":"replace","path":"/spec/template/spec/source/targetRevision","value":"refs/heads/{{.BRANCH}}"}]'
+      - kubectl patch applicationset home-ops -n argocd --type=json -p='[{"op":"replace","path":"/spec/generators/0/matrix/generators/1/git/revision","value":"refs/heads/{{.BRANCH}}"},{"op":"replace","path":"/spec/template/spec/source/targetRevision","value":"refs/heads/{{.BRANCH}}"}]'
       - kubectl annotate application -n argocd home-ops-root argocd.argoproj.io/refresh=hard --overwrite
-      - kubectl annotate applicationset -n argocd home-ops-apps argocd.argoproj.io/application-set-refresh=true --overwrite
+      - kubectl annotate applicationset -n argocd home-ops argocd.argoproj.io/application-set-refresh=true --overwrite
     preconditions:
       - test -f {{.KUBECONFIG}}
       - which kubectl git
@@ -59,9 +59,9 @@ tasks:
     desc: Restore ArgoCD apps to track main
     cmds:
       - kubectl patch application home-ops-root -n argocd --type=merge -p '{"spec":{"source":{"targetRevision":"refs/heads/main"}}}'
-      - kubectl patch applicationset home-ops-apps -n argocd --type=json -p='[{"op":"replace","path":"/spec/generators/0/matrix/generators/1/git/revision","value":"refs/heads/main"},{"op":"replace","path":"/spec/template/spec/source/targetRevision","value":"refs/heads/main"}]'
+      - kubectl patch applicationset home-ops -n argocd --type=json -p='[{"op":"replace","path":"/spec/generators/0/matrix/generators/1/git/revision","value":"refs/heads/main"},{"op":"replace","path":"/spec/template/spec/source/targetRevision","value":"refs/heads/main"}]'
       - kubectl annotate application -n argocd home-ops-root argocd.argoproj.io/refresh=hard --overwrite
-      - kubectl annotate applicationset -n argocd home-ops-apps argocd.argoproj.io/application-set-refresh=true --overwrite
+      - kubectl annotate applicationset -n argocd home-ops argocd.argoproj.io/application-set-refresh=true --overwrite
     preconditions:
       - test -f {{.KUBECONFIG}}
       - which kubectl
