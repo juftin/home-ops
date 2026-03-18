@@ -43,44 +43,6 @@ spec:
       destination:
         server: https://kubernetes.default.svc
         namespace: '{{ .namespace }}'
-      ignoreDifferences:
-        - group: gateway.networking.k8s.io
-          kind: Gateway
-          jqPathExpressions:
-            - .spec.listeners[].tls.mode
-            - .spec.listeners[].tls.certificateRefs[].group
-        - group: gateway.networking.k8s.io
-          kind: HTTPRoute
-          jqPathExpressions:
-            - .spec.parentRefs[].group
-            - .spec.parentRefs[].kind
-            - .spec.rules[].matches
-        - group: gateway.envoyproxy.io
-          kind: SecurityPolicy
-          jqPathExpressions:
-            - .spec.oidc.refreshToken
-            - .spec.oidc.clientSecret.group
-            - .spec.oidc.clientSecret.kind
-            - .spec.authorization.rules[].principal.jwt.claims[].valueType
-            - .spec.jwt.providers[].remoteJWKS.cacheDuration
-        - group: apps
-          kind: StatefulSet
-          name: loki
-          namespace: observability
-          jqPathExpressions:
-            - .spec.template.spec.containers[].livenessProbe.httpGet.scheme
-            - .spec.template.spec.containers[].terminationMessagePath
-            - .spec.template.spec.containers[].terminationMessagePolicy
-            - .spec.template.spec.containers[].resources
-            - .spec.template.spec.dnsPolicy
-            - .spec.template.spec.restartPolicy
-            - .spec.template.spec.schedulerName
-            - .spec.template.spec.serviceAccount
-            - .spec.template.spec.volumes[].configMap.defaultMode
-            - .spec.updateStrategy.type
-            - .spec.updateStrategy.rollingUpdate.maxUnavailable
-            - .spec.volumeClaimTemplates[].spec.volumeMode
-            - .spec.volumeClaimTemplates[].status
       syncPolicy:
         automated:
           prune: true

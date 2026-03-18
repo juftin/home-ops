@@ -17,7 +17,7 @@ spec:
     - group: '*'
       kind: '*'
   orphanedResources:
-    warn: false
+    warn: true
   roles:
     - name: admin
       description: Platform administrators with write operations
