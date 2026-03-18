@@ -6,7 +6,9 @@ Run `task` to list all available tasks.
 
 ______________________________________________________________________
 
-## Core Tasks
+## Essential Tasks (Complete Reference: `task --list`)
+
+### Core Tasks
 
 | Task                           | Description                                                            |
 | ------------------------------ | ---------------------------------------------------------------------- |
