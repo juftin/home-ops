@@ -24,6 +24,7 @@ ______________________________________________________________________
 
 - ArgoCD Helm release
 - root `Application` (`home-ops-root`)
+- Argo AppProjects (`home-ops` and `kube-system`) used by the generated child Applications
 - CMP plugin for:
   - SOPS decryption
   - `${SECRET_DOMAIN}` placeholder substitution

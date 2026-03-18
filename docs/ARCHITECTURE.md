@@ -9,6 +9,9 @@ ______________________________________________________________________
 - **ArgoCD** is the only GitOps reconciler.
 - `home-ops-root` (bootstrapped by Helmfile) points to `kubernetes/argocd`.
 - `kubernetes/argocd/applicationset.yaml` generates one ArgoCD `Application` per app directory under `kubernetes/apps/<namespace>/<app>/app`.
+- Argo apps are scoped by two AppProjects:
+  - `home-ops` for general namespaces with orphan monitoring enabled and targeted ignore rules.
+  - `kube-system` for `kube-system` (plus `cilium-secrets`) with orphan warnings disabled to avoid control-plane noise.
 
 ______________________________________________________________________
 
