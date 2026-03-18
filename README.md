@@ -24,8 +24,7 @@ ______________________________________________________________________
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f48e/512.gif" alt="🎡" width="20" height="20"> Components
 
 - **[ArgoCD](https://argo-cd.readthedocs.io/)**: GitOps controller for keeping Kubernetes clusters
-  in sync with Git sources, bootstrapped via a root `home-ops-root` Application and a repo-server
-  CMP plugin for `SECRET_DOMAIN` substitution + SOPS-backed secret rendering.
+  in sync with Git sources.
 - **[cert-manager](https://github.com/cert-manager/cert-manager)**: Creates SSL certificates for
   services in the cluster.
 - **[spegel](https://github.com/spegel-org/spegel)**: Stateless cluster local OCI registry mirror.
