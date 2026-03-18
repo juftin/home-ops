@@ -12,3 +12,5 @@ helmCharts:
     namespace: observability
     includeCRDs: true
     valuesFile: ./values.yaml
+patchesStrategicMerge:
+  - ./remove-hook-annotations.yaml
