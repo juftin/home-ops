@@ -18,6 +18,23 @@ spec:
       kind: '*'
   orphanedResources:
     warn: true
+    ignore:
+      - kind: Endpoints
+        name: '*'
+      - group: coordination.k8s.io
+        kind: Lease
+        name: '*'
+      - kind: Secret
+        name: cluster-secrets
+      - kind: Secret
+        name: cert-manager-webhook-ca
+      - kind: Secret
+        name: letsencrypt-production
+      - kind: Secret
+        name: kube-prometheus-stack-admission
+      - group: monitoring.coreos.com
+        kind: ServiceMonitor
+        name: loki
   roles:
     - name: admin
       description: Platform administrators with write operations

@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: kube-system
+  namespace: argocd
+spec:
+  description: kube-system apps without orphaned resource monitoring
+  sourceRepos:
+    - https://github.com/juftin/home-ops.git
+  destinations:
+    - namespace: kube-system
+      server: https://kubernetes.default.svc
+    - namespace: cilium-secrets
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  orphanedResources:
+    warn: false
+  roles:
+    - name: admin
+      description: Platform administrators with write operations
+      policies:
+        - p, proj:kube-system:admin, applications, *, kube-system/*, allow
+      groups:
+        - argocd-admins
+    - name: readonly
+      description: Maintainers with read-only visibility
+      policies:
+        - p, proj:kube-system:readonly, applications, get, kube-system/*, allow
+        - p, proj:kube-system:readonly, applications, sync, kube-system/*, deny
+      groups:
+        - argocd-maintainers

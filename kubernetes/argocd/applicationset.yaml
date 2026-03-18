@@ -33,7 +33,7 @@ spec:
       annotations:
         argocd.argoproj.io/sync-wave: '{{ .wave }}'
     spec:
-      project: home-ops
+      project: '{{ if eq .namespace "kube-system" }}kube-system{{ else }}home-ops{{ end }}'
       source:
         repoURL: https://github.com/juftin/home-ops.git
         targetRevision: refs/heads/main

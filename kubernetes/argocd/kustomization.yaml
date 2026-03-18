@@ -3,4 +3,5 @@ kind: Kustomization
 namespace: argocd
 resources:
   - ./appproject.yaml
+  - ./appproject-kube-system.yaml
   - ./applicationset.yaml
