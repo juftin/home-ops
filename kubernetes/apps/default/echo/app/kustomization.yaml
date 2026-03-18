@@ -8,3 +8,5 @@ helmCharts:
     namespace: default
     includeCRDs: true
     valuesFile: ./values.yaml
+resources:
+  - ./httproute.yaml
