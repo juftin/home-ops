@@ -60,7 +60,21 @@ configs:
           args:
             - |
               set -eu
-              SOPS_BIN=/custom-tools/sops ../../../../../scripts/render-argocd-app.sh .
+              SEARCH_DIR="$(pwd)"
+              SCRIPT_PATH=""
+              while [ "${SEARCH_DIR}" != "/" ]; do
+                CANDIDATE="${SEARCH_DIR}/scripts/render-argocd-app.sh"
+                if [ -f "${CANDIDATE}" ]; then
+                  SCRIPT_PATH="${CANDIDATE}"
+                  break
+                fi
+                SEARCH_DIR="$(dirname "${SEARCH_DIR}")"
+              done
+              if [ -z "${SCRIPT_PATH}" ]; then
+                echo "render-argocd-app.sh not found from $(pwd)" >&2
+                exit 1
+              fi
+              SOPS_BIN=/custom-tools/sops /bin/sh "${SCRIPT_PATH}" .
   params:
     server.insecure: "true"
   rbac:
