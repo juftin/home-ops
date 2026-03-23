@@ -1,6 +1,7 @@
 {{- if and (eq .Release.Name "argocd") (eq .Release.Namespace "argocd") }}
 {{- $argocdTargetRevision := env "ARGOCD_TARGET_REVISION" | default "refs/heads/main" }}
 {{- $argocdSecretDomain := env "ARGOCD_SECRET_DOMAIN" | default "example.com" }}
+{{- $argocdRBACAdmins := env "ARGOCD_RBAC_ADMINS" | default "" }}
 crds:
   install: true
 extraObjects:
@@ -91,6 +92,9 @@ configs:
       p, role:readonly, applications, sync, */*, deny
       p, role:readonly, applications, override, */*, deny
       g, argocd-admins, role:admin
+{{- if $argocdRBACAdmins }}
+{{ $argocdRBACAdmins | nindent 6 }}
+{{- end }}
       g, argocd-maintainers, role:readonly
     scopes: '[groups, email]'
 repoServer:

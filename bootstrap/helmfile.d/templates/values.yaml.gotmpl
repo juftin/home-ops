@@ -2,6 +2,7 @@
 {{- $argocdTargetRevision := env "ARGOCD_TARGET_REVISION" | default "refs/heads/main" }}
 {{- $argocdSecretDomain := env "ARGOCD_SECRET_DOMAIN" | default "example.com" }}
 {{- $argocdOIDCClientID := env "ARGOCD_OIDC_CLIENT_ID" | default "706743218818-jp4s5vunfp9ac1euuu4j0sh5t46palg6.apps.googleusercontent.com" }}
+{{- $argocdRBACAdmins := env "ARGOCD_RBAC_ADMINS" | default "" }}
 crds:
   install: true
 extraObjects:
@@ -102,8 +103,9 @@ configs:
       p, role:readonly, projects, get, *, allow
       p, role:readonly, repositories, get, *, allow
       g, argocd-admins, role:admin
-      g, admin, role:admin
-      g, juftin@gmail.com, role:admin
+{{- if $argocdRBACAdmins }}
+{{ $argocdRBACAdmins | nindent 6 }}
+{{- end }}
       g, argocd-maintainers, role:readonly
     scopes: '[groups, email]'
 repoServer:
