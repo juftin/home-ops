@@ -1,6 +1,7 @@
 {{- if and (eq .Release.Name "argocd") (eq .Release.Namespace "argocd") }}
 {{- $argocdTargetRevision := env "ARGOCD_TARGET_REVISION" | default "refs/heads/main" }}
 {{- $argocdSecretDomain := env "ARGOCD_SECRET_DOMAIN" | default "example.com" }}
+{{- $argocdOIDCClientID := env "ARGOCD_OIDC_CLIENT_ID" | default "" }}
 {{- $argocdRBACAdmins := env "ARGOCD_RBAC_ADMINS" | default "" }}
 crds:
   install: true
@@ -50,6 +51,18 @@ configs:
     url: {{ printf "https://argocd.%s" $argocdSecretDomain | quote }}
     application.resourceTrackingMethod: annotation+label
     kustomize.buildOptions: --enable-helm
+    oidc.config: |
+      name: Google
+      issuer: https://accounts.google.com
+      clientID: {{ $argocdOIDCClientID | quote }}
+      clientSecret: $oidc.google.clientSecret
+      requestedScopes:
+        - openid
+        - profile
+        - email
+      requestedIDTokenClaims:
+        email:
+          essential: true
   cmp:
     create: true
     plugins:
