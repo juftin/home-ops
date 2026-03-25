@@ -59,6 +59,7 @@ function apply_sops_secrets() {
 
     local -r secrets=(
         "${ROOT_DIR}/bootstrap/github-deploy-key.sops.yaml"
+        "${ROOT_DIR}/bootstrap/argocd-oidc-secret.sops.yaml"
         "${ROOT_DIR}/bootstrap/sops-age.sops.yaml"
         "${ROOT_DIR}/kubernetes/components/sops/cluster-secrets.sops.yaml"
     )

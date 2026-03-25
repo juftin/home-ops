@@ -1,6 +1,8 @@
 {{- if and (eq .Release.Name "argocd") (eq .Release.Namespace "argocd") }}
 {{- $argocdTargetRevision := env "ARGOCD_TARGET_REVISION" | default "refs/heads/main" }}
 {{- $argocdSecretDomain := env "ARGOCD_SECRET_DOMAIN" | default "example.com" }}
+{{- $argocdOIDCClientID := env "ARGOCD_OIDC_CLIENT_ID" | default "" }}
+{{- $argocdRBACAdmins := env "ARGOCD_RBAC_ADMINS" | default "" }}
 crds:
   install: true
 extraObjects:
@@ -49,6 +51,18 @@ configs:
     url: {{ printf "https://argocd.%s" $argocdSecretDomain | quote }}
     application.resourceTrackingMethod: annotation+label
     kustomize.buildOptions: --enable-helm
+    oidc.config: |
+      name: Google
+      issuer: https://accounts.google.com
+      clientID: {{ $argocdOIDCClientID | quote }}
+      clientSecret: $oidc.google.clientSecret
+      requestedScopes:
+        - openid
+        - profile
+        - email
+      requestedIDTokenClaims:
+        email:
+          essential: true
   cmp:
     create: true
     plugins:
@@ -60,7 +74,21 @@ configs:
           args:
             - |
               set -eu
-              SOPS_BIN=/custom-tools/sops ../../../../../scripts/render-argocd-app.sh .
+              SEARCH_DIR="$(pwd)"
+              SCRIPT_PATH=""
+              while [ "${SEARCH_DIR}" != "/" ]; do
+                CANDIDATE="${SEARCH_DIR}/scripts/render-argocd-app.sh"
+                if [ -f "${CANDIDATE}" ]; then
+                  SCRIPT_PATH="${CANDIDATE}"
+                  break
+                fi
+                SEARCH_DIR="$(dirname "${SEARCH_DIR}")"
+              done
+              if [ -z "${SCRIPT_PATH}" ]; then
+                echo "render-argocd-app.sh not found from $(pwd)" >&2
+                exit 1
+              fi
+              SOPS_BIN=/custom-tools/sops /bin/sh "${SCRIPT_PATH}" .
   params:
     server.insecure: "true"
   rbac:
@@ -74,9 +102,10 @@ configs:
       p, role:readonly, applications, get, */*, allow
       p, role:readonly, projects, get, *, allow
       p, role:readonly, repositories, get, *, allow
-      p, role:readonly, applications, sync, */*, deny
-      p, role:readonly, applications, override, */*, deny
       g, argocd-admins, role:admin
+{{- if $argocdRBACAdmins }}
+{{ $argocdRBACAdmins | nindent 6 }}
+{{- end }}
       g, argocd-maintainers, role:readonly
     scopes: '[groups, email]'
 repoServer:

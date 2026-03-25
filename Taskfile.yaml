@@ -32,7 +32,11 @@ tasks:
         sh: git branch --show-current
       SECRET_DOMAIN:
         sh: "sops -d --input-type yaml --output-type yaml {{.ROOT_DIR}}/kubernetes/components/sops/cluster-secrets.sops.yaml | yq eval -r '.stringData.SECRET_DOMAIN' -"
-    cmd: ARGOCD_TARGET_REVISION=refs/heads/{{.BRANCH}} ARGOCD_SECRET_DOMAIN={{.SECRET_DOMAIN}} helmfile --file {{.BOOTSTRAP_DIR}}/helmfile.d/01-apps.yaml --selector name=argocd sync --hide-notes
+      ARGOCD_RBAC_ADMINS:
+        sh: "sops -d --input-type yaml --output-type yaml {{.ROOT_DIR}}/bootstrap/argocd-oidc-secret.sops.yaml | yq eval -r '.stringData.argocdRbacAdmins' -"
+      ARGOCD_OIDC_CLIENT_ID:
+        sh: "sops -d --input-type yaml --output-type yaml {{.ROOT_DIR}}/bootstrap/argocd-oidc-secret.sops.yaml | yq eval -r '.stringData.argocdOidcClientId' -"
+    cmd: ARGOCD_TARGET_REVISION=refs/heads/{{.BRANCH}} ARGOCD_SECRET_DOMAIN={{.SECRET_DOMAIN}} ARGOCD_RBAC_ADMINS='{{.ARGOCD_RBAC_ADMINS}}' ARGOCD_OIDC_CLIENT_ID='{{.ARGOCD_OIDC_CLIENT_ID}}' helmfile --file {{.BOOTSTRAP_DIR}}/helmfile.d/01-apps.yaml --selector name=argocd sync --hide-notes
     preconditions:
       - test -f {{.KUBECONFIG}}
       - test -f {{.BOOTSTRAP_DIR}}/helmfile.d/01-apps.yaml
