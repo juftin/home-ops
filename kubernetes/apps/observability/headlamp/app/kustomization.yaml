@@ -9,7 +9,7 @@ resources:
 helmCharts:
   - name: headlamp
     repo: oci://ghcr.io/home-operations/charts-mirror
-    version: 0.40.0
+    version: 0.41.0
     releaseName: headlamp
     namespace: observability
     includeCRDs: true
