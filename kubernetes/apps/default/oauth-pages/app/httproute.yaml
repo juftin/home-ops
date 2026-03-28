@@ -29,7 +29,6 @@ spec:
     - oauth-internal.${SECRET_DOMAIN}
     - argocd.${SECRET_DOMAIN}
     - grafana.${SECRET_DOMAIN}
-    - headlamp.${SECRET_DOMAIN}
     - echo.${SECRET_DOMAIN}
     - external.${SECRET_DOMAIN}
   rules:

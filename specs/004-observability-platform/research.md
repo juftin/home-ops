@@ -69,7 +69,7 @@ ______________________________________________________________________
 **Decision**: ExternalSecret pulling from 1Password for all app secrets
 
 **Rationale**: The repo already has external-secrets + 1Password ClusterSecretStore configured
-and in active use (headlamp uses it). This satisfies Constitution Principle VIII. Two secrets
+and in active use (echo uses it). This satisfies Constitution Principle VIII. Two secrets
 are required:
 
 1. `grafana-admin-creds` — Grafana admin username + password
@@ -88,7 +88,7 @@ ______________________________________________________________________
 
 **Rationale**: Grafana is the only component that needs external access. Loki and Prometheus
 are cluster-internal only (accessed by Grafana as data sources via cluster DNS). The existing
-headlamp HTTPRoute pattern (`envoy-external` gateway, `https` section, `*.${SECRET_DOMAIN}`
+echo HTTPRoute pattern (`envoy-external` gateway, `https` section, `*.${SECRET_DOMAIN}`
 hostname) is followed exactly.
 
 **Hostname**: `grafana.${SECRET_DOMAIN}` (resolved from cluster-secrets)
