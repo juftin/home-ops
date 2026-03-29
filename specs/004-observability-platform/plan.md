@@ -55,7 +55,7 @@ future goal. Prometheus: ~30 GB / 30-day retention. Loki: ~10 GB / 7-day retenti
 | II. IaC & Reproducibility                 | ✅ Pass | OCI chart tags pinned; values committed; Renovate manages versions |
 | III. Template & Bootstrappability         | ✅ Pass | quickstart.md documents all variables; no undocumented steps       |
 | IV. Modular Architecture                  | ✅ Pass | Three independent HelmReleases; each disable-able independently    |
-| V. Code Quality & Design Patterns         | ✅ Pass | Follows existing headlamp/echo patterns exactly                    |
+| V. Code Quality & Design Patterns         | ✅ Pass | Follows existing echo patterns exactly                             |
 | VI. DRY Principles                        | ✅ Pass | Shared labels via commonMetadata; versions in one place per chart  |
 | VII. Observability & Failure Transparency | ✅ Pass | This feature IS the observability layer; FR-011 self-monitoring    |
 | VIII. Security & Least Privilege          | ✅ Pass | ExternalSecret for all secrets; no plaintext in Git                |
@@ -86,7 +86,6 @@ specs/004-observability-platform/
 kubernetes/apps/observability/
 ├── kustomization.yaml                  # MODIFY: add 3 new ks.yaml entries
 ├── namespace.yaml                      # existing — no change
-├── headlamp/                           # existing — no change
 ├── kube-prometheus-stack/
 │   ├── ks.yaml                         # Flux Kustomization
 │   └── app/
@@ -109,7 +108,7 @@ kubernetes/apps/observability/
 ```
 
 **Structure Decision**: Three separate app directories under `observability/` following the
-existing headlamp pattern exactly. kube-prometheus-stack owns Grafana and Alertmanager to avoid
+existing echo pattern exactly. kube-prometheus-stack owns Grafana and Alertmanager to avoid
 split configuration. Loki and Alloy are independent so they can be upgraded separately.
 
 ## Complexity Tracking

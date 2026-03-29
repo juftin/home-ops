@@ -50,8 +50,6 @@ ______________________________________________________________________
 
 - **[echo](https://github.com/mendhak/docker-http-https-echo)**: Simple HTTP/HTTPS echo server for
   testing.
-- **[headlamp](https://headlamp.dev/)**: Kubernetes dashboard for cluster visibility alongside
-  ArgoCD's application UI.
 - **[Grafana](https://grafana.com/)**: Cluster dashboards and Explore UI.
 - **[Prometheus](https://prometheus.io/)**: Scrapes and stores Kubernetes metrics with 30-day
   retention.

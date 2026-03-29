@@ -60,7 +60,7 @@ This phase does not deploy anything — it confirms the environment is ready.
   Document any failures and resolve before proceeding.
 
 - [x] T005 Review `kubernetes/apps/observability/kustomization.yaml` to understand its current
-  structure (it currently lists only `headlamp/ks.yaml`). Do not modify it yet — each user story
+  structure (it currently lists only `echo/ks.yaml`). Do not modify it yet — each user story
   phase will add its own `resources:` entry as the final step of that phase, keeping changes
   atomic and independently revertible.
 
@@ -83,31 +83,31 @@ Run `up` query in Grafana Explore → all targets return `1`.
 ### Implementation for User Story 1
 
 - [x] T006 [US1] Create directory `kubernetes/apps/observability/kube-prometheus-stack/app/`.
-  Create `kubernetes/apps/observability/kube-prometheus-stack/ks.yaml` following the headlamp
-  pattern (`kubernetes/apps/observability/headlamp/ks.yaml`). Set `name: kube-prometheus-stack`,
+  Create `kubernetes/apps/observability/kube-prometheus-stack/ks.yaml` following the standard
+  pattern (`kubernetes/apps/observability/echo/ks.yaml`). Set `name: kube-prometheus-stack`,
   `namespace: observability`, `path: ./kubernetes/apps/observability/kube-prometheus-stack/app`,
   `targetNamespace: observability`. Add `postBuild.substituteFrom` referencing `cluster-secrets`
-  Secret (same pattern as headlamp). Set `timeout: 15m` and `wait: true` (CRDs must be ready
+  Secret (same pattern as standard). Set `timeout: 15m` and `wait: true` (CRDs must be ready
   before Loki/Alloy can deploy).
 
 - [x] T007 [P] [US1] Create `kubernetes/apps/observability/kube-prometheus-stack/app/ocirepository.yaml`.
   Use the verified URL from T001 (expected:
-  `oci://ghcr.io/home-operations/charts-mirror/kube-prometheus-stack`). Follow the headlamp
-  OCIRepository pattern (`kubernetes/apps/observability/headlamp/app/helmrelease.yaml` top
+  `oci://ghcr.io/home-operations/charts-mirror/kube-prometheus-stack`). Follow the standard
+  OCIRepository pattern (`kubernetes/apps/observability/echo/app/helmrelease.yaml` top
   section). Set `interval: 5m`, `layerSelector.mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip`,
   `layerSelector.operation: copy`. Use the latest tag verified in T001.
 
 - [x] T008 [P] [US1] Create `kubernetes/apps/observability/kube-prometheus-stack/app/externalsecret.yaml`.
   Target secret name: `grafana-admin-creds`. Reference ClusterSecretStore `onepassword`.
   Use `dataFrom[0].extract.key: grafana-admin-creds` (matching the 1Password item created in T002).
-  Use the headlamp ExternalSecret (`kubernetes/apps/observability/headlamp/app/externalsecret.yaml`)
+  Use the standard ExternalSecret (`kubernetes/apps/observability/standard/app/externalsecret.yaml`)
   as the exact pattern to follow.
 
 - [x] T009 [P] [US1] Create `kubernetes/apps/observability/kube-prometheus-stack/app/httproute.yaml`.
   Hostname: `grafana.${SECRET_DOMAIN}`. Gateway: `envoy-external` in namespace `network`,
   section `https`. Backend: service `kube-prometheus-stack-grafana` port `80` in namespace
-  `observability`. Follow the headlamp HTTPRoute pattern exactly
-  (`kubernetes/apps/observability/headlamp/app/httproute.yaml`).
+  `observability`. Follow the standard HTTPRoute pattern exactly
+  (`kubernetes/apps/observability/echo/app/httproute.yaml`).
 
 - [x] T010 [US1] Create `kubernetes/apps/observability/kube-prometheus-stack/app/helmrelease.yaml`.
   Reference the OCIRepository created in T007. This is the primary configuration task — include
@@ -130,11 +130,11 @@ Run `up` query in Grafana Explore → all targets return `1`.
   - `alertmanager.enabled: false` (Alertmanager is configured in Phase 4 / US2)
   - `nodeExporter.enabled: true`
   - `kubeStateMetrics.enabled: true`
-  - Set `install.remediation.retries: -1` and `upgrade.cleanupOnFail: true` following headlamp pattern.
+  - Set `install.remediation.retries: -1` and `upgrade.cleanupOnFail: true` following standard pattern.
 
 - [x] T011 [US1] Create `kubernetes/apps/observability/kube-prometheus-stack/app/kustomization.yaml`.
   List all resources created in T007–T010: `ocirepository.yaml`, `externalsecret.yaml`,
-  `httproute.yaml`, `helmrelease.yaml`. Add schema comment header following headlamp pattern.
+  `httproute.yaml`, `helmrelease.yaml`. Add schema comment header following standard pattern.
 
 - [x] T012 [US1] Add `- ./kube-prometheus-stack/ks.yaml` to the `resources:` list in
   `kubernetes/apps/observability/kustomization.yaml`. This is the change that causes Flux to
@@ -343,7 +343,7 @@ ______________________________________________________________________
 - [x] T032 [P] Update `docs/ARCHITECTURE.md` — add all five new components to the `observability`
   namespace entry in the namespaces table. Update any layer descriptions that reference the
   observability namespace. Remove or update the current single-entry description
-  ("headlamp Kubernetes dashboard with Flux plugin") to reflect the full stack.
+  ("standard Kubernetes dashboard with Flux plugin") to reflect the full stack.
 
 - [x] T033 Run `task lint` for a final formatting pass (run twice if needed — second run should
   always be clean). Confirm all five new files (ocirepository, helmrelease, ks.yaml, etc.) pass
