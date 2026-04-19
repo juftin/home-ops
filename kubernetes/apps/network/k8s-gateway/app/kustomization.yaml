@@ -3,7 +3,7 @@ kind: Kustomization
 helmCharts:
   - name: k8s-gateway
     repo: oci://ghcr.io/k8s-gateway/charts
-    version: 3.4.1
+    version: 3.7.1
     releaseName: k8s-gateway
     namespace: network
     includeCRDs: true
