@@ -3,7 +3,7 @@ kind: Kustomization
 helmCharts:
   - name: alloy
     repo: oci://ghcr.io/home-operations/charts-mirror
-    version: 1.6.2
+    version: 1.8.0
     releaseName: alloy
     namespace: observability
     includeCRDs: true

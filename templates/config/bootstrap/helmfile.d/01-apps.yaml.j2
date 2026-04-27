@@ -9,7 +9,7 @@ releases:
   - name: cilium
     namespace: kube-system
     chart: oci://quay.io/cilium/charts/cilium
-    version: 1.19.1
+    version: 1.19.3
     values: ['./templates/values.yaml.gotmpl']
 
   - name: coredns
@@ -23,7 +23,7 @@ releases:
   - name: spegel
     namespace: kube-system
     chart: oci://ghcr.io/spegel-org/helm-charts/spegel
-    version: 0.6.0
+    version: 0.7.0
     values: ['./templates/values.yaml.gotmpl']
     needs: ['kube-system/coredns']
   #% endif %#
@@ -31,7 +31,7 @@ releases:
   - name: cert-manager
     namespace: cert-manager
     chart: oci://quay.io/jetstack/charts/cert-manager
-    version: v1.20.0
+    version: v1.20.2
     values: ['./templates/values.yaml.gotmpl']
     #% if spegel_enabled %#
     needs: ['kube-system/spegel']
