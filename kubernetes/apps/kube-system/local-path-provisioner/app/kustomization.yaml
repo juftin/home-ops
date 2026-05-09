@@ -3,7 +3,7 @@ kind: Kustomization
 helmCharts:
   - name: local-path-provisioner
     repo: oci://ghcr.io/rancher/local-path-provisioner/charts
-    version: 0.0.35
+    version: 0.0.36
     releaseName: local-path-provisioner
     namespace: kube-system
     includeCRDs: true
