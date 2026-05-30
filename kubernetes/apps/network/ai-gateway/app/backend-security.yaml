@@ -1,0 +1,27 @@
+apiVersion: aigateway.envoyproxy.io/v1beta1
+kind: BackendSecurityPolicy
+metadata:
+  name: deepseek-openai
+spec:
+  targetRefs:
+    - group: aigateway.envoyproxy.io
+      kind: AIServiceBackend
+      name: deepseek-openai
+  type: APIKey
+  apiKey:
+    secretRef:
+      name: deepseek-api-key
+---
+apiVersion: aigateway.envoyproxy.io/v1beta1
+kind: BackendSecurityPolicy
+metadata:
+  name: deepseek-anthropic
+spec:
+  targetRefs:
+    - group: aigateway.envoyproxy.io
+      kind: AIServiceBackend
+      name: deepseek-anthropic
+  type: APIKey
+  apiKey:
+    secretRef:
+      name: deepseek-api-key
