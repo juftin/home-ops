@@ -1,0 +1,4 @@
+config:
+  aiGateway:
+    envoyGateway:
+      namespace: network
