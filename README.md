@@ -32,6 +32,8 @@ ______________________________________________________________________
   routes.
 - **[envoy-gateway](https://github.com/envoyproxy/gateway)**: Kubernetes Gateway API implementation
   for advanced traffic management, security, and routing.
+- **[envoy-ai-gateway](https://github.com/envoyproxy/ai-gateway)**: AI traffic gateway extending
+  Envoy Gateway with multi-provider LLM routing, schema translation, and API key management.
 - **[sops](https://github.com/getsops/sops)**: Managed secrets for Kubernetes and Terraform which
   are committed to Git.
 - **[external-secrets](https://github.com/external-secrets/external-secrets)**: Integrates external

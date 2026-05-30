@@ -40,6 +40,11 @@ ______________________________________________________________________
 
 ArgoCD then continuously reconciles all apps from Git.
 
+- **Envoy AI Gateway** extends the Envoy Gateway with AI-specific routing (AIGatewayRoute,
+  AIServiceBackend, BackendSecurityPolicy CRDs). It runs its own GatewayClass and proxy pods
+  alongside the existing Gateways, handling LLM provider schema translation and API key injection.
+  Currently proxies DeepSeek (OpenAI + Anthropic endpoints); designed for additional providers.
+
 ______________________________________________________________________
 
 ## Validation and CI
