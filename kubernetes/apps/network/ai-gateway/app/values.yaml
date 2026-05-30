@@ -1,4 +1,2 @@
-config:
-  aiGateway:
-    envoyGateway:
-      namespace: network
+envoyGateway:
+  namespace: network
