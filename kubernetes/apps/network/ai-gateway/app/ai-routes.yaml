@@ -9,6 +9,7 @@ spec:
         port: 443
   tls:
     wellKnownCACertificates: System
+    sni: api.deepseek.com
     alpnProtocols:
       - http/1.1
 ---
@@ -23,6 +24,7 @@ spec:
         port: 443
   tls:
     wellKnownCACertificates: System
+    sni: api.deepseek.com
     alpnProtocols:
       - http/1.1
 ---
