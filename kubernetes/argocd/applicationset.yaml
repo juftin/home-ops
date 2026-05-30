@@ -24,7 +24,7 @@ spec:
                   wave: '4'
           - git:
               repoURL: https://github.com/juftin/home-ops.git
-              revision: refs/heads/main
+              revision: refs/heads/envoy-ai-gateway-deepseek
               directories:
                 - path: 'kubernetes/apps/{{ .namespace }}/*'
   template:
@@ -38,7 +38,7 @@ spec:
       project: '{{ if eq .namespace "kube-system" }}kube-system{{ else }}home-ops{{ end }}'
       source:
         repoURL: https://github.com/juftin/home-ops.git
-        targetRevision: refs/heads/main
+        targetRevision: refs/heads/envoy-ai-gateway-deepseek
         path: '{{ .path.path }}/app'
         plugin:
           name: kustomize-substitute-secret-domain
