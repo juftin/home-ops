@@ -83,6 +83,10 @@ spec:
             - .spec.updateStrategy.rollingUpdate.maxUnavailable
             - .spec.volumeClaimTemplates[].spec.volumeMode
             - .spec.volumeClaimTemplates[].status
+        - group: admissionregistration.k8s.io
+          kind: MutatingWebhookConfiguration
+          jqPathExpressions:
+            - .webhooks[].clientConfig.caBundle
       syncPolicy:
         automated:
           prune: true
