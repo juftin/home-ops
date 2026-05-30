@@ -4,6 +4,7 @@ resources:
   - ./gateway.yaml
   - ./ai-routes.yaml
   - ./backend-security.yaml
+  - ./externalsecret.yaml
 helmCharts:
   - name: ai-gateway-crds-helm
     repo: oci://docker.io/envoyproxy
