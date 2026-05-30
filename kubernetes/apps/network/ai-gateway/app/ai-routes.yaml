@@ -64,6 +64,20 @@ spec:
       namespace: network
       sectionName: https
   rules:
+    - matches:
+        - headers:
+            - type: RegularExpression
+              name: x-ai-eg-model
+              value: "deepseek.*"
+      backendRefs:
+        - name: deepseek-openai
+    - matches:
+        - headers:
+            - type: RegularExpression
+              name: x-ai-eg-model
+              value: "claude.*"
+      backendRefs:
+        - name: deepseek-anthropic
     - backendRefs:
         - name: deepseek-openai
         - name: deepseek-anthropic
