@@ -78,6 +78,11 @@ configMaps:
               http2Origin: true
               originServerName: oauth.${SECRET_DOMAIN}
             service: https://envoy-oauth-admin.{{ .Release.Namespace }}.svc.cluster.local:443
+          - hostname: "ai.${SECRET_DOMAIN}"
+            originRequest:
+              http2Origin: true
+              originServerName: ai.${SECRET_DOMAIN}
+            service: https://envoy-ai-gateway.{{ .Release.Namespace }}.svc.cluster.local:443
           - hostname: "*.${SECRET_DOMAIN}"
             originRequest:
               http2Origin: true
