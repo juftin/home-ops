@@ -9,6 +9,8 @@ spec:
         port: 443
   tls:
     wellKnownCACertificates: System
+    alpnProtocols:
+      - http/1.1
 ---
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: Backend
@@ -21,6 +23,8 @@ spec:
         port: 443
   tls:
     wellKnownCACertificates: System
+    alpnProtocols:
+      - http/1.1
 ---
 apiVersion: aigateway.envoyproxy.io/v1beta1
 kind: AIServiceBackend
