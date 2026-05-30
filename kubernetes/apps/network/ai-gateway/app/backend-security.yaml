@@ -11,6 +11,7 @@ spec:
   apiKey:
     secretRef:
       name: deepseek-api-key
+    header: Authorization
 ---
 apiVersion: aigateway.envoyproxy.io/v1beta1
 kind: BackendSecurityPolicy
@@ -25,3 +26,4 @@ spec:
   apiKey:
     secretRef:
       name: deepseek-api-key
+    header: Authorization
