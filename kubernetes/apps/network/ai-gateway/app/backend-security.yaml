@@ -22,8 +22,7 @@ spec:
     - group: aigateway.envoyproxy.io
       kind: AIServiceBackend
       name: deepseek-anthropic
-  type: APIKey
-  apiKey:
+  type: AnthropicAPIKey
+  anthropicAPIKey:
     secretRef:
       name: deepseek-api-key
-    header: Authorization

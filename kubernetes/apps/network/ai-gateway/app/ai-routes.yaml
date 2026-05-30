@@ -35,6 +35,7 @@ metadata:
 spec:
   schema:
     name: OpenAI
+    version: v1
   backendRef:
     name: deepseek
     kind: Backend
@@ -47,6 +48,7 @@ metadata:
 spec:
   schema:
     name: Anthropic
+    version: v1
   backendRef:
     name: deepseek-anthropic
     kind: Backend
