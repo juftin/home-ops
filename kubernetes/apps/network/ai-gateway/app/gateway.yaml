@@ -5,7 +5,7 @@ metadata:
 spec:
   controllerName: gateway.envoyproxy.io/gatewayclass-controller
 ---
-apiVersion: aigateway.envoyproxy.io/v1alpha1
+apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyProxy
 metadata:
   name: ai-gateway-proxy
@@ -50,7 +50,7 @@ spec:
       external-dns.alpha.kubernetes.io/hostname: ai.${SECRET_DOMAIN}
       lbipam.cilium.io/ips: "192.168.1.152"
     parametersRef:
-      group: aigateway.envoyproxy.io
+      group: gateway.envoyproxy.io
       kind: EnvoyProxy
       name: ai-gateway-proxy
   listeners:
@@ -73,7 +73,7 @@ spec:
             kind: Secret
             name: ${SECRET_DOMAIN/./-}-production-tls
 ---
-apiVersion: aigateway.envoyproxy.io/v1alpha1
+apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: ClientTrafficPolicy
 metadata:
   name: ai-gateway-buffer-limit
