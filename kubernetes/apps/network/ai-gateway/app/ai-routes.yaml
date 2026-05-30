@@ -1,0 +1,57 @@
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: Backend
+metadata:
+  name: deepseek
+spec:
+  endpoints:
+    - fqdn:
+        hostname: api.deepseek.com
+        port: 443
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: Backend
+metadata:
+  name: deepseek-anthropic
+spec:
+  endpoints:
+    - fqdn:
+        hostname: api.deepseek.com
+        port: 443
+---
+apiVersion: aigateway.envoyproxy.io/v1beta1
+kind: AIServiceBackend
+metadata:
+  name: deepseek-openai
+spec:
+  schema:
+    name: OpenAI
+  backendRef:
+    name: deepseek
+    kind: Backend
+    group: gateway.envoyproxy.io
+---
+apiVersion: aigateway.envoyproxy.io/v1beta1
+kind: AIServiceBackend
+metadata:
+  name: deepseek-anthropic
+spec:
+  schema:
+    name: Anthropic
+  backendRef:
+    name: deepseek-anthropic
+    kind: Backend
+    group: gateway.envoyproxy.io
+---
+apiVersion: aigateway.envoyproxy.io/v1beta1
+kind: AIGatewayRoute
+metadata:
+  name: deepseek
+spec:
+  parentRefs:
+    - name: envoy-ai-gateway
+      kind: Gateway
+      group: gateway.networking.k8s.io
+  rules:
+    - backendRefs:
+        - name: deepseek-openai
+        - name: deepseek-anthropic
