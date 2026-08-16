@@ -3,7 +3,7 @@ kind: Kustomization
 helmCharts:
   - name: app-template
     repo: oci://ghcr.io/bjw-s-labs/helm
-    version: 5.0.1
+    version: 5.1.0
     releaseName: echo
     namespace: default
     includeCRDs: true
