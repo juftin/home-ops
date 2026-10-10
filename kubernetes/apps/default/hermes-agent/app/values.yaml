@@ -1,0 +1,68 @@
+controllers:
+  hermes-agent:
+    strategy: Recreate
+    annotations:
+      reloader.stakater.com/auto: "true"
+    containers:
+      app:
+        image:
+          repository: docker.io/nousresearch/hermes-agent
+          tag: 0.21.6
+        args:
+          - gateway
+          - run
+        env:
+          HERMES_DASHBOARD: "1"
+          HERMES_DASHBOARD_HOST: 0.0.0.0
+          HERMES_DASHBOARD_PORT: &dashboardPort 9119
+          HERMES_DASHBOARD_BASIC_AUTH_USERNAME: admin
+          HERMES_DASHBOARD_BASIC_AUTH_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: hermes-agent-secret
+                key: HERMES_DASHBOARD_BASIC_AUTH_PASSWORD
+          HERMES_WRITE_SAFE_ROOT: /opt/data
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /health
+                port: &apiPort 8642
+              initialDelaySeconds: 30
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 3
+          readiness: *probes
+        securityContext:
+          allowPrivilegeEscalation: false
+        resources:
+          requests:
+            cpu: 100m
+            memory: 512Mi
+          limits:
+            memory: 4Gi
+defaultPodOptions:
+  automountServiceAccountToken: false
+  securityContext:
+    fsGroup: 10000
+    fsGroupChangePolicy: OnRootMismatch
+service:
+  app:
+    controller: hermes-agent
+    ports:
+      http:
+        port: *dashboardPort
+      api:
+        port: *apiPort
+persistence:
+  data:
+    storageClass: node-local
+    accessMode: ReadWriteOnce
+    size: 10Gi
+    globalMounts:
+      - path: /opt/data
+route:
+  app:
+    enabled: false

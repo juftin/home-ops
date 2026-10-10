@@ -1,0 +1,15 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hermes-agent-tailscale
+  namespace: default
+spec:
+  ingressClassName: tailscale
+  defaultBackend:
+    service:
+      name: hermes-agent
+      port:
+        number: 9119
+  tls:
+    - hosts:
+        - hermes

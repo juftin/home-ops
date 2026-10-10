@@ -59,9 +59,10 @@ ______________________________________________________________________
 
 ## Coding Agents
 
-| Namespace | App     | Role                                   |
-| --------- | ------- | -------------------------------------- |
-| `default` | `paseo` | Coding-agent daemon and bundled web UI |
+| Namespace | App            | Role                                                       |
+| --------- | -------------- | ---------------------------------------------------------- |
+| `default` | `paseo`        | Coding-agent daemon and bundled web UI                     |
+| `default` | `hermes-agent` | Self-improving AI agent with Gateway API and Web Dashboard |
 
 Paseo is served at `paseo.${SECRET_DOMAIN}` through Cloudflare Tunnel and the admin OAuth Gateway.
 The daemon additionally requires a password from the `paseo` 1Password item. It trusts forwarded
@@ -72,6 +73,12 @@ to avoid overlapping agents and volume attachment conflicts. An init container i
 Codex, Claude Code, Antigravity, and the GitHub CLI in the persistent home before the daemon starts,
 reusing working installed versions if upgrades fail. Authenticate each provider before running tasks; see
 [Paseo setup](PASEO-SETUP.md).
+
+Hermes Agent is served at `hermes.${SECRET_DOMAIN}` through Cloudflare Tunnel and the admin OAuth
+Gateway (`envoy-oauth-admin`), with private network access through Tailscale Ingress. The deployment
+exposes the Web Dashboard (port 9119) and OpenAI-compatible Gateway API (port 8642). A node-local
+PVC persists `/opt/data` (configuration, sessions, skills, and memory). A single replica uses
+`Recreate` to prevent volume attachment conflicts. See [Hermes setup](HERMES-SETUP.md).
 
 ## Private Network Access
 
