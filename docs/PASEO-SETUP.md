@@ -5,6 +5,11 @@ Google SSO restricts browser access to the admin group, and Paseo requires its o
 API and WebSocket access. Agents run inside the pod and work on repositories in `/workspace`.
 This deployment does not expose a daemon running on your laptop.
 
+For browser, native, or CLI access from other devices, use the private Tailscale endpoint at
+`https://paseo.<tailnet-DNS-suffix>`. It requires Tailscale access and the daemon password, without
+Google OAuth redirects. Configure the tailnet credentials and DNS suffix before deploying this
+configuration; see [Tailscale setup](TAILSCALE-SETUP.md).
+
 ## Password
 
 Create a **Login** item named `paseo` in the 1Password **homelab** vault. Set its URL to your
@@ -85,4 +90,5 @@ when a check fails.
 The Cloudflare Tunnel has an explicit Paseo rule before the public wildcard rule. The HTTPRoute
 attaches only to `envoy-oauth-admin`; no additional Google OAuth redirect URI is needed because
 the existing admin gateway handles the callback. Relay access is disabled, so native or CLI
-clients must also handle gateway authentication to connect through this hostname.
+clients must also handle gateway authentication to connect through this public hostname. Use the
+Tailscale hostname for direct daemon connections on port 443 with SSL enabled.
