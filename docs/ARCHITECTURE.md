@@ -81,7 +81,8 @@ versions if upgrades fail. Authenticate each provider before running tasks; see
 
 The Tailscale operator exposes Paseo through a private `Ingress` at
 `https://paseo.<tailnet-DNS-suffix>`, forwarding directly to the existing `paseo:6767` service.
-Tailnet policy grants access to `tag:paseo` on TCP 443, and the daemon still requires its password.
+Proxies use the shared `tag:k8s`; the documented tailnet policy allows all ports and protocols
+between tailnet devices, and the daemon still requires its password.
 This route avoids browser OAuth redirects for native clients; the public hostname retains admin
 Google SSO. The Ingress uses a userspace proxy without additional pod privileges. Operator OAuth
 credentials and the DNS suffix come from the `tailscale` 1Password item through External Secrets.

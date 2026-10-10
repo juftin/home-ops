@@ -3,8 +3,6 @@ kind: Ingress
 metadata:
   name: paseo-tailscale
   namespace: default
-  annotations:
-    tailscale.com/tags: tag:paseo
 spec:
   ingressClassName: tailscale
   defaultBackend:
