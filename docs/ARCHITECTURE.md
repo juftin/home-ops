@@ -9,6 +9,7 @@ ______________________________________________________________________
 - **ArgoCD** is the only GitOps reconciler.
 - `home-ops-root` (bootstrapped by Helmfile) points to `kubernetes/argocd`.
 - `kubernetes/argocd/applicationset.yaml` generates one ArgoCD `Application` per app directory under `kubernetes/apps/<namespace>/<app>/app`.
+- Generated apps use server-side apply so Kubernetes-assigned PVC bindings are preserved during sync.
 - Argo apps are scoped by two AppProjects:
   - `home-ops` for general namespaces with orphan monitoring enabled and targeted ignore rules.
   - `kube-system` for `kube-system` (plus `cilium-secrets`) with orphan warnings disabled to avoid control-plane noise.
@@ -67,5 +68,7 @@ The daemon additionally requires a password from the `paseo` 1Password item. It 
 headers from the cluster pod network (`10.42.0.0/16`) so HTTPS connections use secure WebSockets.
 Relay access is disabled. Node-local PVCs persist `/home/paseo` (state, provider tools, and
 credentials) and `/workspace` (repositories and worktrees); a single replica uses `Recreate`
-to avoid overlapping agents and volume attachment conflicts. Agent CLIs must be installed and
-authenticated before running tasks; see [Paseo setup](PASEO-SETUP.md).
+to avoid overlapping agents and volume attachment conflicts. An init container installs or upgrades
+Codex and Antigravity in the persistent home before the daemon starts, reusing working installed
+versions if upgrades fail. Authenticate each provider before running tasks; see
+[Paseo setup](PASEO-SETUP.md).
