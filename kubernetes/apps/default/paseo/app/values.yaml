@@ -3,13 +3,40 @@ controllers:
     strategy: Recreate
     annotations:
       reloader.stakater.com/auto: "true"
-    containers:
-      app:
-        image:
+    initContainers:
+      install-agents:
+        image: &image
           repository: ghcr.io/getpaseo/paseo
           tag: 0.11.2
         env:
-          PATH: /home/paseo/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+          PATH: &path /home/paseo/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+        command:
+          - /bin/bash
+          - -c
+          - |
+            set -euo pipefail
+            if ! npm install --global --prefix /home/paseo/.local @openai/codex@latest; then
+              codex --version
+              echo "Codex upgrade failed; using the installed version." >&2
+            fi
+            if command -v agy >/dev/null 2>&1; then
+              if ! agy update; then
+                echo "Antigravity upgrade failed; using the installed version." >&2
+              fi
+            else
+              curl -fsSL https://antigravity.google/cli/install.sh -o /tmp/install-agy.sh
+              bash /tmp/install-agy.sh --dir /home/paseo/.local/bin
+            fi
+            codex --version
+            agy --version
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+    containers:
+      app:
+        image: *image
+        env:
+          PATH: *path
           PASEO_LISTEN: 0.0.0.0:6767
           PASEO_WEB_UI_ENABLED: "true"
           PASEO_RELAY_ENABLED: "false"
