@@ -55,3 +55,17 @@ ______________________________________________________________________
 - Secrets in Git are SOPS-encrypted with age.
 - ArgoCD repo-server mounts `sops-age` and decrypts during render.
 - New app secrets should prefer External Secrets Operator + 1Password over new committed SOPS files.
+
+## Coding Agents
+
+| Namespace | App     | Role                                   |
+| --------- | ------- | -------------------------------------- |
+| `default` | `paseo` | Coding-agent daemon and bundled web UI |
+
+Paseo is served at `paseo.${SECRET_DOMAIN}` through Cloudflare Tunnel and the admin OAuth Gateway.
+The daemon additionally requires a password from the `paseo` 1Password item. It trusts forwarded
+headers from the cluster pod network (`10.42.0.0/16`) so HTTPS connections use secure WebSockets.
+Relay access is disabled. Node-local PVCs persist `/home/paseo` (state, provider tools, and
+credentials) and `/workspace` (repositories and worktrees); a single replica uses `Recreate`
+to avoid overlapping agents and volume attachment conflicts. Agent CLIs must be installed and
+authenticated before running tasks; see [Paseo setup](PASEO-SETUP.md).

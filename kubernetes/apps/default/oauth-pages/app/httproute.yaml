@@ -29,6 +29,7 @@ spec:
     - oauth-internal.${SECRET_DOMAIN}
     - argocd.${SECRET_DOMAIN}
     - grafana.${SECRET_DOMAIN}
+    - paseo.${SECRET_DOMAIN}
     - echo.${SECRET_DOMAIN}
     - external.${SECRET_DOMAIN}
   rules:

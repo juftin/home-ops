@@ -1,0 +1,73 @@
+controllers:
+  paseo:
+    strategy: Recreate
+    annotations:
+      reloader.stakater.com/auto: "true"
+    containers:
+      app:
+        image:
+          repository: ghcr.io/getpaseo/paseo
+          tag: 0.11.2
+        env:
+          PATH: /home/paseo/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+          PASEO_LISTEN: 0.0.0.0:6767
+          PASEO_WEB_UI_ENABLED: "true"
+          PASEO_RELAY_ENABLED: "false"
+          PASEO_HOSTNAMES: paseo.${SECRET_DOMAIN}
+          PASEO_TRUSTED_PROXIES: loopback,10.42.0.0/16
+          PASEO_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: paseo-secret
+                key: PASEO_PASSWORD
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /api/health
+                port: &port 6767
+              initialDelaySeconds: 30
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 3
+          readiness: *probes
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+        resources:
+          requests:
+            cpu: 100m
+            memory: 512Mi
+          limits:
+            memory: 4Gi
+defaultPodOptions:
+  automountServiceAccountToken: false
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+    fsGroupChangePolicy: OnRootMismatch
+service:
+  app:
+    ports:
+      http:
+        port: *port
+persistence:
+  home:
+    storageClass: node-local
+    accessMode: ReadWriteOnce
+    size: 5Gi
+    globalMounts:
+      - path: /home/paseo
+  workspace:
+    storageClass: node-local
+    accessMode: ReadWriteOnce
+    size: 20Gi
+    globalMounts:
+      - path: /workspace
+route:
+  app:
+    enabled: false
