@@ -40,13 +40,16 @@ controllers:
           PASEO_LISTEN: 0.0.0.0:6767
           PASEO_WEB_UI_ENABLED: "true"
           PASEO_RELAY_ENABLED: "false"
-          PASEO_HOSTNAMES: paseo.${SECRET_DOMAIN}
+          PASEO_HOSTNAMES: paseo.${SECRET_DOMAIN},paseo.$(TAILSCALE_DNS_SUFFIX)
           PASEO_TRUSTED_PROXIES: loopback,10.42.0.0/16
           PASEO_PASSWORD:
             valueFrom:
               secretKeyRef:
                 name: paseo-secret
                 key: PASEO_PASSWORD
+        envFrom:
+          - secretRef:
+              name: tailscale-config
         probes:
           liveness: &probes
             enabled: true

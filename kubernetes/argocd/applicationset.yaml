@@ -18,6 +18,8 @@ spec:
                   wave: '1'
                 - namespace: network
                   wave: '2'
+                - namespace: tailscale
+                  wave: '2'
                 - namespace: default
                   wave: '3'
                 - namespace: observability
@@ -89,3 +91,4 @@ spec:
           selfHeal: true
         syncOptions:
           - ServerSideApply=true
+          - 'CreateNamespace={{ eq .namespace "tailscale" }}'
