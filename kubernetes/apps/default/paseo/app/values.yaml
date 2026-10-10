@@ -19,6 +19,10 @@ controllers:
               codex --version
               echo "Codex upgrade failed; using the installed version." >&2
             fi
+            if ! npm install --global --prefix /home/paseo/.local @anthropic-ai/claude-code@latest; then
+              claude --version
+              echo "Claude Code upgrade failed; using the installed version." >&2
+            fi
             if command -v agy >/dev/null 2>&1; then
               if ! agy update; then
                 echo "Antigravity upgrade failed; using the installed version." >&2
@@ -27,8 +31,29 @@ controllers:
               curl -fsSL https://antigravity.google/cli/install.sh -o /tmp/install-agy.sh
               bash /tmp/install-agy.sh --dir /home/paseo/.local/bin
             fi
+            case "$(uname -m)" in
+              x86_64) ARCH="amd64" ;;
+              aarch64|arm64) ARCH="arm64" ;;
+              *) echo "Unsupported architecture: $(uname -m)" >&2; exit 1 ;;
+            esac
+            if ! {
+              GH_TAG=$(basename "$(curl -fsSL -o /dev/null -w "%{url_effective}" https://github.com/cli/cli/releases/latest)")
+              GH_VER="${GH_TAG#v}"
+              TMP_DIR=$(mktemp -d)
+              curl -fsSL "https://github.com/cli/cli/releases/download/${GH_TAG}/gh_${GH_VER}_linux_${ARCH}.tar.gz" | \
+                tar --strip-components=2 -C "${TMP_DIR}" -xzf - --wildcards "*/bin/gh"
+              chmod +x "${TMP_DIR}/gh"
+              mkdir -p /home/paseo/.local/bin
+              mv -f "${TMP_DIR}/gh" /home/paseo/.local/bin/gh
+              rm -rf "${TMP_DIR}"
+            }; then
+              gh --version
+              echo "GitHub CLI upgrade failed; using the installed version." >&2
+            fi
             codex --version
+            claude --version
             agy --version
+            gh --version
         securityContext:
           allowPrivilegeEscalation: false
           capabilities: {drop: ["ALL"]}
