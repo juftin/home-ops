@@ -69,8 +69,8 @@ headers from the cluster pod network (`10.42.0.0/16`) so HTTPS connections use s
 Relay access is disabled. Node-local PVCs persist `/home/paseo` (state, provider tools, and
 credentials) and `/workspace` (repositories and worktrees); a single replica uses `Recreate`
 to avoid overlapping agents and volume attachment conflicts. An init container installs or upgrades
-Codex and Antigravity in the persistent home before the daemon starts, reusing working installed
-versions if upgrades fail. Authenticate each provider before running tasks; see
+Codex, Claude Code, Antigravity, and the GitHub CLI in the persistent home before the daemon starts,
+reusing working installed versions if upgrades fail. Authenticate each provider before running tasks; see
 [Paseo setup](PASEO-SETUP.md).
 
 ## Private Network Access
