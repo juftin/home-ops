@@ -72,3 +72,21 @@ to avoid overlapping agents and volume attachment conflicts. An init container i
 Codex and Antigravity in the persistent home before the daemon starts, reusing working installed
 versions if upgrades fail. Authenticate each provider before running tasks; see
 [Paseo setup](PASEO-SETUP.md).
+
+## Private Network Access
+
+| Namespace   | App         | Role                                             |
+| ----------- | ----------- | ------------------------------------------------ |
+| `tailscale` | `tailscale` | Kubernetes operator and private HTTPS proxy pods |
+
+The Tailscale operator exposes Paseo through a private `Ingress` at
+`https://paseo.<tailnet-DNS-suffix>`, forwarding directly to the existing `paseo:6767` service.
+Proxies use the shared `tag:k8s`; the documented tailnet policy allows all ports and protocols
+between tailnet devices, and the daemon still requires its password.
+This route avoids browser OAuth redirects for native clients; the public hostname retains admin
+Google SSO. The Ingress uses a userspace proxy without additional pod privileges. Operator OAuth
+credentials and the DNS suffix come from the `tailscale` 1Password item through External Secrets.
+A Tailscale-owned `ClusterExternalSecret` distributes the DNS suffix as `tailscale-config` to
+consumer namespaces; OAuth credentials stay in `tailscale`. Paseo owns only its Ingress and
+the environment reference to the shared configuration.
+No Funnel or Kubernetes API proxy is enabled. See [Tailscale setup](TAILSCALE-SETUP.md).

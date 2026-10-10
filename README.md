@@ -45,13 +45,15 @@ ______________________________________________________________________
   when ConfigMaps or Secrets change.
 - **[local-path-provisioner](https://github.com/rancher/local-path-provisioner)**: Dynamic
   node-local persistent volume provisioning.
+- **[Tailscale](https://tailscale.com/)**: Kubernetes operator for private access to cluster applications.
+  See [setup](docs/TAILSCALE-SETUP.md).
 
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f3a1/512.gif" alt="🎡" width="20" height="20"> Apps
 
 - **[echo](https://github.com/mendhak/docker-http-https-echo)**: Simple HTTP/HTTPS echo server for
   testing.
 - **[Paseo](https://github.com/getpaseo/paseo)**: Self-hosted coding-agent daemon and web UI behind
-  admin Google SSO, with persistent workspaces. See [setup](docs/PASEO-SETUP.md).
+  admin Google SSO, with private Tailscale access and persistent workspaces. See [setup](docs/PASEO-SETUP.md).
 - **[Grafana](https://grafana.com/)**: Cluster dashboards and Explore UI.
 - **[Prometheus](https://prometheus.io/)**: Scrapes and stores Kubernetes metrics with 30-day
   retention.

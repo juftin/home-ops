@@ -1,0 +1,15 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: paseo-tailscale
+  namespace: default
+spec:
+  ingressClassName: tailscale
+  defaultBackend:
+    service:
+      name: paseo
+      port:
+        number: 6767
+  tls:
+    - hosts:
+        - paseo
