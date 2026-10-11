@@ -72,6 +72,11 @@ Google SSO, so retain application authentication where needed. See
 
 Grafana uses its own chart's `grafana.route.main` settings in
 [kube-prometheus-stack values](../kubernetes/apps/observability/kube-prometheus-stack/app/values.yaml).
+ArgoCD uses `server.httproute` in its
+[bootstrap values](../bootstrap/helmfile.d/templates/values.yaml.gotmpl); update its
+Helm release with `task argocd:bootstrap` to deploy changes. The chart names its
+HTTPRoute `argocd-server` and uses the existing HTTP Service port when
+`server.insecure` is enabled.
 Shared OAuth utility routes also live in
 [oauth-pages values](../kubernetes/apps/default/oauth-pages/app/values.yaml), including
 their named callback, logout, denied, and logged-out rules.
