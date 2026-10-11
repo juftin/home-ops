@@ -56,7 +56,10 @@ GitHub CLI's `.config/gh` configuration.
 Antigravity may require an accessible Linux keyring for Google sign-in; see Google's
 [CLI troubleshooting](https://www.antigravity.google/docs/cli/troubleshooting/).
 Pick Codex, Claude, or Antigravity in Paseo after signing in; none requires an extra Paseo plugin.
-Antigravity supports only Full access in Paseo, with tool calls running without permission prompts.
+Because Paseo runs inside an unprivileged Kubernetes pod without nested namespace creation privileges,
+Codex's Linux Bubblewrap sandbox is preconfigured to use Full Access (`danger-full-access`) via Paseo
+provider options (`~/.paseo/config.json`) and `~/.codex/config.toml`. Antigravity similarly supports only
+Full access in Paseo, with tool calls running directly inside the container without permission prompts.
 See [supported providers](https://paseo.sh/docs/supported-providers#antigravity).
 
 Restart the deployment to retry upgrades. Authenticate the GitHub CLI (`gh auth login`) inside the pod
