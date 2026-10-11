@@ -57,6 +57,8 @@ and Tailscale examples using the existing chart values.
   testing.
 - **[Paseo](https://github.com/getpaseo/paseo)**: Self-hosted coding-agent daemon and web UI behind
   admin Google SSO, with private Tailscale access and persistent workspaces. See [setup](docs/PASEO-SETUP.md).
+- **[OpenClaw](https://github.com/openclaw/openclaw)**: Personal AI assistant gateway and Control UI
+  behind admin Google SSO, with persistent state. See [setup](docs/OPENCLAW-SETUP.md).
 - **[Hermes Agent](https://github.com/NousResearch/hermes-agent)**: Self-improving AI agent
   with Gateway API server and Web Dashboard behind admin Google SSO. See [setup](docs/HERMES-SETUP.md).
 - **[Grafana](https://grafana.com/)**: Cluster dashboards and Explore UI.

@@ -70,6 +70,7 @@ ______________________________________________________________________
 | Namespace | App            | Role                                                       |
 | --------- | -------------- | ---------------------------------------------------------- |
 | `default` | `paseo`        | Coding-agent daemon and bundled web UI                     |
+| `default` | `openclaw`     | Personal AI assistant gateway and Control UI               |
 | `default` | `hermes-agent` | Self-improving AI agent with Gateway API and Web Dashboard |
 
 Paseo is served at `paseo.${SECRET_DOMAIN}` through Cloudflare Tunnel and the admin OAuth Gateway.
@@ -87,6 +88,13 @@ Gateway (`envoy-oauth-admin`). The deployment exposes the Web Dashboard (port 91
 OpenAI-compatible Gateway API (port 8642). A node-local PVC persists `/opt/data` (configuration,
 sessions, skills, and memory). A single replica uses `Recreate` to prevent volume attachment
 conflicts. See [Hermes setup](HERMES-SETUP.md).
+
+OpenClaw is served at `openclaw.${SECRET_DOMAIN}` through Cloudflare Tunnel and the admin OAuth
+Gateway. Its HTTP and WebSocket gateway share port 18789; OpenClaw token authentication and
+browser device pairing remain enabled behind SSO. A node-local PVC persists `/home/node`,
+including configuration, provider credentials, sessions, and workspaces. One non-root replica
+uses `Recreate`. A first-run init container seeds the gateway configuration without overwriting
+subsequent onboarding changes. See [OpenClaw setup](OPENCLAW-SETUP.md).
 
 ## Private Network Access
 
