@@ -68,6 +68,11 @@ configMaps:
               http2Origin: true
               originServerName: oauth.${SECRET_DOMAIN}
             service: https://envoy-oauth-admin.{{ .Release.Namespace }}.svc.cluster.local:443
+          - hostname: "openclaw.${SECRET_DOMAIN}"
+            originRequest:
+              http2Origin: true
+              originServerName: oauth.${SECRET_DOMAIN}
+            service: https://envoy-oauth-admin.{{ .Release.Namespace }}.svc.cluster.local:443
           - hostname: "grafana.${SECRET_DOMAIN}"
             originRequest:
               http2Origin: true

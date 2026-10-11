@@ -31,6 +31,7 @@ spec:
     - grafana.${SECRET_DOMAIN}
     - paseo.${SECRET_DOMAIN}
     - hermes.${SECRET_DOMAIN}
+    - openclaw.${SECRET_DOMAIN}
     - echo.${SECRET_DOMAIN}
     - external.${SECRET_DOMAIN}
   rules:
