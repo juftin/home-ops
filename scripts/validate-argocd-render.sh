@@ -56,11 +56,11 @@ if [[ -z "${SECRET_DOMAIN}" || "${SECRET_DOMAIN}" == "null" ]]; then
     exit 1
 fi
 
-kustomize build "${ROOT_DIR}/kubernetes/argocd" >/dev/null
+kustomize build "${ROOT_DIR}/kubernetes/argocd" | bash "${ROOT_DIR}/scripts/validate-kubernetes-schema.sh"
 
 while IFS= read -r app_dir; do
     echo "Validating ${app_dir#"${ROOT_DIR}/"}"
-    SECRET_DOMAIN="${SECRET_DOMAIN}" "${RENDER_SCRIPT}" "${app_dir}" >/dev/null
+    SECRET_DOMAIN="${SECRET_DOMAIN}" "${RENDER_SCRIPT}" "${app_dir}" | bash "${ROOT_DIR}/scripts/validate-kubernetes-schema.sh"
 done < <(find "${ROOT_DIR}/kubernetes/apps" -mindepth 3 -maxdepth 3 -type d -name app | sort)
 
 echo "ArgoCD render validation passed"

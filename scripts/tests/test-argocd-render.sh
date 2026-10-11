@@ -7,9 +7,11 @@ trap 'rm -rf "${TEST_DIR}"' EXIT
 
 mkdir -p "${TEST_DIR}/repo/scripts" "${TEST_DIR}/repo/kubernetes/argocd" \
     "${TEST_DIR}/repo/kubernetes/components/sops" "${TEST_DIR}/repo/kubernetes/apps/default/test/app" \
-    "${TEST_DIR}/scratch"
+    "${TEST_DIR}/repo/talos" "${TEST_DIR}/scratch"
 cp "${ROOT_DIR}/scripts/validate-argocd-render.sh" "${TEST_DIR}/repo/scripts/"
+cp "${ROOT_DIR}/scripts/validate-kubernetes-schema.sh" "${TEST_DIR}/repo/scripts/"
 cp "${ROOT_DIR}/scripts/render-argocd-app.sh" "${TEST_DIR}/repo/scripts/render-real.sh"
+cp "${ROOT_DIR}/talos/talenv.yaml" "${TEST_DIR}/repo/talos/"
 git -C "${TEST_DIR}/repo" init --quiet
 cd "${TEST_DIR}/repo"
 
@@ -109,6 +111,33 @@ if scripts/validate-argocd-render.sh >"${TEST_DIR}/missing-key.log" 2>&1; then
     echo "Full validation unexpectedly succeeded without a key" >&2
     exit 1
 fi
+
+# Valid YAML that Kustomize renders must still fail Kubernetes type validation.
+yq --inplace '.data.domain = 42' kubernetes/apps/default/test/app/domain.yaml
+if scripts/validate-argocd-render.sh --offline >"${TEST_DIR}/invalid-schema.log" 2>&1; then
+    echo "Offline validation unexpectedly accepted an invalid ConfigMap" >&2
+    exit 1
+fi
+grep -q 'Invalid: 1' "${TEST_DIR}/invalid-schema.log"
+yq --inplace '.data.domain = "${SECRET_DOMAIN}"' kubernetes/apps/default/test/app/domain.yaml
+
+# Strict validation rejects unknown fields, even when known fields are well typed.
+yq --inplace '.unexpectedField = true' kubernetes/apps/default/test/app/domain.yaml
+if scripts/validate-argocd-render.sh --offline >"${TEST_DIR}/unknown-field.log" 2>&1; then
+    echo "Offline validation unexpectedly accepted an unknown ConfigMap field" >&2
+    exit 1
+fi
+grep -q 'Invalid: 1' "${TEST_DIR}/unknown-field.log"
+yq --inplace 'del(.unexpectedField)' kubernetes/apps/default/test/app/domain.yaml
+
+# Unknown built-in kinds must fail, rather than being treated as custom resources.
+yq --inplace '.kind = "ConfigMapTypo"' kubernetes/apps/default/test/app/domain.yaml
+if scripts/validate-argocd-render.sh --offline >"${TEST_DIR}/missing-schema.log" 2>&1; then
+    echo "Offline validation unexpectedly accepted a missing built-in schema" >&2
+    exit 1
+fi
+grep -q 'could not find schema' "${TEST_DIR}/missing-schema.log"
+yq --inplace '.kind = "ConfigMap"' kubernetes/apps/default/test/app/domain.yaml
 
 printf '\n  - missing.yaml\n' >> kubernetes/apps/default/test/app/kustomization.yaml
 if scripts/validate-argocd-render.sh --offline >"${TEST_DIR}/invalid-app.log" 2>&1; then

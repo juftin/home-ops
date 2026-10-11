@@ -28,6 +28,7 @@ jobs:
             .taskfiles/dev/**
             Taskfile.yaml
             .mise.toml
+            talos/talenv.yaml
             .github/workflows/argocd-validate.yaml
   validate:
     name: ArgoCD Render Validate
@@ -45,7 +46,7 @@ jobs:
           cache: false
       - name: Test render validation modes
         run: task dev:validate:test
-      - name: Validate ArgoCD rendering
+      - name: Validate ArgoCD rendering and Kubernetes schemas
         run: task dev:validate:ci
   argocd-validate-status:
     name: ArgoCD Render Validation Success
