@@ -47,6 +47,10 @@ ______________________________________________________________________
 
 - Local gate: `task lint` then `task dev:validate`
 - PR gate: GitHub Actions **ArgoCD Render Validation** workflow (`.github/workflows/argocd-validate.yaml`)
+  runs `task dev:validate` when the `SOPS_AGE_KEY` Actions secret is available. Otherwise,
+  including for fork PRs, it runs `task dev:validate:ci` with placeholder secrets and `example.com`.
+  Placeholder rendering cannot verify decryption or the contents of encrypted policies.
+  ArgoCD continues to decrypt with the real age key.
 - Template/e2e checks also run `task dev:validate`
 
 ______________________________________________________________________

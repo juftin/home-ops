@@ -14,6 +14,7 @@ ______________________________________________________________________
 | ------------------------------ | ---------------------------------------------------------------------- |
 | `task lint`                    | Run all pre-commit hooks and auto-fix formatting                       |
 | `task dev:validate`            | Render all ArgoCD app manifests locally (SOPS + kustomize + helm)      |
+| `task dev:validate:ci`         | Render with placeholder secrets, without an age key (same as PR CI)    |
 | `task argocd:bootstrap`        | Bootstrap/update ArgoCD Helm release and root app                      |
 | `task argocd:bootstrap:verify` | Verify ArgoCD control-plane workloads                                  |
 | `task bootstrap:apps`          | Bootstrap core platform charts (Cilium, CoreDNS, cert-manager, ArgoCD) |
@@ -37,6 +38,15 @@ task dev:worktree:remove NAME=home-ops-my-change
 ```
 
 `task dev:start` / `task dev:sync` / `task dev:stop` require cluster access (`kubeconfig`).
+
+`task dev:validate` requires the real age key. For a fresh checkout or a fork PR without secrets,
+use `task dev:validate:ci`. This uses `example.com` and replaces encrypted values in temporary
+app copies; it validates rendering but does not check secret contents or SOPS decryption.
+
+For full decryption in GitHub Actions, create a repository Actions secret named `SOPS_AGE_KEY`
+containing the complete contents of `age.key` (including the `AGE-SECRET-KEY-...` line).
+The render workflow uses it when available and fails if the key cannot decrypt the manifests.
+Fork PRs do not receive repository secrets and use placeholder rendering instead.
 
 ______________________________________________________________________
 
