@@ -48,6 +48,9 @@ ______________________________________________________________________
 - **[Tailscale](https://tailscale.com/)**: Kubernetes operator for private access to cluster applications.
   See [setup](docs/TAILSCALE-SETUP.md).
 
+See [App access](docs/APP-ACCESS.md) for app-local OAuth, public Cloudflare,
+and Tailscale examples using the existing chart values.
+
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f3a1/512.gif" alt="🎡" width="20" height="20"> Apps
 
 - **[echo](https://github.com/mendhak/docker-http-https-echo)**: Simple HTTP/HTTPS echo server for

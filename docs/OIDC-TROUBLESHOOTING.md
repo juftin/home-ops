@@ -12,7 +12,7 @@ kubectl get securitypolicy -n network envoy-oauth-admin-policy envoy-oauth-users
 kubectl get securitypolicy -n default oauth-pages-public -o yaml
 kubectl get secret -n network google-oauth-client-secret
 kubectl get httproute -n default oauth-pages
-kubectl get helmrelease -n network cloudflare-dns
+kubectl get deployment -n network cloudflare-dns
 ```
 
 If branch testing is active, always finish with:
@@ -31,7 +31,7 @@ ______________________________________________________________________
 
 ```bash
 kubectl get gateway -n network envoy-oauth-admin envoy-oauth-users envoy-oauth-internal --show-labels
-kubectl get helmrelease -n network cloudflare-dns -o yaml | grep gateway-label-filter
+kubectl get deployment -n network cloudflare-dns -o yaml | rg gateway-label-filter
 ```
 
 ### Expected
@@ -115,7 +115,7 @@ kubectl get httproute -n default oauth-pages -o yaml
 
 ### Fix
 
-- Update `kubernetes/apps/default/oauth-pages/app/httproute.yaml`
+- Update `kubernetes/apps/default/oauth-pages/app/values.yaml`
 - Confirm `kubernetes/apps/default/oauth-pages/app/securitypolicy.yaml` is section-scoped
 - Validate and reconcile
 

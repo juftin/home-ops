@@ -49,4 +49,9 @@ serviceMonitor:
       - port: http
 route:
   app:
-    enabled: false
+    hostnames:
+      - echo.${SECRET_DOMAIN}
+    parentRefs:
+      - name: envoy-external
+        namespace: network
+        sectionName: https

@@ -15,6 +15,7 @@ ______________________________________________________________________
 | `task lint`                    | Run pre-commit formatting, Actionlint, and ShellCheck                  |
 | `task dev:validate`            | Render apps with decryption and validate built-in resource schemas     |
 | `task dev:validate:ci`         | Render and validate schemas with placeholder secrets (same as PR CI)   |
+| `task dev:validate:bootstrap`  | Render the ArgoCD bootstrap chart and validate built-in schemas        |
 | `task dev:validate:test`       | Test rendering, decryption, and schema failure handling with fixtures  |
 | `task argocd:bootstrap`        | Bootstrap/update ArgoCD Helm release and root app                      |
 | `task argocd:bootstrap:verify` | Verify ArgoCD control-plane workloads                                  |
@@ -47,6 +48,9 @@ app copies; it validates rendering but does not check secret contents or SOPS de
 Both render tasks run strict Kubeconform validation for built-in Kubernetes API groups, using
 the Kubernetes version in `talos/talenv.yaml`. Custom resources and CRD definitions are excluded.
 Missing schemas for other built-in resources fail validation. These checks require no cluster access.
+
+Both tasks also render ArgoCD's Helmfile bootstrap release with placeholder settings and check its
+built-in resource schemas. Bootstrap changes trigger the same PR validation workflow.
 
 `mise install` installs pre-commit, Actionlint, ShellCheck, and Kubeconform. The Repository Quality
 workflow runs `task lint` on every PR and skips only the local `no-commit-to-branch` hook.
