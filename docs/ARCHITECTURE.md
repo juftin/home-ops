@@ -46,8 +46,16 @@ ______________________________________________________________________
 ## Validation and CI
 
 - Local gate: `task lint` then `task dev:validate`
+- Every PR runs **Repository Quality** (`.github/workflows/quality.yaml`): pre-commit formatting
+  and syntax checks, Actionlint for workflows, and ShellCheck warnings/errors for shell scripts.
 - PR gate: GitHub Actions **ArgoCD Render Validation** workflow (`.github/workflows/argocd-validate.yaml`)
-- Template/e2e checks also run `task dev:validate`
+  runs `task dev:validate:ci` with placeholder secrets and `example.com`, including for fork PRs.
+  No cluster credentials or age key are supplied to GitHub Actions.
+  Placeholder rendering cannot verify decryption or the contents of encrypted policies.
+  ArgoCD continues to decrypt with the real age key.
+- Render validation also runs strict Kubeconform checks on built-in Kubernetes resources against
+  `talos/talenv.yaml`'s Kubernetes version. Custom resources and CRD definitions are excluded;
+  missing schemas for other built-in resources fail validation.
 
 ______________________________________________________________________
 
