@@ -23,7 +23,7 @@ can be found in 1Password under `hermes-agent` for browser autofill.
 
 ## Architecture and Volumes
 
-- **Image and Supervision**: The deployment runs `docker.io/nousresearch/hermes-agent:0.21.6` with `gateway run`.
+- **Image and Supervision**: The deployment runs `docker.io/nousresearch/hermes-agent:v0.21.6` with `gateway run`.
   The container uses `s6-overlay` for process supervision, managing both the gateway and web dashboard with
   automatic crash recovery and log rotation.
 - **Persistent Data**: The `/opt/data` volume is the single source of truth for all Hermes state, including

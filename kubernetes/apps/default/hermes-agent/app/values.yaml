@@ -7,7 +7,7 @@ controllers:
       app:
         image:
           repository: docker.io/nousresearch/hermes-agent
-          tag: 0.21.6
+          tag: v0.21.6
         args:
           - gateway
           - run
