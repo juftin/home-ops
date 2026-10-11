@@ -1,11 +1,22 @@
 version: '3'
 tasks:
   validate:
-    desc: Validate ArgoCD app rendering locally (no cluster required)
+    desc: Validate ArgoCD rendering and built-in resource schemas (no cluster required)
     cmd: '{{.ROOT_DIR}}/scripts/validate-argocd-render.sh'
     preconditions:
-      - which kustomize helm sops yq
+      - which kustomize helm sops yq kubeconform
       - test -x {{.ROOT_DIR}}/scripts/validate-argocd-render.sh
+  validate:ci:
+    desc: Validate rendering and schemas with placeholder secrets (no age key or cluster required)
+    cmd: '{{.ROOT_DIR}}/scripts/validate-argocd-render.sh --offline'
+    preconditions:
+      - which kustomize helm yq kubeconform
+      - test -x {{.ROOT_DIR}}/scripts/validate-argocd-render.sh
+  validate:test:
+    desc: Test offline and decrypted rendering using temporary encrypted fixtures
+    cmd: 'bash {{.ROOT_DIR}}/scripts/tests/test-argocd-render.sh'
+    preconditions:
+      - which age-keygen kustomize helm sops yq kubeconform
   worktree:create:
     desc: Create a feature worktree under ./worktrees and link required local files
     requires:
