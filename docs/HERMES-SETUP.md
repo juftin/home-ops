@@ -37,10 +37,11 @@ can be found in 1Password under `hermes-agent` for browser autofill.
 
 ## Endpoints
 
-- **Web Dashboard & Desktop App** (port `9119`): Serves the browser dashboard and acts as the remote backend
-  for the Hermes Desktop app. Routed at `/`.
+- **Web Dashboard & Health Probes** (port `9119`): Serves the browser dashboard and acts as the remote backend
+  for the Hermes Desktop app. Exposes the unauthenticated `/api/health` endpoint used by Kubernetes startup,
+  liveness, and readiness probes. Routed at `/`.
 - **OpenAI-Compatible API Server** (port `8642`): Exposes standard OpenAI API endpoints (such as `/v1/chat/completions`)
-  and the `/health` endpoint used by liveness and readiness probes. Routed at `/v1`.
+  authenticated via `API_SERVER_KEY`. Routed at `/v1`.
 
 ## CLI and Setup Commands
 
