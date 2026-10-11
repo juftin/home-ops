@@ -13,4 +13,3 @@ resources:
   - ./externalsecret.yaml
   - ./pushsecret.yaml
   - ./httproute.yaml
-  - ./ingress.yaml

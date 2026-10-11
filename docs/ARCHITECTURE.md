@@ -75,10 +75,10 @@ reusing working installed versions if upgrades fail. Authenticate each provider 
 [Paseo setup](PASEO-SETUP.md).
 
 Hermes Agent is served at `hermes.${SECRET_DOMAIN}` through Cloudflare Tunnel and the admin OAuth
-Gateway (`envoy-oauth-admin`), with private network access through Tailscale Ingress. The deployment
-exposes the Web Dashboard (port 9119) and OpenAI-compatible Gateway API (port 8642). A node-local
-PVC persists `/opt/data` (configuration, sessions, skills, and memory). A single replica uses
-`Recreate` to prevent volume attachment conflicts. See [Hermes setup](HERMES-SETUP.md).
+Gateway (`envoy-oauth-admin`). The deployment exposes the Web Dashboard (port 9119) and
+OpenAI-compatible Gateway API (port 8642). A node-local PVC persists `/opt/data` (configuration,
+sessions, skills, and memory). A single replica uses `Recreate` to prevent volume attachment
+conflicts. See [Hermes setup](HERMES-SETUP.md).
 
 ## Private Network Access
 

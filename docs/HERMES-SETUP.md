@@ -4,9 +4,6 @@
 in Kubernetes at `https://hermes.${SECRET_DOMAIN}`. Google SSO restricts browser access to the admin
 group, and the dashboard additionally enforces its internal authentication gate.
 
-For private access from other devices, use the private Tailscale endpoint at
-`https://hermes.<tailnet-DNS-suffix>`, which forwards directly to the dashboard without Google OAuth redirects.
-
 ## Dashboard Password & 1Password Sync
 
 Per the [Hermes Docker Setup guide](https://hermes-agent.nousresearch.com/docs/user-guide/docker), the
