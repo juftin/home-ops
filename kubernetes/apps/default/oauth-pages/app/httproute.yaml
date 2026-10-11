@@ -24,15 +24,7 @@ spec:
       name: envoy-external
       namespace: network
   hostnames:
-    - oauth.${SECRET_DOMAIN}
-    - oauth-users.${SECRET_DOMAIN}
-    - oauth-internal.${SECRET_DOMAIN}
-    - argocd.${SECRET_DOMAIN}
-    - grafana.${SECRET_DOMAIN}
-    - paseo.${SECRET_DOMAIN}
-    - hermes.${SECRET_DOMAIN}
-    - echo.${SECRET_DOMAIN}
-    - external.${SECRET_DOMAIN}
+    - '*.${SECRET_DOMAIN}'
   rules:
     - name: callback
       matches:

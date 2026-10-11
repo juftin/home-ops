@@ -88,4 +88,18 @@ persistence:
       - path: /opt/data
 route:
   app:
-    enabled: false
+    hostnames:
+      - hermes.${SECRET_DOMAIN}
+    parentRefs:
+      - name: envoy-oauth-admin
+        namespace: network
+        sectionName: https
+    rules:
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /v1
+        backendRefs:
+          - port: api
+      - backendRefs:
+          - port: http

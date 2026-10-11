@@ -11,6 +11,7 @@ dashboard's authentication gate engages automatically whenever it binds to a non
 (`0.0.0.0`). The bundled username/password provider validates basic auth credentials.
 
 Create a **Login** item named `hermes-agent` in the 1Password **homelab** vault:
+
 - **Title**: `hermes-agent`
 - **Website / URL**: `https://hermes.${SECRET_DOMAIN}`
 - **Username**: `admin`

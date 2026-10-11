@@ -97,3 +97,12 @@ A Tailscale-owned `ClusterExternalSecret` distributes the DNS suffix as `tailsca
 consumer namespaces; OAuth credentials stay in `tailscale`. Paseo owns only its Ingress and
 the environment reference to the shared configuration.
 No Funnel or Kubernetes API proxy is enabled. See [Tailscale setup](TAILSCALE-SETUP.md).
+
+## App Access
+
+App-template workloads configure HTTPRoutes and Tailscale Ingresses in their own
+`values.yaml`, using the chart's built-in resources. Public apps use
+`envoy-external`; OAuth apps choose the admin or users Gateway and have an explicit
+Cloudflare Tunnel rule. Shared OAuth utility pages cover app hosts through a
+wildcard while public-policy exceptions stay scoped to denied/logout sections.
+See [App access](APP-ACCESS.md).
