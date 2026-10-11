@@ -46,14 +46,7 @@ jobs:
       - name: Test render validation modes
         run: task dev:validate:test
       - name: Validate ArgoCD rendering
-        env:
-          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
-        run: |
-          if [[ -n "${SOPS_AGE_KEY}" ]]; then
-            task dev:validate
-          else
-            task dev:validate:ci
-          fi
+        run: task dev:validate:ci
   argocd-validate-status:
     name: ArgoCD Render Validation Success
     needs: ["pre-job", "validate"]

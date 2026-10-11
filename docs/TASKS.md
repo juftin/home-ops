@@ -43,10 +43,9 @@ task dev:worktree:remove NAME=home-ops-my-change
 use `task dev:validate:ci`. This uses `example.com` and replaces encrypted values in temporary
 app copies; it validates rendering but does not check secret contents or SOPS decryption.
 
-For full decryption in GitHub Actions, create a repository Actions secret named `SOPS_AGE_KEY`
-containing the complete contents of `age.key` (including the `AGE-SECRET-KEY-...` line).
-The render workflow uses it when available and fails if the key cannot decrypt the manifests.
-Fork PRs do not receive repository secrets and use placeholder rendering instead.
+GitHub Actions always uses placeholder rendering, so no age key or cluster credentials are needed
+in GitHub secrets. Keep full decryption checks local with `task dev:validate`; ArgoCD also decrypts
+with its existing age key when syncing the cluster.
 
 ______________________________________________________________________
 
