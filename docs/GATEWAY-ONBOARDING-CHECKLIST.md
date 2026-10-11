@@ -57,7 +57,7 @@ ______________________________________________________________________
 
 ## 4. Static UX Route Coverage
 
-File: `kubernetes/apps/default/oauth-pages/app/httproute.yaml`
+File: `kubernetes/apps/default/oauth-pages/app/values.yaml`
 
 - [ ] Add new Gateway to `parentRefs`
 - [ ] Ensure hostnames include new OAuth host if needed

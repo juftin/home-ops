@@ -115,7 +115,7 @@ kubectl get httproute -n default oauth-pages -o yaml
 
 ### Fix
 
-- Update `kubernetes/apps/default/oauth-pages/app/httproute.yaml`
+- Update `kubernetes/apps/default/oauth-pages/app/values.yaml`
 - Confirm `kubernetes/apps/default/oauth-pages/app/securitypolicy.yaml` is section-scoped
 - Validate and reconcile
 

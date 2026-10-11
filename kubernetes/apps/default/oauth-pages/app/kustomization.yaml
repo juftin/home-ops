@@ -2,7 +2,6 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ./configmap.yaml
-  - ./httproute.yaml
   - ./securitypolicy.yaml
 helmCharts:
   - name: app-template
@@ -12,3 +11,5 @@ helmCharts:
     namespace: default
     includeCRDs: true
     valuesFile: ./values.yaml
+    apiVersions:
+      - gateway.networking.k8s.io/v1/HTTPRoute

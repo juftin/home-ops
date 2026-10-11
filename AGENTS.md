@@ -156,7 +156,7 @@ with the real age key for full decryption.
   from a Gateway, its DNS records will not be created/updated in Cloudflare.
 - **`oauth-pages` requires URL rewrites for friendly paths** — `/denied` and `/logged-out` must be
   rewritten to `/denied.html` and `/logged-out.html` in
-  `kubernetes/apps/default/oauth-pages/app/httproute.yaml`; otherwise nginx serves 404.
+  `kubernetes/apps/default/oauth-pages/app/values.yaml`; otherwise nginx serves 404.
 - **Keep oauth utility pages publicly reachable** — `kubernetes/apps/default/oauth-pages/app/securitypolicy.yaml`
   intentionally sets `authorization.defaultAction: Allow` on the `oauth-pages` HTTPRoute so denied/logout
   pages do not get trapped behind the gateway-level OIDC challenge.

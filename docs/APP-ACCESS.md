@@ -70,9 +70,14 @@ private access; use only `ingress` for Tailscale-only access. Tailscale bypasses
 Google SSO, so retain application authentication where needed. See
 [Tailscale setup](TAILSCALE-SETUP.md) for operator and hostname prerequisites.
 
-For charts without these settings, keep ordinary HTTPRoute/Ingress manifests
-beside the app; [Grafana](../kubernetes/apps/observability/kube-prometheus-stack/app/httproute.yaml)
-is an example. When moving existing manifests into chart values, remove their
+Grafana uses its own chart's `grafana.route.main` settings in
+[kube-prometheus-stack values](../kubernetes/apps/observability/kube-prometheus-stack/app/values.yaml).
+Shared OAuth utility routes also live in
+[oauth-pages values](../kubernetes/apps/default/oauth-pages/app/values.yaml), including
+their named callback, logout, denied, and logged-out rules.
+
+For charts without native route settings, keep ordinary HTTPRoute/Ingress manifests
+beside the app. When moving existing manifests into chart values, remove their
 files and Kustomization resource entries to avoid duplicate resources.
 
 Run `task lint` then `task dev:validate`. Use the normal branch testing workflow
