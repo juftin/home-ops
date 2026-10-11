@@ -4,22 +4,20 @@
 in Kubernetes at `https://hermes.${SECRET_DOMAIN}`. Google SSO restricts browser access to the admin
 group, and the dashboard additionally enforces its internal authentication gate.
 
-## Dashboard Password & 1Password Sync
+## Dashboard Credentials (1Password)
 
 Per the [Hermes Docker Setup guide](https://hermes-agent.nousresearch.com/docs/user-guide/docker), the
 dashboard's authentication gate engages automatically whenever it binds to a non-loopback address
-(`0.0.0.0`). The bundled username/password provider is enabled with `HERMES_DASHBOARD_BASIC_AUTH_USERNAME: admin`.
+(`0.0.0.0`). The bundled username/password provider validates basic auth credentials.
 
-The deployment manages its own password lifecycle automatically:
-1. **Password Generator**: An External Secrets `Password` generator (`hermes-agent-password`) creates a random,
-   high-entropy 32-character password on initial deployment (`refreshInterval: "0"` to avoid unintended rotations).
-2. **Kubernetes Secret**: An `ExternalSecret` creates `hermes-agent-secret` containing the username, URL, and generated password.
-3. **1Password Push**: A `PushSecret` automatically synchronizes the credentials to the `homelab` 1Password vault:
-   - **Item**: `hermes-agent`
-   - **Fields**: `password`, `username`, and `url` (`https://hermes.${SECRET_DOMAIN}`)
+Create a **Login** item named `hermes-agent` in the 1Password **homelab** vault:
+- **Title**: `hermes-agent`
+- **Website / URL**: `https://hermes.${SECRET_DOMAIN}`
+- **Username**: `admin`
+- **Password**: Generate or provide a strong password
 
-No manual creation of the 1Password item or password is required prior to deployment. Once synchronized, the credentials
-can be found in 1Password under `hermes-agent` for browser autofill.
+External Secrets synchronizes the username and password from 1Password into `hermes-agent-secret`.
+Reloader automatically restarts the pod when credentials change in 1Password.
 
 ## Architecture and Volumes
 

@@ -9,7 +9,5 @@ helmCharts:
     includeCRDs: true
     valuesFile: ./values.yaml
 resources:
-  - ./generator.yaml
   - ./externalsecret.yaml
-  - ./pushsecret.yaml
   - ./httproute.yaml

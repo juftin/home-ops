@@ -15,7 +15,11 @@ controllers:
           HERMES_DASHBOARD: "1"
           HERMES_DASHBOARD_HOST: 0.0.0.0
           HERMES_DASHBOARD_PORT: &dashboardPort 9119
-          HERMES_DASHBOARD_BASIC_AUTH_USERNAME: admin
+          HERMES_DASHBOARD_BASIC_AUTH_USERNAME:
+            valueFrom:
+              secretKeyRef:
+                name: hermes-agent-secret
+                key: HERMES_DASHBOARD_BASIC_AUTH_USERNAME
           HERMES_DASHBOARD_BASIC_AUTH_PASSWORD:
             valueFrom:
               secretKeyRef:
