@@ -58,7 +58,8 @@ spec:
           jqPathExpressions:
             - .spec.parentRefs[].group
             - .spec.parentRefs[].kind
-            - .spec.rules[].matches
+            # Ignore only the API's default catch-all, so path edits still trigger sync.
+            - '.spec.rules[] | select(.matches == [{"path":{"type":"PathPrefix","value":"/"}}]) | .matches'
         - group: gateway.envoyproxy.io
           kind: SecurityPolicy
           jqPathExpressions:

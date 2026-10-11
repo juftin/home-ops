@@ -59,8 +59,8 @@ ______________________________________________________________________
 
 File: `kubernetes/apps/default/oauth-pages/app/values.yaml`
 
-- [ ] Add new Gateway to `parentRefs`
-- [ ] Ensure hostnames include new OAuth host if needed
+- [ ] Add new Gateway to `route.app.parentRefs`
+- [ ] Keep `route.app.hostnames: ['*.${SECRET_DOMAIN}']` for shared utility-page coverage
 - [ ] Verify `/denied` and `/logged-out` route to `oauth-pages`
 - [ ] Verify `/denied` -> `/denied.html` and `/logged-out` -> `/logged-out.html` rewrites exist
 - [ ] Keep `/oauth2/callback` as its own route rule (no public allow override)

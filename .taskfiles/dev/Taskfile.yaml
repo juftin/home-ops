@@ -2,16 +2,26 @@ version: '3'
 tasks:
   validate:
     desc: Validate ArgoCD rendering and built-in resource schemas (no cluster required)
-    cmd: '{{.ROOT_DIR}}/scripts/validate-argocd-render.sh'
+    cmds:
+      - '{{.ROOT_DIR}}/scripts/validate-argocd-render.sh'
+      - task: validate:bootstrap
     preconditions:
       - which kustomize helm sops yq kubeconform
       - test -x {{.ROOT_DIR}}/scripts/validate-argocd-render.sh
   validate:ci:
     desc: Validate rendering and schemas with placeholder secrets (no age key or cluster required)
-    cmd: '{{.ROOT_DIR}}/scripts/validate-argocd-render.sh --offline'
+    cmds:
+      - '{{.ROOT_DIR}}/scripts/validate-argocd-render.sh --offline'
+      - task: validate:bootstrap
     preconditions:
       - which kustomize helm yq kubeconform
       - test -x {{.ROOT_DIR}}/scripts/validate-argocd-render.sh
+  validate:bootstrap:
+    desc: Render the ArgoCD bootstrap chart with placeholders and validate built-in schemas
+    cmd: >-
+      ARGOCD_SECRET_DOMAIN=example.com ARGOCD_OIDC_CLIENT_ID=ci-placeholder ARGOCD_RBAC_ADMINS='' ARGOCD_TARGET_REVISION=refs/heads/main helmfile --file {{.ROOT_DIR}}/bootstrap/helmfile.d/01-apps.yaml --selector name=argocd template --skip-deps | bash {{.ROOT_DIR}}/scripts/validate-kubernetes-schema.sh
+    preconditions:
+      - which helmfile helm yq kubeconform
   validate:test:
     desc: Test offline and decrypted rendering using temporary encrypted fixtures
     cmd: 'bash {{.ROOT_DIR}}/scripts/tests/test-argocd-render.sh'
