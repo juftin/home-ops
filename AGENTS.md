@@ -121,12 +121,17 @@ See [`specs/001-external-secrets-1password/quickstart.md`](specs/001-external-se
 
 ## CI — What Runs on Pull Requests
 
-PRs to `main` with changes under `kubernetes/` trigger two jobs:
+PRs to `main` run repository quality checks:
 
-1. **`ArgoCD Render Validation`** — runs `task dev:validate` to render all app manifests offline
-2. **`e2e` checks** — include repository configure + render checks used by template validation
+1. **`Repository Quality`** — runs `task lint` (pre-commit, Actionlint, ShellCheck) on every PR;
+   skips only the local `no-commit-to-branch` hook.
+2. **`ArgoCD Render Validation`** — runs `task dev:validate:ci` for manifest, renderer, Taskfile,
+   workflow, tool pin, or Kubernetes version changes. Uses placeholders without cluster secrets
+   and runs strict Kubeconform checks for built-in resources. Custom resources and CRD definitions
+   are excluded from schema validation.
 
-Replicate CI locally with `task dev:validate` before opening a PR.
+Replicate CI locally with `task lint` then `task dev:validate:ci`; use `task dev:validate`
+with the real age key for full decryption.
 
 ## Gotchas
 
