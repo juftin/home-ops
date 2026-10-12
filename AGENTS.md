@@ -105,14 +105,17 @@ Use `kubernetes/apps/default/echo/` as a working reference. After adding files:
 
 **If the app is OAuth-protected**:
 
+Prefer the app-template chart's `route` and `ingress` settings in the app's
+`values.yaml`; see [App access](docs/APP-ACCESS.md). Keep ordinary manifests beside
+apps using other charts.
+
 1. Add an explicit hostname entry in
    `kubernetes/apps/network/cloudflare-tunnel/app/values.yaml` **before** the wildcard
    `*.${SECRET_DOMAIN}` rule. Route by group:
    - admins: `https://envoy-oauth-admin.<namespace>.svc.cluster.local:443` with `originServerName: oauth.${SECRET_DOMAIN}`
    - users: `https://envoy-oauth-users.<namespace>.svc.cluster.local:443` with `originServerName: oauth-users.${SECRET_DOMAIN}`
-2. Add the app hostname to
-   `kubernetes/apps/default/oauth-pages/app/httproute.yaml` so `/denied` and `/logged-out` work on
-   that host.
+2. Shared `oauth-pages` uses `*.${SECRET_DOMAIN}` to cover app hosts; no per-app
+   hostname entry is needed for `/denied` or `/logged-out`.
 3. Keep `/oauth2/callback` route handling on `oauth-pages` and do not broaden
    `oauth-pages-public` to allow callback.
 
@@ -121,12 +124,17 @@ See [`specs/001-external-secrets-1password/quickstart.md`](specs/001-external-se
 
 ## CI — What Runs on Pull Requests
 
-PRs to `main` with changes under `kubernetes/` trigger two jobs:
+PRs to `main` run repository quality checks:
 
-1. **`ArgoCD Render Validation`** — runs `task dev:validate` to render all app manifests offline
-2. **`e2e` checks** — include repository configure + render checks used by template validation
+1. **`Repository Quality`** — runs `task lint` (pre-commit, Actionlint, ShellCheck) on every PR;
+   skips only the local `no-commit-to-branch` hook.
+2. **`ArgoCD Render Validation`** — runs `task dev:validate:ci` for manifest, renderer, Taskfile,
+   workflow, tool pin, or Kubernetes version changes. Uses placeholders without cluster secrets
+   and runs strict Kubeconform checks for built-in resources. Custom resources and CRD definitions
+   are excluded from schema validation.
 
-Replicate CI locally with `task dev:validate` before opening a PR.
+Replicate CI locally with `task lint` then `task dev:validate:ci`; use `task dev:validate`
+with the real age key for full decryption.
 
 ## Gotchas
 
@@ -148,7 +156,7 @@ Replicate CI locally with `task dev:validate` before opening a PR.
   from a Gateway, its DNS records will not be created/updated in Cloudflare.
 - **`oauth-pages` requires URL rewrites for friendly paths** — `/denied` and `/logged-out` must be
   rewritten to `/denied.html` and `/logged-out.html` in
-  `kubernetes/apps/default/oauth-pages/app/httproute.yaml`; otherwise nginx serves 404.
+  `kubernetes/apps/default/oauth-pages/app/values.yaml`; otherwise nginx serves 404.
 - **Keep oauth utility pages publicly reachable** — `kubernetes/apps/default/oauth-pages/app/securitypolicy.yaml`
   intentionally sets `authorization.defaultAction: Allow` on the `oauth-pages` HTTPRoute so denied/logout
   pages do not get trapped behind the gateway-level OIDC challenge.
