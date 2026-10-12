@@ -3,7 +3,6 @@ kind: Kustomization
 resources:
   - ./dnsendpoint.yaml
   - ./externalsecret.yaml
-  - ./httproute.yaml
 helmCharts:
   - name: kube-prometheus-stack
     repo: oci://ghcr.io/prometheus-community/charts
