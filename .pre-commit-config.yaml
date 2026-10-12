@@ -27,3 +27,17 @@ repos:
           - mdformat-ruff
           - mdformat-config
         exclude: ^.github/
+  - repo: local
+    hooks:
+      - id: actionlint
+        name: actionlint
+        entry: actionlint
+        language: system
+        files: ^\.github/workflows/.*\.ya?ml$
+        types: [yaml]
+      - id: shellcheck
+        name: shellcheck
+        entry: shellcheck
+        args: ["--severity=warning"]
+        language: system
+        types: [shell]

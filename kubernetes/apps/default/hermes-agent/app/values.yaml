@@ -1,0 +1,105 @@
+controllers:
+  hermes-agent:
+    strategy: Recreate
+    annotations:
+      reloader.stakater.com/auto: "true"
+    containers:
+      app:
+        image:
+          repository: docker.io/nousresearch/hermes-agent
+          tag: v0.21.6
+        args:
+          - gateway
+          - run
+        env:
+          HERMES_DASHBOARD: "1"
+          HERMES_DASHBOARD_HOST: 0.0.0.0
+          HERMES_DASHBOARD_PORT: &dashboardPort 9119
+          HERMES_DASHBOARD_BASIC_AUTH_USERNAME:
+            valueFrom:
+              secretKeyRef:
+                name: hermes-agent-secret
+                key: HERMES_DASHBOARD_BASIC_AUTH_USERNAME
+          HERMES_DASHBOARD_BASIC_AUTH_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: hermes-agent-secret
+                key: HERMES_DASHBOARD_BASIC_AUTH_PASSWORD
+          HERMES_WRITE_SAFE_ROOT: /opt/data
+          API_SERVER_ENABLED: "true"
+          API_SERVER_HOST: 0.0.0.0
+          API_SERVER_PORT: &apiPort 8642
+          API_SERVER_KEY:
+            valueFrom:
+              secretKeyRef:
+                name: hermes-agent-secret
+                key: HERMES_DASHBOARD_BASIC_AUTH_PASSWORD
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /api/health
+                port: *dashboardPort
+              initialDelaySeconds: 5
+              periodSeconds: 5
+              timeoutSeconds: 3
+              failureThreshold: 30
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /api/health
+                port: *dashboardPort
+              initialDelaySeconds: 0
+              periodSeconds: 10
+              timeoutSeconds: 3
+              failureThreshold: 3
+          readiness: *probes
+        securityContext:
+          allowPrivilegeEscalation: false
+        resources:
+          requests:
+            cpu: 100m
+            memory: 512Mi
+          limits:
+            memory: 4Gi
+defaultPodOptions:
+  automountServiceAccountToken: false
+  securityContext:
+    fsGroup: 10000
+    fsGroupChangePolicy: OnRootMismatch
+service:
+  app:
+    controller: hermes-agent
+    ports:
+      http:
+        port: *dashboardPort
+      api:
+        port: *apiPort
+persistence:
+  data:
+    storageClass: node-local
+    accessMode: ReadWriteOnce
+    size: 10Gi
+    globalMounts:
+      - path: /opt/data
+route:
+  app:
+    hostnames:
+      - hermes.${SECRET_DOMAIN}
+    parentRefs:
+      - name: envoy-oauth-admin
+        namespace: network
+        sectionName: https
+    rules:
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /v1
+        backendRefs:
+          - port: api
+      - backendRefs:
+          - port: http
