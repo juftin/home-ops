@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+helmCharts:
+  - name: app-template
+    repo: oci://ghcr.io/bjw-s-labs/helm
+    version: 5.0.1
+    releaseName: openclaw
+    namespace: default
+    includeCRDs: true
+    valuesFile: ./values.yaml
+    apiVersions:
+      - gateway.networking.k8s.io/v1/HTTPRoute
+resources:
+  - ./externalsecret.yaml
