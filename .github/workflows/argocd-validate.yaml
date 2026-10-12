@@ -1,7 +1,10 @@
 name: "ArgoCD Render Validation"
 on:
+  workflow_dispatch:
   pull_request:
     branches: ["main"]
+permissions:
+  contents: read
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.number || github.ref }}
   cancel-in-progress: true
@@ -16,14 +19,23 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Get Changed Files
         id: changed-files
+        if: ${{ github.event_name == 'pull_request' }}
         uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
         with:
-          files: kubernetes/**
+          files: |
+            kubernetes/**
+            bootstrap/**
+            scripts/**
+            .taskfiles/dev/**
+            Taskfile.yaml
+            .mise.toml
+            talos/talenv.yaml
+            .github/workflows/argocd-validate.yaml
   validate:
     name: ArgoCD Render Validate
     needs: pre-job
     runs-on: ubuntu-latest
-    if: ${{ needs.pre-job.outputs.any_changed == 'true' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.pre-job.outputs.any_changed == 'true' }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -33,17 +45,19 @@ jobs:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         with:
           cache: false
-      - name: Validate ArgoCD rendering
-        run: task dev:validate
+      - name: Test render validation modes
+        run: task dev:validate:test
+      - name: Validate ArgoCD rendering and Kubernetes schemas
+        run: task dev:validate:ci
   argocd-validate-status:
     name: ArgoCD Render Validation Success
-    needs: ["validate"]
+    needs: ["pre-job", "validate"]
     runs-on: ubuntu-latest
     if: ${{ always() }}
     steps:
       - name: Any jobs failed?
-        if: ${{ contains(needs.*.result, 'failure') }}
+        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
         run: exit 1
       - name: All jobs passed or skipped?
-        if: ${{ !(contains(needs.*.result, 'failure')) }}
+        if: ${{ !(contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')) }}
         run: echo "All jobs passed or skipped" && echo "${{ toJSON(needs.*.result) }}"
