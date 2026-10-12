@@ -45,13 +45,22 @@ ______________________________________________________________________
   when ConfigMaps or Secrets change.
 - **[local-path-provisioner](https://github.com/rancher/local-path-provisioner)**: Dynamic
   node-local persistent volume provisioning.
+- **[Tailscale](https://tailscale.com/)**: Kubernetes operator for private access to cluster applications.
+  See [setup](docs/TAILSCALE-SETUP.md).
+
+See [App access](docs/APP-ACCESS.md) for app-local OAuth, public Cloudflare,
+and Tailscale examples using the existing chart values.
 
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f3a1/512.gif" alt="🎡" width="20" height="20"> Apps
 
 - **[echo](https://github.com/mendhak/docker-http-https-echo)**: Simple HTTP/HTTPS echo server for
   testing.
 - **[Paseo](https://github.com/getpaseo/paseo)**: Self-hosted coding-agent daemon and web UI behind
-  admin Google SSO, with persistent workspaces. See [setup](docs/PASEO-SETUP.md).
+  admin Google SSO, with private Tailscale access and persistent workspaces. See [setup](docs/PASEO-SETUP.md).
+- **[OpenClaw](https://github.com/openclaw/openclaw)**: Personal AI assistant gateway and Control UI
+  behind admin Google SSO, with persistent state. See [setup](docs/OPENCLAW-SETUP.md).
+- **[Hermes Agent](https://github.com/NousResearch/hermes-agent)**: Self-improving AI agent
+  with Gateway API server and Web Dashboard behind admin Google SSO. See [setup](docs/HERMES-SETUP.md).
 - **[Grafana](https://grafana.com/)**: Cluster dashboards and Explore UI.
 - **[Prometheus](https://prometheus.io/)**: Scrapes and stores Kubernetes metrics with 30-day
   retention.

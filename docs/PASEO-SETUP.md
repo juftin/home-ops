@@ -5,6 +5,11 @@ Google SSO restricts browser access to the admin group, and Paseo requires its o
 API and WebSocket access. Agents run inside the pod and work on repositories in `/workspace`.
 This deployment does not expose a daemon running on your laptop.
 
+For browser, native, or CLI access from other devices, use the private Tailscale endpoint at
+`https://paseo.<tailnet-DNS-suffix>`. It requires Tailscale access and the daemon password, without
+Google OAuth redirects. Configure the tailnet credentials and DNS suffix before deploying this
+configuration; see [Tailscale setup](TAILSCALE-SETUP.md).
+
 ## Password
 
 Create a **Login** item named `paseo` in the 1Password **homelab** vault. Set its URL to your
@@ -15,39 +20,46 @@ the Secret exists. Reloader restarts the pod when the password changes.
 ## Provider Setup
 
 The [official image](https://paseo.sh/docs/docker) includes Paseo and Git, but no agent CLIs.
-An init container installs Codex (`@openai/codex`) and Antigravity (`agy`) into
-`/home/paseo/.local` before the daemon starts. Every pod start attempts to upgrade both to the
-latest release. If an upgrade fails, a working installed version is reused; a failed first
-installation prevents startup. Both CLIs must pass their version checks before Paseo starts.
-The home PVC and `/home/paseo/.local/bin` in `PATH` keep the tools available across pod recreation.
+An init container installs Codex (`@openai/codex`), Claude Code (`@anthropic-ai/claude-code`),
+Antigravity (`agy`), and the GitHub CLI (`gh`) into `/home/paseo/.local` before the daemon starts.
+Every pod start attempts to upgrade all tools to their latest release. If an upgrade fails, a
+working installed version is reused; a failed first installation prevents startup. All CLIs must
+pass their version checks before Paseo starts. The home PVC and `/home/paseo/.local/bin` in `PATH`
+keep the tools available across pod recreation.
 
 Check installation logs and versions:
 
 ```bash
 kubectl logs -n default deployment/paseo -c install-agents
 kubectl exec -n default deployment/paseo -c app -- codex --version
+kubectl exec -n default deployment/paseo -c app -- claude --version
 kubectl exec -n default deployment/paseo -c app -- agy --version
+kubectl exec -n default deployment/paseo -c app -- gh --version
 ```
 
 Authenticate each provider once inside the running pod as the non-root `paseo` user:
 
 ```bash
 kubectl exec -it -n default deployment/paseo -c app -- codex login --device-auth
+kubectl exec -it -n default deployment/paseo -c app -- claude
 kubectl exec -it -n default deployment/paseo -c app -- agy
+kubectl exec -it -n default deployment/paseo -c app -- gh auth login
 ```
 
 For Codex, enable device-code login in your ChatGPT security settings if needed, then open the
 printed URL and enter the code. See [Codex authentication](https://developers.openai.com/codex/auth/).
+For Claude Code, run `claude` to complete the sign-in flow or provide `ANTHROPIC_API_KEY`.
 For Antigravity, follow its sign-in prompts; see
 [installation and auth](https://www.antigravity.google/docs/cli/install/).
-The persistent home includes Codex's `.codex` and Antigravity's `.gemini` configuration.
+The persistent home includes Codex's `.codex`, Claude's `.claude`, Antigravity's `.gemini`, and
+GitHub CLI's `.config/gh` configuration.
 Antigravity may require an accessible Linux keyring for Google sign-in; see Google's
 [CLI troubleshooting](https://www.antigravity.google/docs/cli/troubleshooting/).
-Pick Codex or Antigravity in Paseo after signing in; neither requires an extra Paseo plugin.
+Pick Codex, Claude, or Antigravity in Paseo after signing in; none requires an extra Paseo plugin.
 Antigravity supports only Full access in Paseo, with tool calls running without permission prompts.
 See [supported providers](https://paseo.sh/docs/supported-providers#antigravity).
 
-Restart the deployment to retry upgrades. Install and authenticate the GitHub CLI inside the pod
+Restart the deployment to retry upgrades. Authenticate the GitHub CLI (`gh auth login`) inside the pod
 if you need Paseo's PR features.
 
 Clone repositories into `/workspace`, then select them in Paseo. The home volume is 5 GiB and
@@ -85,4 +97,5 @@ when a check fails.
 The Cloudflare Tunnel has an explicit Paseo rule before the public wildcard rule. The HTTPRoute
 attaches only to `envoy-oauth-admin`; no additional Google OAuth redirect URI is needed because
 the existing admin gateway handles the callback. Relay access is disabled, so native or CLI
-clients must also handle gateway authentication to connect through this hostname.
+clients must also handle gateway authentication to connect through this public hostname. Use the
+Tailscale hostname for direct daemon connections on port 443 with SSL enabled.

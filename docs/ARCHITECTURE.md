@@ -46,8 +46,16 @@ ______________________________________________________________________
 ## Validation and CI
 
 - Local gate: `task lint` then `task dev:validate`
+- Every PR runs **Repository Quality** (`.github/workflows/quality.yaml`): pre-commit formatting
+  and syntax checks, Actionlint for workflows, and ShellCheck warnings/errors for shell scripts.
 - PR gate: GitHub Actions **ArgoCD Render Validation** workflow (`.github/workflows/argocd-validate.yaml`)
-- Template/e2e checks also run `task dev:validate`
+  runs `task dev:validate:ci` with placeholder secrets and `example.com`, including for fork PRs.
+  No cluster credentials or age key are supplied to GitHub Actions.
+  Placeholder rendering cannot verify decryption or the contents of encrypted policies.
+  ArgoCD continues to decrypt with the real age key.
+- Render validation also runs strict Kubeconform checks on built-in Kubernetes resources against
+  `talos/talenv.yaml`'s Kubernetes version. Custom resources and CRD definitions are excluded;
+  missing schemas for other built-in resources fail validation.
 
 ______________________________________________________________________
 
@@ -59,9 +67,11 @@ ______________________________________________________________________
 
 ## Coding Agents
 
-| Namespace | App     | Role                                   |
-| --------- | ------- | -------------------------------------- |
-| `default` | `paseo` | Coding-agent daemon and bundled web UI |
+| Namespace | App            | Role                                                       |
+| --------- | -------------- | ---------------------------------------------------------- |
+| `default` | `paseo`        | Coding-agent daemon and bundled web UI                     |
+| `default` | `openclaw`     | Personal AI assistant gateway and Control UI               |
+| `default` | `hermes-agent` | Self-improving AI agent with Gateway API and Web Dashboard |
 
 Paseo is served at `paseo.${SECRET_DOMAIN}` through Cloudflare Tunnel and the admin OAuth Gateway.
 The daemon additionally requires a password from the `paseo` 1Password item. It trusts forwarded
@@ -69,6 +79,48 @@ headers from the cluster pod network (`10.42.0.0/16`) so HTTPS connections use s
 Relay access is disabled. Node-local PVCs persist `/home/paseo` (state, provider tools, and
 credentials) and `/workspace` (repositories and worktrees); a single replica uses `Recreate`
 to avoid overlapping agents and volume attachment conflicts. An init container installs or upgrades
-Codex and Antigravity in the persistent home before the daemon starts, reusing working installed
-versions if upgrades fail. Authenticate each provider before running tasks; see
+Codex, Claude Code, Antigravity, and the GitHub CLI in the persistent home before the daemon starts,
+reusing working installed versions if upgrades fail. Authenticate each provider before running tasks; see
 [Paseo setup](PASEO-SETUP.md).
+
+Hermes Agent is served at `hermes.${SECRET_DOMAIN}` through Cloudflare Tunnel and the admin OAuth
+Gateway (`envoy-oauth-admin`). The deployment exposes the Web Dashboard (port 9119) and
+OpenAI-compatible Gateway API (port 8642). A node-local PVC persists `/opt/data` (configuration,
+sessions, skills, and memory). A single replica uses `Recreate` to prevent volume attachment
+conflicts. See [Hermes setup](HERMES-SETUP.md).
+
+OpenClaw is served at `openclaw.${SECRET_DOMAIN}` through Cloudflare Tunnel and the admin OAuth
+Gateway. Its HTTP and WebSocket gateway share port 18789; OpenClaw token authentication and
+browser device pairing remain enabled behind SSO. A node-local PVC persists `/home/node`,
+including configuration, provider credentials, sessions, and workspaces. One non-root replica
+uses `Recreate`. A first-run init container seeds the gateway configuration without overwriting
+subsequent onboarding changes. See [OpenClaw setup](OPENCLAW-SETUP.md).
+
+## Private Network Access
+
+| Namespace   | App         | Role                                             |
+| ----------- | ----------- | ------------------------------------------------ |
+| `tailscale` | `tailscale` | Kubernetes operator and private HTTPS proxy pods |
+
+The Tailscale operator exposes Paseo through a private `Ingress` at
+`https://paseo.<tailnet-DNS-suffix>`, forwarding directly to the existing `paseo:6767` service.
+Proxies use the shared `tag:k8s`; the documented tailnet policy allows all ports and protocols
+between tailnet devices, and the daemon still requires its password.
+This route avoids browser OAuth redirects for native clients; the public hostname retains admin
+Google SSO. The Ingress uses a userspace proxy without additional pod privileges. Operator OAuth
+credentials and the DNS suffix come from the `tailscale` 1Password item through External Secrets.
+A Tailscale-owned `ClusterExternalSecret` distributes the DNS suffix as `tailscale-config` to
+consumer namespaces; OAuth credentials stay in `tailscale`. Paseo owns only its Ingress and
+the environment reference to the shared configuration.
+No Funnel or Kubernetes API proxy is enabled. See [Tailscale setup](TAILSCALE-SETUP.md).
+
+## App Access
+
+App-template workloads configure HTTPRoutes and Tailscale Ingresses in their own
+`values.yaml`, using the chart's built-in resources. Grafana uses the bundled
+Grafana chart's `grafana.route.main` settings, and ArgoCD uses `server.httproute`
+in its Helmfile bootstrap values. Public apps use
+`envoy-external`; OAuth apps choose the admin or users Gateway and have an explicit
+Cloudflare Tunnel rule. Shared OAuth utility pages cover app hosts through a
+wildcard while public-policy exceptions stay scoped to denied/logout sections.
+See [App access](APP-ACCESS.md).
