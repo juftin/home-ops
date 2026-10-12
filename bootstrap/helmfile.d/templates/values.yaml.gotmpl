@@ -24,27 +24,6 @@ extraObjects:
         automated:
           prune: true
           selfHeal: true
-  - apiVersion: gateway.networking.k8s.io/v1
-    kind: HTTPRoute
-    metadata:
-      name: argocd
-      namespace: argocd
-    spec:
-      hostnames:
-        - {{ printf "argocd.%s" $argocdSecretDomain | quote }}
-      parentRefs:
-        - name: envoy-oauth-admin
-          namespace: network
-          sectionName: https
-      rules:
-        - backendRefs:
-            - name: argocd-server
-              namespace: argocd
-              port: 80
-          matches:
-            - path:
-                type: PathPrefix
-                value: /
 configs:
   cm:
     admin.enabled: "true"
@@ -170,6 +149,14 @@ repoServer:
           name: sops-age
           readOnly: true
 server:
+  httproute:
+    enabled: true
+    hostnames:
+      - {{ printf "argocd.%s" $argocdSecretDomain | quote }}
+    parentRefs:
+      - name: envoy-oauth-admin
+        namespace: network
+        sectionName: https
   extraArgs:
     - --insecure
 controller:
