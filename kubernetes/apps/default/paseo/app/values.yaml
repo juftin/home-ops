@@ -125,4 +125,21 @@ persistence:
       - path: /workspace
 route:
   app:
-    enabled: false
+    hostnames:
+      - paseo.${SECRET_DOMAIN}
+    parentRefs:
+      - name: envoy-oauth-admin
+        namespace: network
+        sectionName: https
+ingress:
+  tailscale:
+    suffix: tailscale
+    className: tailscale
+    defaultBackend:
+      service:
+        name: paseo
+        port:
+          number: *port
+    tls:
+      - hosts:
+          - paseo

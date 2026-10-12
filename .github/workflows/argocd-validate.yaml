@@ -24,6 +24,7 @@ jobs:
         with:
           files: |
             kubernetes/**
+            bootstrap/**
             scripts/**
             .taskfiles/dev/**
             Taskfile.yaml
