@@ -38,6 +38,15 @@ grafana:
       url: http://loki.observability.svc.cluster.local:3100
       access: proxy
       isDefault: false
+  route:
+    main:
+      enabled: true
+      hostnames:
+        - grafana.${SECRET_DOMAIN}
+      parentRefs:
+        - name: envoy-oauth-users
+          namespace: network
+          sectionName: https
 alertmanager:
   enabled: true
   alertmanagerSpec:
