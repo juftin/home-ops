@@ -8,5 +8,5 @@ helmCharts:
     namespace: default
     includeCRDs: true
     valuesFile: ./values.yaml
-resources:
-  - ./httproute.yaml
+    apiVersions:
+      - gateway.networking.k8s.io/v1/HTTPRoute
