@@ -252,3 +252,57 @@ service:
     ports:
       http:
         port: 80
+route:
+  app:
+    parentRefs:
+      - name: envoy-oauth-admin
+        namespace: network
+      - name: envoy-oauth-users
+        namespace: network
+      - name: envoy-oauth-internal
+        namespace: network
+      - name: envoy-external
+        namespace: network
+    hostnames:
+      - '*.${SECRET_DOMAIN}'
+    rules:
+      - name: callback
+        matches:
+          - path:
+              type: Exact
+              value: /oauth2/callback
+        backendRefs:
+          - identifier: app
+      - name: logout
+        matches:
+          - path:
+              type: Exact
+              value: /logout
+        backendRefs:
+          - identifier: app
+      - name: denied
+        matches:
+          - path:
+              type: Exact
+              value: /denied
+        filters:
+          - type: URLRewrite
+            urlRewrite:
+              path:
+                type: ReplaceFullPath
+                replaceFullPath: /denied.html
+        backendRefs:
+          - identifier: app
+      - name: logged-out
+        matches:
+          - path:
+              type: Exact
+              value: /logged-out
+        filters:
+          - type: URLRewrite
+            urlRewrite:
+              path:
+                type: ReplaceFullPath
+                replaceFullPath: /logged-out.html
+        backendRefs:
+          - identifier: app
