@@ -7,7 +7,7 @@ controllers:
     containers:
       app:
         image:
-          repository: juftin/camply-frontend
+          repository: ghcr.io/juftin/camply-frontend
           tag: latest
         probes:
           startup:
@@ -48,7 +48,7 @@ controllers:
     initContainers:
       wait-for-db:
         image: &backendImage
-          repository: juftin/camply-backend
+          repository: ghcr.io/juftin/camply-backend
           tag: latest
         command:
           - python
