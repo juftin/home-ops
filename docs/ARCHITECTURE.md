@@ -98,12 +98,16 @@ subsequent onboarding changes. See [OpenClaw setup](OPENCLAW-SETUP.md).
 
 ## Private Network Access
 
-| Namespace   | App         | Role                                             |
-| ----------- | ----------- | ------------------------------------------------ |
-| `tailscale` | `tailscale` | Kubernetes operator and private HTTPS proxy pods |
+| Namespace   | App          | Role                                                                      |
+| ----------- | ------------ | ------------------------------------------------------------------------- |
+| `tailscale` | `tailscale`  | Kubernetes operator and private HTTPS proxy pods                          |
+| `default`   | `lunchmoney` | Lunch Money MCP server, dashboard, PostgreSQL, Valkey, and sync scheduler |
 
 The Tailscale operator exposes Paseo through a private `Ingress` at
 `https://paseo.<tailnet-DNS-suffix>`, forwarding directly to the existing `paseo:6767` service.
+It also exposes Lunch Money through a private `Ingress` at `https://lunchmoney.<tailnet-DNS-suffix>`,
+forwarding to the `lunchmoney:8000` service. Internally on the LAN, Lunch Money is served at
+`lunchmoney.${SECRET_DOMAIN}` via the `envoy-internal` Gateway.
 Proxies use the shared `tag:k8s`; the documented tailnet policy allows all ports and protocols
 between tailnet devices, and the daemon still requires its password.
 This route avoids browser OAuth redirects for native clients; the public hostname retains admin
