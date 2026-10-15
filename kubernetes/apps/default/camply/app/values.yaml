@@ -251,6 +251,10 @@ controllers:
     strategy: Recreate
     annotations:
       reloader.stakater.com/auto: "true"
+    pod:
+      securityContext:
+        fsGroup: 999
+        fsGroupChangePolicy: OnRootMismatch
     containers:
       app:
         image:
@@ -264,6 +268,7 @@ controllers:
               secretKeyRef:
                 name: camply-secret
                 key: POSTGRES_PASSWORD
+          PGDATA: /var/lib/postgresql/data/pgdata
         probes:
           startup:
             enabled: true
@@ -292,7 +297,14 @@ controllers:
           readiness: *dbProbes
         securityContext:
           allowPrivilegeEscalation: false
-          capabilities: {drop: ["ALL"]}
+          capabilities:
+            drop: ["ALL"]
+            add:
+              - CHOWN
+              - DAC_OVERRIDE
+              - FOWNER
+              - SETGID
+              - SETUID
         resources:
           requests:
             cpu: 50m
