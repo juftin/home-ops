@@ -95,6 +95,7 @@ controllers:
           CAMPLY_CORS_ORIGINS: '["https://camply.${SECRET_DOMAIN}"]'
           PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus_multiproc
           CAMPLY_PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus_multiproc
+          CAMPLY_PROMETHEUS_URL: http://camply-prometheus:9090
         probes:
           startup:
             enabled: true
@@ -180,6 +181,7 @@ controllers:
           CAMPLY_METRICS_PORT: 8001
           PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus_multiproc
           CAMPLY_PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus_multiproc
+          CAMPLY_PROMETHEUS_URL: http://camply-prometheus:9090
         securityContext:
           allowPrivilegeEscalation: false
           capabilities: {drop: ["ALL"]}
@@ -237,6 +239,7 @@ controllers:
           CAMPLY_METRICS_PORT: 8001
           PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus_multiproc
           CAMPLY_PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus_multiproc
+          CAMPLY_PROMETHEUS_URL: http://camply-prometheus:9090
         securityContext:
           allowPrivilegeEscalation: false
           capabilities: {drop: ["ALL"]}
@@ -361,6 +364,59 @@ controllers:
             memory: 64Mi
           limits:
             memory: 256Mi
+  prometheus:
+    replicas: 1
+    strategy: Recreate
+    annotations:
+      reloader.stakater.com/auto: "true"
+    pod:
+      securityContext:
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+        fsGroupChangePolicy: OnRootMismatch
+    containers:
+      app:
+        image:
+          repository: docker.io/prom/prometheus
+          tag: v3.2.1
+        args:
+          - --config.file=/etc/prometheus/prometheus.yml
+          - --storage.tsdb.path=/prometheus
+          - --web.console.libraries=/usr/share/prometheus/console_libraries
+          - --web.console.templates=/usr/share/prometheus/consoles
+          - --storage.tsdb.retention.time=30d
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /-/healthy
+                port: &prometheusPort 9090
+              periodSeconds: 5
+              timeoutSeconds: 3
+              failureThreshold: 30
+          liveness: &prometheusProbes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /-/healthy
+                port: *prometheusPort
+              periodSeconds: 10
+              timeoutSeconds: 3
+              failureThreshold: 3
+          readiness: *prometheusProbes
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+        resources:
+          requests:
+            cpu: 10m
+            memory: 64Mi
+          limits:
+            memory: 512Mi
 defaultPodOptions:
   automountServiceAccountToken: false
 service:
@@ -374,6 +430,11 @@ service:
     ports:
       http:
         port: *backendPort
+  worker:
+    controller: worker
+    ports:
+      metrics:
+        port: 8001
   db:
     controller: db
     ports:
@@ -384,6 +445,11 @@ service:
     ports:
       valkey:
         port: 6379
+  prometheus:
+    controller: prometheus
+    ports:
+      http:
+        port: *prometheusPort
 configMaps:
   nginx:
     data:
@@ -440,6 +506,31 @@ configMaps:
                 try_files $uri $uri/ /index.html;
             }
         }
+  prometheus:
+    data:
+      prometheus.yml: |-
+        global:
+          scrape_interval: 15s
+          evaluation_interval: 15s
+          external_labels:
+            application: camply
+
+        scrape_configs:
+          - job_name: "camply-backend"
+            metrics_path: "/metrics"
+            static_configs:
+              - targets: ["camply-backend:8000"]
+            scrape_interval: 15s
+
+          - job_name: "camply-worker"
+            metrics_path: "/metrics"
+            static_configs:
+              - targets: ["camply-worker:8001"]
+            scrape_interval: 15s
+
+          - job_name: "prometheus"
+            static_configs:
+              - targets: ["localhost:9090"]
 persistence:
   db-data:
     storageClass: node-local
@@ -457,6 +548,23 @@ persistence:
       valkey:
         app:
           - path: /data
+  prometheus-data:
+    storageClass: node-local
+    accessMode: ReadWriteOnce
+    size: 5Gi
+    advancedMounts:
+      prometheus:
+        app:
+          - path: /prometheus
+  prometheus-config:
+    type: configMap
+    identifier: prometheus
+    advancedMounts:
+      prometheus:
+        app:
+          - path: /etc/prometheus/prometheus.yml
+            subPath: prometheus.yml
+            readOnly: true
   nginx-config:
     type: configMap
     identifier: nginx

@@ -29,6 +29,7 @@ Camply is deployed using the `app-template` chart with dedicated controllers:
 - **Beat** (`camply-beat`): Celery beat scheduler for periodic provider catalog sync and poller tasks.
 - **Database** (`camply-db`): PostgreSQL 17 with a 10Gi `node-local` persistent volume claim.
 - **Cache/Broker** (`camply-valkey`): Valkey 8 instance serving as Celery message broker and result backend.
+- **Monitoring** (`camply-prometheus`): Isolated Prometheus 3 instance with a 5Gi `node-local` persistent volume, scraping backend and worker metrics to power Camply's built-in Admin Trends dashboard.
 
 ## Ingress and Access
 
