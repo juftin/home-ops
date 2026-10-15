@@ -55,6 +55,8 @@ and Tailscale examples using the existing chart values.
 
 - **[echo](https://github.com/mendhak/docker-http-https-echo)**: Simple HTTP/HTTPS echo server for
   testing.
+- **[Camply](https://github.com/juftin/camply)**: The campsite finder ⛺️, finder of available campsites
+  at recreation.gov and beyond, with frontend, API backend, Celery worker/beat, and Postgres database. See [setup](docs/CAMPLY-SETUP.md).
 - **[Paseo](https://github.com/getpaseo/paseo)**: Self-hosted coding-agent daemon and web UI behind
   admin Google SSO, with private Tailscale access and persistent workspaces. See [setup](docs/PASEO-SETUP.md).
 - **[OpenClaw](https://github.com/openclaw/openclaw)**: Personal AI assistant gateway and Control UI
