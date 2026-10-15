@@ -6,13 +6,13 @@ and notification scheduling.
 
 ## Credentials (1Password)
 
-Create a **Secure Note** or **Login** item named `camply` in the 1Password **homelab** vault:
+Create a **Secure Note** or **Login** item named `camply-home-ops` in the 1Password **homelab** vault:
 
-- **Title**: `camply`
+- **Title**: `camply-home-ops`
 - **POSTGRES_PASSWORD**: Strong generated password for the PostgreSQL database
 - **CAMPLY_SESSION_SECRET**: Random secret string (at least 32 characters) for session signing
 
-External Secrets synchronizes these values into `camply-secret` in the `default` namespace.
+External Secrets synchronizes these values into `camply-home-ops` in the `default` namespace.
 Reloader automatically restarts the deployments when secrets change in 1Password.
 
 ## Architecture and Components

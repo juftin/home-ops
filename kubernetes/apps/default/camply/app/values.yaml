@@ -79,7 +79,7 @@ controllers:
           CAMPLY_DB_PASSWORD:
             valueFrom:
               secretKeyRef:
-                name: camply-secret
+                name: camply-home-ops
                 key: POSTGRES_PASSWORD
           CAMPLY_DB_DATABASE: camply
           CAMPLY_VALKEY_URL: redis://camply-valkey:6379/0
@@ -88,7 +88,7 @@ controllers:
           CAMPLY_SESSION_SECRET:
             valueFrom:
               secretKeyRef:
-                name: camply-secret
+                name: camply-home-ops
                 key: CAMPLY_SESSION_SECRET
           CAMPLY_SESSION_MAX_AGE: 43200
           CAMPLY_SESSION_COOKIE_SECURE: true
@@ -172,7 +172,7 @@ controllers:
           CAMPLY_DB_PASSWORD:
             valueFrom:
               secretKeyRef:
-                name: camply-secret
+                name: camply-home-ops
                 key: POSTGRES_PASSWORD
           CAMPLY_DB_DATABASE: camply
           CAMPLY_VALKEY_URL: redis://camply-valkey:6379/0
@@ -229,7 +229,7 @@ controllers:
           CAMPLY_DB_PASSWORD:
             valueFrom:
               secretKeyRef:
-                name: camply-secret
+                name: camply-home-ops
                 key: POSTGRES_PASSWORD
           CAMPLY_DB_DATABASE: camply
           CAMPLY_VALKEY_URL: redis://camply-valkey:6379/0
@@ -266,7 +266,7 @@ controllers:
           POSTGRES_PASSWORD:
             valueFrom:
               secretKeyRef:
-                name: camply-secret
+                name: camply-home-ops
                 key: POSTGRES_PASSWORD
           PGDATA: /var/lib/postgresql/data/pgdata
         probes:
