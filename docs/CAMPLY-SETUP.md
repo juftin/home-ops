@@ -1,9 +1,8 @@
 # Camply Setup
 
 [Camply](https://github.com/juftin/camply), the campsite finder ⛺️, runs in Kubernetes at
-`https://camply.${SECRET_DOMAIN}` and privately via Tailscale at
-`https://camply.<tailnet-DNS-suffix>`. Google SSO restricts browser access to the admin group,
-and the app provides automated campsite search and notification scheduling.
+`https://camply.${SECRET_DOMAIN}` as a public web application with automated campsite search
+and notification scheduling.
 
 ## Credentials (1Password)
 
@@ -20,10 +19,11 @@ Reloader automatically restarts the deployments when secrets change in 1Password
 
 Camply is deployed using the `app-template` chart with dedicated controllers:
 
-- **Frontend** (`camply-frontend`): React + Vite single-page application served via Nginx on port `8080`.
-  Reverse-proxies `/api/` to `camply-backend:8000` with custom Nginx configMap.
-- **Backend API** (`camply-backend`): FastAPI application running under Gunicorn on port `8000`.
-  Applies Alembic database migrations on startup. Exposes `/api/health` for health probes.
+- **Frontend** (`camply-frontend`): React + Vite single-page application served via Nginx on port `8080`
+  with gzip compression and immutable asset caching. Reverse-proxies `/api/` to `camply-backend:8000`.
+- **Backend API** (`camply-backend`): FastAPI application running under Gunicorn on port `8000` with
+  `GZipMiddleware` response compression. Applies Alembic database migrations on startup. Exposes
+  `/api/health` for health probes.
 - **Worker** (`camply-worker`): Celery worker consuming tasks from the `celery` queue for campsite
   availability searches.
 - **Beat** (`camply-beat`): Celery beat scheduler for periodic provider catalog sync and poller tasks.
@@ -32,7 +32,7 @@ Camply is deployed using the `app-template` chart with dedicated controllers:
 
 ## Ingress and Access
 
-1. **OAuth Administration Route**: Exposes `camply.${SECRET_DOMAIN}` through Cloudflare Tunnel and the
-   `envoy-oauth-admin` Gateway with Google SSO protection.
-2. **Tailscale Ingress**: Exposes `https://camply.<tailnet-DNS-suffix>` for direct, low-latency access
-   from any authenticated Tailscale device without public exposure.
+- **Public Route**: Exposes `camply.${SECRET_DOMAIN}` through Cloudflare Tunnel and the `envoy-external`
+  Gateway. Public traffic reaches the application directly, using Camply's application-level
+  authentication (session login or open access). The Cloudflare Tunnel routes traffic matching
+  `*.${SECRET_DOMAIN}` directly to `envoy-external`.

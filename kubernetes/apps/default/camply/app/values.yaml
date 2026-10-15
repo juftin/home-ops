@@ -92,12 +92,9 @@ controllers:
                 key: CAMPLY_SESSION_SECRET
           CAMPLY_SESSION_MAX_AGE: 43200
           CAMPLY_SESSION_COOKIE_SECURE: true
-          CAMPLY_CORS_ORIGINS: '["https://camply.${SECRET_DOMAIN}", "https://camply.$(TAILSCALE_DNS_SUFFIX)"]'
+          CAMPLY_CORS_ORIGINS: '["https://camply.${SECRET_DOMAIN}"]'
           PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus_multiproc
           CAMPLY_PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus_multiproc
-        envFrom:
-          - secretRef:
-              name: tailscale-config
         probes:
           startup:
             enabled: true
@@ -462,7 +459,7 @@ route:
     hostnames:
       - camply.${SECRET_DOMAIN}
     parentRefs:
-      - name: envoy-oauth-admin
+      - name: envoy-external
         namespace: network
         sectionName: https
     rules:
@@ -480,15 +477,3 @@ route:
         backendRefs:
           - name: camply-frontend
             port: *frontendPort
-ingress:
-  tailscale:
-    suffix: tailscale
-    className: tailscale
-    defaultBackend:
-      service:
-        name: camply-frontend
-        port:
-          number: *frontendPort
-    tls:
-      - hosts:
-          - camply
