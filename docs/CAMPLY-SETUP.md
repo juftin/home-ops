@@ -11,9 +11,10 @@ Create a **Secure Note** or **Login** item named `camply-home-ops` in the 1Passw
 - **Title**: `camply-home-ops`
 - **POSTGRES_PASSWORD**: Strong generated password for the PostgreSQL database
 - **CAMPLY_SESSION_SECRET**: Random secret string (at least 32 characters) for session signing
-- **CAMPLY_LOGIN_PASSWORD**: Password for in-app session login (`admin` account)
+- **CAMPLY_LOGIN_USERNAME**: Username for in-app session login (e.g. `admin` or your personal username)
+- **CAMPLY_LOGIN_PASSWORD**: Password for in-app session login
 
-Authentication uses `CAMPLY_AUTH_MODE: session`. Log in with username `admin` and your configured `CAMPLY_LOGIN_PASSWORD`.
+Authentication uses `CAMPLY_AUTH_MODE: session`. Log in with your configured `CAMPLY_LOGIN_USERNAME` and `CAMPLY_LOGIN_PASSWORD`.
 
 External Secrets synchronizes these values into `camply-home-ops` in the `default` namespace.
 Reloader automatically restarts the deployments when secrets change in 1Password.

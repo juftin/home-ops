@@ -88,7 +88,11 @@ controllers:
           CAMPLY_ENVIRONMENT: production
           CAMPLY_DEBUG: false
           CAMPLY_AUTH_MODE: session
-          CAMPLY_LOGIN_USERNAME: admin
+          CAMPLY_LOGIN_USERNAME:
+            valueFrom:
+              secretKeyRef:
+                name: camply-home-ops
+                key: CAMPLY_LOGIN_USERNAME
           CAMPLY_LOGIN_PASSWORD:
             valueFrom:
               secretKeyRef:
