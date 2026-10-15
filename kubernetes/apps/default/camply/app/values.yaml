@@ -9,6 +9,7 @@ controllers:
         image:
           repository: ghcr.io/juftin/camply-frontend
           tag: latest
+          pullPolicy: Always
         probes:
           startup:
             enabled: true
@@ -50,6 +51,7 @@ controllers:
         image: &backendImage
           repository: ghcr.io/juftin/camply-backend
           tag: latest
+          pullPolicy: Always
         command:
           - python
           - -c
