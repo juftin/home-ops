@@ -8,7 +8,7 @@ controllers:
       config:
         image: &image
           repository: ghcr.io/openclaw/openclaw
-          tag: 2026.10.1
+          tag: 2026.10.3
         command: [node]
         args:
           - -e
