@@ -84,7 +84,14 @@ controllers:
           CAMPLY_DB_DATABASE: camply
           CAMPLY_VALKEY_URL: redis://camply-valkey:6379/0
           CAMPLY_ENVIRONMENT: production
-          CAMPLY_AUTH_MODE: none
+          CAMPLY_DEBUG: false
+          CAMPLY_AUTH_MODE: session
+          CAMPLY_LOGIN_USERNAME: admin
+          CAMPLY_LOGIN_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: camply-home-ops
+                key: CAMPLY_LOGIN_PASSWORD
           CAMPLY_SESSION_SECRET:
             valueFrom:
               secretKeyRef:
@@ -93,6 +100,7 @@ controllers:
           CAMPLY_SESSION_MAX_AGE: 43200
           CAMPLY_SESSION_COOKIE_SECURE: true
           CAMPLY_CORS_ORIGINS: '["https://camply.${SECRET_DOMAIN}"]'
+          GUNICORN_WORKERS: 2
           PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus_multiproc
           CAMPLY_PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus_multiproc
           CAMPLY_PROMETHEUS_URL: http://camply-prometheus:9090
