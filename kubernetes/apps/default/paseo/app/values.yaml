@@ -55,6 +55,7 @@ controllers:
             agy --version
             gh --version
         securityContext:
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           capabilities: {drop: ["ALL"]}
     containers:
@@ -89,6 +90,7 @@ controllers:
               failureThreshold: 3
           readiness: *probes
         securityContext:
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           capabilities: {drop: ["ALL"]}
         resources:
@@ -99,7 +101,10 @@ controllers:
             memory: 4Gi
 defaultPodOptions:
   automountServiceAccountToken: false
+  enableServiceLinks: false
   securityContext:
+    seccompProfile:
+      type: RuntimeDefault
     runAsNonRoot: true
     runAsUser: 1000
     runAsGroup: 1000
@@ -111,6 +116,10 @@ service:
       http:
         port: *port
 persistence:
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp
   home:
     storageClass: node-local
     accessMode: ReadWriteOnce
