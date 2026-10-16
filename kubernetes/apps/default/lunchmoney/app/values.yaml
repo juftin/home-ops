@@ -33,7 +33,7 @@ controllers:
         image: *image
         env:
           LUNCHMONEY_ENVIRONMENT: production
-          LUNCHMONEY_ALLOWED_HOSTS: lunchmoney.${SECRET_DOMAIN},lunchmoney-app.${SECRET_DOMAIN},lunchmoney.$(TAILSCALE_DNS_SUFFIX),lunchmoney-app.$(TAILSCALE_DNS_SUFFIX),lunchmoney,lunchmoney.default,lunchmoney.default.svc,lunchmoney.default.svc.cluster.local,localhost,127.0.0.1
+          LUNCHMONEY_ALLOWED_HOSTS: lunchmoney.${SECRET_DOMAIN},lunchmoney-app.${SECRET_DOMAIN},lunchmoney.$(TAILSCALE_DNS_SUFFIX),lunchmoney-app.$(TAILSCALE_DNS_SUFFIX),lunchmoney,lunchmoney.default,lunchmoney.default.svc,lunchmoney.default.svc.cluster.local,lunchmoney-app,lunchmoney-app.default,lunchmoney-app.default.svc,lunchmoney-app.default.svc.cluster.local,localhost,127.0.0.1
           DB_PASSWORD:
             valueFrom:
               secretKeyRef:
@@ -316,7 +316,7 @@ route:
         sectionName: https
     rules:
       - backendRefs:
-          - name: lunchmoney
+          - name: lunchmoney-app
             port: *port
 ingress:
   tailscale:
@@ -324,7 +324,7 @@ ingress:
     className: tailscale
     defaultBackend:
       service:
-        name: lunchmoney
+        name: lunchmoney-app
         port:
           number: *port
     tls:
