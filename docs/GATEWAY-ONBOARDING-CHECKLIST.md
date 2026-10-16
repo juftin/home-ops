@@ -15,7 +15,7 @@ ______________________________________________________________________
 
 ## 2. Mandatory Gateway Manifest Requirements
 
-File: `kubernetes/apps/network/envoy-gateway/app/envoy.yaml`
+File: `kubernetes/workloads/network/envoy-gateway/app/envoy.yaml`
 
 - [ ] `metadata.labels.home-ops.io/cloudflare-dns: "true"` (required for Cloudflare DNS sync)
 - [ ] `metadata.labels.home-ops.io/oauth-gateway: "true"` (required for OAuth policy targeting)
@@ -31,11 +31,11 @@ ______________________________________________________________________
 
 Files:
 
-- `kubernetes/apps/network/envoy-gateway/app/oauth-client-secret.sops.yaml`
+- `kubernetes/workloads/network/envoy-gateway/app/oauth-client-secret.sops.yaml`
 
-- `kubernetes/apps/network/envoy-gateway/app/oauth-policy*.sops.yaml`
+- `kubernetes/workloads/network/envoy-gateway/app/oauth-policy*.sops.yaml`
 
-- `kubernetes/apps/network/envoy-gateway/app/kustomization.yaml`
+- `kubernetes/workloads/network/envoy-gateway/app/kustomization.yaml`
 
 - [ ] `SecurityPolicy.spec.targetRefs` points to new Gateway
 
@@ -57,7 +57,7 @@ ______________________________________________________________________
 
 ## 4. Static UX Route Coverage
 
-File: `kubernetes/apps/default/oauth-pages/app/values.yaml`
+File: `kubernetes/workloads/apps/oauth-pages/app/values.yaml`
 
 - [ ] Add new Gateway to `route.app.parentRefs`
 - [ ] Keep `route.app.hostnames: ['*.${SECRET_DOMAIN}']` for shared utility-page coverage
@@ -65,7 +65,7 @@ File: `kubernetes/apps/default/oauth-pages/app/values.yaml`
 - [ ] Verify `/denied` -> `/denied.html` and `/logged-out` -> `/logged-out.html` rewrites exist
 - [ ] Keep `/oauth2/callback` as its own route rule (no public allow override)
 
-File: `kubernetes/apps/default/oauth-pages/app/securitypolicy.yaml`
+File: `kubernetes/workloads/apps/oauth-pages/app/securitypolicy.yaml`
 
 - [ ] `oauth-pages-public` allows only `sectionName: denied` and `sectionName: logged-out`
 

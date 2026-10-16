@@ -16,7 +16,7 @@ Create a **Secure Note** or **Login** item named `camply-home-ops` in the 1Passw
 
 Authentication uses `CAMPLY_AUTH_MODE: session`. Log in with your configured `CAMPLY_LOGIN_USERNAME` and `CAMPLY_LOGIN_PASSWORD`.
 
-External Secrets synchronizes these values into `camply-home-ops` in the `default` namespace.
+External Secrets synchronizes these values into `camply-home-ops` in the `camply` namespace.
 Reloader automatically restarts the deployments when secrets change in 1Password.
 
 ## Architecture and Components

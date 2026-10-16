@@ -63,7 +63,7 @@ Create an **API Credential** item named `tailscale` in the **homelab** vault wit
 
 Keep `PASEO_PASSWORD` in the existing `paseo` item. The Tailscale app owns the operator credentials
 and a `ClusterExternalSecret` that distributes only `TAILSCALE_DNS_SUFFIX` to consumer namespaces
-as `tailscale-config`. It currently selects `default`; add namespace names to its selector to
+as `tailscale-config`. It currently selects `paseo` and `lunchmoney`; add namespace names to its selector to
 share the configuration with other apps. OAuth credentials remain in the `tailscale` namespace.
 See [ClusterExternalSecret](https://external-secrets.io/latest/api/clusterexternalsecret/).
 
@@ -83,10 +83,11 @@ causes External Secrets reconciliation to fail; check its status if the endpoint
 ```bash
 kubectl get externalsecret -n tailscale tailscale
 kubectl get clusterexternalsecret tailscale-config
-kubectl get externalsecret -n default tailscale-config
-kubectl get externalsecret -n default paseo
+kubectl get externalsecret -n paseo tailscale-config
+kubectl get externalsecret -n paseo paseo
+kubectl get externalsecret -n lunchmoney tailscale-config
 kubectl rollout status deployment/operator -n tailscale
-kubectl get ingress -n default paseo-tailscale
+kubectl get ingress -n paseo paseo-tailscale
 ```
 
 The Ingress `ADDRESS` should show `paseo.<tailnet-DNS-suffix>`. Confirm the proxy device appears
