@@ -34,10 +34,42 @@ installation token before every run. The private key is not exported to Renovate
 environment. Jobs stop after 55 minutes, before the one-hour installation token
 expires. Larger repository sets may need separate jobs or a token refresh design.
 
-The full Renovate image includes package-manager tools. A 5 GiB `node-local` PVC
-persists `/tmp/renovate` across runs; UID 12021 and group 0 match the container
-image. The cache can be rebuilt if lost. No Service, ingress, or Kubernetes API
-permissions are needed.
+The full Renovate image includes package-manager tools. UID 12021 and group 0
+match the container image. No Service, ingress, or Kubernetes API permissions
+are needed.
+
+## Cache
+
+A 5 GiB `node-local` PVC persists `/tmp/renovate` across Jobs, including pod
+restarts. Each new Job mounts the same claim; no GitHub Actions cache restore or
+save step is required.
+
+| Data                         | Location              | Purpose                                                                      |
+| ---------------------------- | --------------------- | ---------------------------------------------------------------------------- |
+| Package metadata and lookups | `/tmp/renovate/cache` | SQLite package cache reuses registry and changelog lookups                   |
+| Repository extraction cache  | `/tmp/renovate/cache` | `RENOVATE_REPOSITORY_CACHE=enabled` reuses extracted dependency data         |
+| Repository checkouts         | `/tmp/renovate/repos` | `RENOVATE_PERSIST_REPO_DATA=true` allows Git fetches instead of fresh clones |
+
+The Helm chart recommends the [SQLite package cache](https://docs.renovatebot.com/self-hosted-experimental/#renovate_x_sqlite_package_cache),
+which is currently an experimental Renovate option. Remove
+`RENOVATE_X_SQLITE_PACKAGE_CACHE` to return to the file backend if a future
+upgrade changes its behavior. Normal cache expiration remains in effect.
+
+The volume is bound to one node and is not replicated or backed up. Losing that
+node or its disk loses the cache; Renovate can rebuild it. Checkouts and package
+manager working directories can grow, so monitor usage during an active Job:
+
+```bash
+kubectl exec -n default job/<active-renovate-job> -- du -sh /tmp/renovate/cache /tmp/renovate/repos
+```
+
+The [node-local provisioner](https://github.com/rancher/local-path-provisioner#cons)
+does not impose a hard 5 GiB filesystem quota; check actual node disk usage too.
+To clear a bad cache, suspend the CronJob in Git and wait for all
+Jobs to finish. Delete the completed Jobs and the `renovate-cache` PVC; ArgoCD
+will recreate an empty claim. Verify a dry run before re-enabling the schedule.
+For extraction-cache issues alone, temporarily set
+`RENOVATE_REPOSITORY_CACHE` to `reset` for one run, then restore `enabled`.
 
 ## Verify and cut over
 

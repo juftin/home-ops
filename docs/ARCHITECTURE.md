@@ -75,7 +75,8 @@ The official Renovate Helm chart runs a CronJob every 30 minutes. It discovers
 `juftin/*` repositories with the `renovate-enabled` topic and uses the shared
 `juftin/renovate` presets, retaining repository-local overrides. External Secrets
 supplies GitHub App credentials from 1Password; each Job creates a fresh installation
-token. A node-local PVC persists the cache. Scheduled runs cannot overlap, and each
+token. A node-local PVC persists the SQLite package cache, repository extraction
+cache, and Git checkouts for reuse across Jobs. Scheduled runs cannot overlap, and each
 Job has a 55-minute deadline to stay within token lifetime. The workload has no
 network endpoint or Kubernetes API access. It starts suspended for setup and dry-run
 verification before disabling the previous runners. See [Renovate setup](RENOVATE-SETUP.md).

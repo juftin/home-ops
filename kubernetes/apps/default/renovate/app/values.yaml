@@ -46,7 +46,12 @@ env:
   RENOVATE_CONFIG_PRESET: github>juftin/renovate
   RENOVATE_COMMIT_STYLE: conventional
   RENOVATE_BASE_DIR: /tmp/renovate
+  RENOVATE_CACHE_DIR: /tmp/renovate/cache
   RENOVATE_REPOSITORY_CACHE: enabled
+  # Reuse checkouts with git fetch instead of cloning on every run.
+  RENOVATE_PERSIST_REPO_DATA: 'true'
+  # Recommended by the Helm chart; currently an experimental Renovate option.
+  RENOVATE_X_SQLITE_PACKAGE_CACHE: 'true'
 extraVolumes:
   - name: runner
     configMap:
