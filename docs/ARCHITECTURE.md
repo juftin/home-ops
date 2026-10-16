@@ -99,8 +99,12 @@ subsequent onboarding changes. See [OpenClaw setup](OPENCLAW-SETUP.md).
 ### Agent isolation
 
 Each agent has its own pod and PVCs. All app and init containers run as non-root, drop all Linux
-capabilities, disable privilege escalation, use RuntimeDefault seccomp, and have read-only root
-filesystems. Only their own PVCs and temporary emptyDir volumes are writable. No Kubernetes token,
+capabilities, disable privilege escalation, and use RuntimeDefault seccomp. Container filesystems
+remain writable wherever the app user has permission, so agents can install tools and run builds.
+Install tools under the persistent home/data volumes (or Paseo workspace) to retain them across
+pod recreation; changes in the container image filesystem are ephemeral. System package installation
+with root privileges is unavailable; bake system dependencies into an image when needed.
+No Kubernetes token,
 host directories, container-runtime sockets, or host namespaces are exposed.
 
 App-local CiliumNetworkPolicies default-deny ingress and egress. Ingress permits only the admin

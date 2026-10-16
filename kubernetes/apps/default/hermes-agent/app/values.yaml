@@ -73,7 +73,7 @@ controllers:
               failureThreshold: 3
           readiness: *probes
         securityContext:
-          readOnlyRootFilesystem: true
+          readOnlyRootFilesystem: false
           allowPrivilegeEscalation: false
           capabilities: {drop: ["ALL"]}
         resources:

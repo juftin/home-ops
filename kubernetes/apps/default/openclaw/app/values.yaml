@@ -21,7 +21,7 @@ controllers:
               fs.chmodSync(dir + '/openclaw.json', 0o600);
             }
         securityContext:
-          readOnlyRootFilesystem: true
+          readOnlyRootFilesystem: false
           allowPrivilegeEscalation: false
           capabilities: {drop: ["ALL"]}
     containers:
@@ -72,7 +72,7 @@ controllers:
               timeoutSeconds: 3
               failureThreshold: 3
         securityContext:
-          readOnlyRootFilesystem: true
+          readOnlyRootFilesystem: false
           allowPrivilegeEscalation: false
           capabilities: {drop: ["ALL"]}
         resources:
