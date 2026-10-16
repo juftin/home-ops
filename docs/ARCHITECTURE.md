@@ -96,6 +96,39 @@ including configuration, provider credentials, sessions, and workspaces. One non
 uses `Recreate`. A first-run init container seeds the gateway configuration without overwriting
 subsequent onboarding changes. See [OpenClaw setup](OPENCLAW-SETUP.md).
 
+### Agent isolation
+
+Each agent has its own pod and PVCs. All app and init containers run as non-root, drop all Linux
+capabilities, disable privilege escalation, and use RuntimeDefault seccomp. Container filesystems
+remain writable wherever the app user has permission, so agents can install tools and run builds.
+Install tools under the persistent home/data volumes (or Paseo workspace) to retain them across
+pod recreation; changes in the container image filesystem are ephemeral. System package installation
+with root privileges is unavailable; bake system dependencies into an image when needed.
+No Kubernetes token,
+host directories, container-runtime sockets, or host namespaces are exposed.
+
+App-local CiliumNetworkPolicies default-deny ingress and egress. Ingress permits only the admin
+Envoy gateway on each app's service ports; Paseo also permits its specific Tailscale ingress proxy.
+Egress permits CoreDNS on TCP/UDP 53 and public HTTP/HTTPS/SSH on TCP 80/443/22. Other cluster
+services (including the other agents), Kubernetes API, nodes, LAN, tailnet, and metadata addresses
+are blocked. DNS is the intentional cluster-service exception. Existing stateful connections can
+receive replies; the ingress exception does not authorize agent-initiated connections to proxies.
+See [Cilium policy semantics](https://docs.cilium.io/en/stable/security/policy/layer3/).
+
+These are shared-kernel containers, not a guarantee against kernel exploits. Stronger isolation
+requires a separately provisioned sandbox runtime or dedicated VMs/nodes. Public Internet access
+still allows external services and publicly exposed homelab URLs, subject to their authentication.
+Do not place cluster credentials in agent workspaces; mounted app/provider credentials remain
+accessible to that app's tools. Node-local PVCs are mounted by Kubernetes, without exposing their
+host parent directories to the containers.
+
+After branch deployment, verify every app starts, provider requests work, OAuth access works, and
+Paseo's Tailscale connection works. From each app container, verify DNS and public HTTPS succeed;
+connections to `kubernetes.default.svc:443`, another agent's service, a node IP, a LAN IP, and
+`169.254.169.254:80` must fail. Test both service and direct pod addresses. Inspect pod security
+contexts and Cilium policy verdicts; rendering alone cannot prove runtime enforcement. Always
+finish branch testing with `task dev:stop`.
+
 ## Private Network Access
 
 | Namespace   | App          | Role                                                                      |

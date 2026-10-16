@@ -21,6 +21,7 @@ controllers:
               fs.chmodSync(dir + '/openclaw.json', 0o600);
             }
         securityContext:
+          readOnlyRootFilesystem: false
           allowPrivilegeEscalation: false
           capabilities: {drop: ["ALL"]}
     containers:
@@ -71,6 +72,7 @@ controllers:
               timeoutSeconds: 3
               failureThreshold: 3
         securityContext:
+          readOnlyRootFilesystem: false
           allowPrivilegeEscalation: false
           capabilities: {drop: ["ALL"]}
         resources:
@@ -81,7 +83,10 @@ controllers:
             memory: 4Gi
 defaultPodOptions:
   automountServiceAccountToken: false
+  enableServiceLinks: false
   securityContext:
+    seccompProfile:
+      type: RuntimeDefault
     runAsNonRoot: true
     runAsUser: 1000
     runAsGroup: 1000
@@ -110,6 +115,10 @@ configMaps:
           }
         }
 persistence:
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp
   home:
     storageClass: node-local
     accessMode: ReadWriteOnce
