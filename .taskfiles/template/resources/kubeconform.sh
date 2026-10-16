@@ -20,7 +20,7 @@ kubeconform_args=(
     "-verbose"
 )
 
-echo "=== Validating kustomizations in ${KUBERNETES_DIR}/apps ==="
+echo "=== Validating kustomizations in ${KUBERNETES_DIR}/workloads ==="
 HELM_BIN="$(command -v helm)"
 HELM_SHIM_DIR="$(mktemp -d)"
 trap 'rm -rf "${HELM_SHIM_DIR}"' EXIT
@@ -35,7 +35,7 @@ exec "${HELM_BIN}" "\$@"
 EOF
 chmod +x "${HELM_SHIM_DIR}/helm"
 
-find "${KUBERNETES_DIR}/apps" -type f -name $kustomize_config -print0 | while IFS= read -r -d $'\0' file;
+find "${KUBERNETES_DIR}/workloads" -type f -name $kustomize_config -print0 | while IFS= read -r -d $'\0' file;
 do
     echo "=== Validating kustomizations in ${file/%$kustomize_config} ==="
     PATH="${HELM_SHIM_DIR}:${PATH}" kustomize build "${file/%$kustomize_config}" "${kustomize_args[@]}" | kubeconform "${kubeconform_args[@]}"

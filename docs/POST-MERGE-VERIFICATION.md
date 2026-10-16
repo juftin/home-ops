@@ -24,7 +24,7 @@ ______________________________________________________________________
 ```bash
 kubectl get gateway -n network envoy-oauth-admin envoy-oauth-users envoy-oauth-internal --show-labels
 kubectl get securitypolicy -n network envoy-oauth-admin-policy envoy-oauth-users-policy envoy-oauth-internal-policy
-kubectl get httproute -n default oauth-pages
+kubectl get httproute -n oauth-pages oauth-pages
 ```
 
 Expected:

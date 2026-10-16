@@ -80,23 +80,25 @@ git worktree remove worktrees/home-ops-my-change
 
 ## Adding a New App
 
-All apps live under `kubernetes/apps/<namespace>/<app-name>/`. Exact structure:
+User-facing apps live under `kubernetes/workloads/apps/<app-name>/` and use a namespace
+matching the app name. Infrastructure stays under `kubernetes/workloads/<namespace>/<app-name>/`.
+Application structure:
 
 ```
-kubernetes/apps/<namespace>/
+kubernetes/workloads/apps/<app-name>/
 ├── kustomization.yaml      # namespace-level metadata
 ├── namespace.yaml          # Namespace manifest (if new namespace)
-└── <app-name>/
-    └── app/
-        ├── kustomization.yaml  # app resources + helmCharts
-        ├── values.yaml         # Helm values for helmCharts entry
-        ├── externalsecret.yaml # ExternalSecret from 1Password (if needed, see below)
-        └── *.sops.yaml         # SOPS-encrypted secrets (if needed)
+└── app/
+    ├── kustomization.yaml  # app resources + helmCharts
+    ├── values.yaml         # Helm values for helmCharts entry
+    ├── externalsecret.yaml # ExternalSecret from 1Password (if needed, see below)
+    └── *.sops.yaml         # SOPS-encrypted secrets (if needed)
 ```
 
-Use `kubernetes/apps/default/echo/` as a working reference. After adding files:
+Use `kubernetes/workloads/apps/echo/` as a working reference. After adding files:
 
-1. Add or update the app directory under `kubernetes/apps/<namespace>/<app-name>/app`
+1. Add or update the app directory under `kubernetes/workloads/apps/<app-name>/app`
+   (or `kubernetes/workloads/<namespace>/<app-name>/app` for infrastructure)
 2. Run `task lint` then `task dev:validate`
 3. Use `task dev:start` / `task dev:sync` to test on the live cluster; run `task dev:stop` when
    done — **always**, even if something goes wrong
@@ -110,7 +112,7 @@ Prefer the app-template chart's `route` and `ingress` settings in the app's
 apps using other charts.
 
 1. Add an explicit hostname entry in
-   `kubernetes/apps/network/cloudflare-tunnel/app/values.yaml` **before** the wildcard
+   `kubernetes/workloads/network/cloudflare-tunnel/app/values.yaml` **before** the wildcard
    `*.${SECRET_DOMAIN}` rule. Route by group:
    - admins: `https://envoy-oauth-admin.<namespace>.svc.cluster.local:443` with `originServerName: oauth.${SECRET_DOMAIN}`
    - users: `https://envoy-oauth-users.<namespace>.svc.cluster.local:443` with `originServerName: oauth-users.${SECRET_DOMAIN}`
@@ -149,15 +151,16 @@ with the real age key for full decryption.
   exist only in the main working tree. Use `task dev:worktree:create` to create the worktree and
   symlink these files correctly before running `dev:` tasks.
 - **`components/sops` is the only Kustomize component on `main`** — namespace-level
-  `kustomization.yaml` files must use `../../components/sops`. Do not copy namespace kustomizations
+  `kustomization.yaml` files use `../../../components/sops` under `workloads/apps/<app-name>`
+  and `../../components/sops` under `workloads/<namespace>`. Do not copy namespace kustomizations
   from feature branches that used `../../components/common`; that directory does not exist on `main`.
 - **OAuth Gateways must include the Cloudflare DNS label** — `cloudflare-dns` now discovers Gateway
   resources using `--gateway-label-filter=home-ops.io/cloudflare-dns=true`. If the label is missing
   from a Gateway, its DNS records will not be created/updated in Cloudflare.
 - **`oauth-pages` requires URL rewrites for friendly paths** — `/denied` and `/logged-out` must be
   rewritten to `/denied.html` and `/logged-out.html` in
-  `kubernetes/apps/default/oauth-pages/app/values.yaml`; otherwise nginx serves 404.
-- **Keep oauth utility pages publicly reachable** — `kubernetes/apps/default/oauth-pages/app/securitypolicy.yaml`
+  `kubernetes/workloads/apps/oauth-pages/app/values.yaml`; otherwise nginx serves 404.
+- **Keep oauth utility pages publicly reachable** — `kubernetes/workloads/apps/oauth-pages/app/securitypolicy.yaml`
   intentionally sets `authorization.defaultAction: Allow` on the `oauth-pages` HTTPRoute so denied/logout
   pages do not get trapped behind the gateway-level OIDC challenge.
 - **Default auth UX is immediate provider redirect** — do not add or keep a public `/login` route unless

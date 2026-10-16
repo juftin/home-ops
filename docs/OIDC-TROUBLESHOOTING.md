@@ -9,9 +9,9 @@ ______________________________________________________________________
 ```bash
 kubectl get gateway -n network envoy-oauth-admin envoy-oauth-users envoy-oauth-internal --show-labels
 kubectl get securitypolicy -n network envoy-oauth-admin-policy envoy-oauth-users-policy envoy-oauth-internal-policy
-kubectl get securitypolicy -n default oauth-pages-public -o yaml
+kubectl get securitypolicy -n oauth-pages oauth-pages-public -o yaml
 kubectl get secret -n network google-oauth-client-secret
-kubectl get httproute -n default oauth-pages
+kubectl get httproute -n oauth-pages oauth-pages
 kubectl get deployment -n network cloudflare-dns
 ```
 
@@ -42,7 +42,7 @@ kubectl get deployment -n network cloudflare-dns -o yaml | rg gateway-label-filt
 ### Fix
 
 - Add missing label(s) to Gateway metadata in
-  `kubernetes/apps/network/envoy-gateway/app/envoy.yaml`
+  `kubernetes/workloads/network/envoy-gateway/app/envoy.yaml`
 - Run `task lint && task dev:validate`, push, and reconcile
 
 ______________________________________________________________________
@@ -61,9 +61,9 @@ ______________________________________________________________________
 
 Policy files:
 
-- `kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml`
+- `kubernetes/workloads/network/envoy-gateway/app/oauth-policy.sops.yaml`
   (contains both `envoy-oauth-admin-policy` for admins and `envoy-oauth-users-policy` for users)
-- `kubernetes/apps/network/envoy-gateway/app/oauth-policy-internal.sops.yaml` (internal)
+- `kubernetes/workloads/network/envoy-gateway/app/oauth-policy-internal.sops.yaml` (internal)
 
 ### Fix
 
@@ -86,7 +86,7 @@ ______________________________________________________________________
 - `email_verified` claim requirement is present and true
 
 ```bash
-sops --decrypt kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml | less
+sops --decrypt kubernetes/workloads/network/envoy-gateway/app/oauth-policy.sops.yaml | less
 ```
 
 ### Fix
@@ -102,7 +102,7 @@ ______________________________________________________________________
 ### Check
 
 ```bash
-kubectl get httproute -n default oauth-pages -o yaml
+kubectl get httproute -n oauth-pages oauth-pages -o yaml
 ```
 
 ### Expected
@@ -115,8 +115,8 @@ kubectl get httproute -n default oauth-pages -o yaml
 
 ### Fix
 
-- Update `kubernetes/apps/default/oauth-pages/app/values.yaml`
-- Confirm `kubernetes/apps/default/oauth-pages/app/securitypolicy.yaml` is section-scoped
+- Update `kubernetes/workloads/apps/oauth-pages/app/values.yaml`
+- Confirm `kubernetes/workloads/apps/oauth-pages/app/securitypolicy.yaml` is section-scoped
 - Validate and reconcile
 
 ______________________________________________________________________

@@ -1,9 +1,9 @@
 # App Access
 
 Use the app-template chart's existing `route` and `ingress` settings in the app's
-`values.yaml`. [Paseo](../kubernetes/apps/default/paseo/app/values.yaml) includes
-admin OAuth and Tailscale; [echo](../kubernetes/apps/default/echo/app/values.yaml)
-is the public example; [Lunch Money](../kubernetes/apps/default/lunchmoney/app/values.yaml)
+`values.yaml`. [Paseo](../kubernetes/workloads/apps/paseo/app/values.yaml) includes
+admin OAuth and Tailscale; [echo](../kubernetes/workloads/apps/echo/app/values.yaml)
+is the public example; [Lunch Money](../kubernetes/workloads/apps/lunchmoney/app/values.yaml)
 is the internal Gateway and Tailscale example.
 
 ## Public or OAuth
@@ -39,7 +39,7 @@ apiVersions:
 ```
 
 **OAuth has one additional shared edit:** add the app hostname to
-[Cloudflare Tunnel](../kubernetes/apps/network/cloudflare-tunnel/app/values.yaml)
+[Cloudflare Tunnel](../kubernetes/workloads/network/cloudflare-tunnel/app/values.yaml)
 before the public wildcard. Copy an entry for the same group; admins use
 `envoy-oauth-admin` with TLS origin `oauth.${SECRET_DOMAIN}`, users use
 `envoy-oauth-users` with TLS origin `oauth-users.${SECRET_DOMAIN}`. Public apps use
@@ -47,7 +47,7 @@ the existing wildcard without a tunnel edit. OAuth utility pages already cover
 all app hosts through their wildcard; callback protection remains section-scoped.
 
 For multiple ports or paths, specify `route.app.rules`; see
-[Hermes Agent](../kubernetes/apps/default/hermes-agent/app/values.yaml).
+[Hermes Agent](../kubernetes/workloads/apps/hermes-agent/app/values.yaml).
 
 ## Tailscale
 
@@ -73,14 +73,14 @@ Google SSO, so retain application authentication where needed. See
 [Tailscale setup](TAILSCALE-SETUP.md) for operator and hostname prerequisites.
 
 Grafana uses its own chart's `grafana.route.main` settings in
-[kube-prometheus-stack values](../kubernetes/apps/observability/kube-prometheus-stack/app/values.yaml).
+[kube-prometheus-stack values](../kubernetes/workloads/observability/kube-prometheus-stack/app/values.yaml).
 ArgoCD uses `server.httproute` in its
 [bootstrap values](../bootstrap/helmfile.d/templates/values.yaml.gotmpl); update its
 Helm release with `task argocd:bootstrap` to deploy changes. The chart names its
 HTTPRoute `argocd-server` and uses the existing HTTP Service port when
 `server.insecure` is enabled.
 Shared OAuth utility routes also live in
-[oauth-pages values](../kubernetes/apps/default/oauth-pages/app/values.yaml), including
+[oauth-pages values](../kubernetes/workloads/apps/oauth-pages/app/values.yaml), including
 their named callback, logout, denied, and logged-out rules.
 
 For charts without native route settings, keep ordinary HTTPRoute/Ingress manifests

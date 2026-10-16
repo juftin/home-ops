@@ -21,7 +21,7 @@ and External Secrets has synchronized it. No token is stored in Git or in the se
 After ArgoCD deploys the app, configure your model provider and optional messaging channels:
 
 ```bash
-kubectl exec -it -n default deployment/openclaw -c app -- openclaw configure
+kubectl exec -it -n openclaw deployment/openclaw -c app -- openclaw configure
 ```
 
 Keep gateway mode `local`, bind `lan`, token authentication, and the configured HTTPS origin.
@@ -31,8 +31,8 @@ Open the public URL, complete Google SSO, and enter the 1Password gateway token 
 connection settings. If the browser requests pairing, inspect and approve its specific request:
 
 ```bash
-kubectl exec -n default deployment/openclaw -c app -- openclaw devices list
-kubectl exec -n default deployment/openclaw -c app -- openclaw devices approve <request-id>
+kubectl exec -n openclaw deployment/openclaw -c app -- openclaw devices list
+kubectl exec -n openclaw deployment/openclaw -c app -- openclaw devices approve <request-id>
 ```
 
 Do not disable device authentication to bypass pairing. See the official
@@ -61,9 +61,9 @@ Do not disable device authentication to bypass pairing. See the official
 task lint
 task dev:validate
 task dev:start
-kubectl get externalsecret -n default openclaw
-kubectl rollout status -n default deployment/openclaw
-kubectl get httproute -n default openclaw
+kubectl get externalsecret -n openclaw openclaw
+kubectl rollout status -n openclaw deployment/openclaw
+kubectl get httproute -n openclaw openclaw
 # Verify SSO, token authentication, pairing, and a provider-backed chat in the browser.
 task dev:stop
 ```

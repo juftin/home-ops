@@ -8,8 +8,9 @@ ______________________________________________________________________
 
 - **ArgoCD** is the only GitOps reconciler.
 - `home-ops-root` (bootstrapped by Helmfile) points to `kubernetes/argocd`.
-- `kubernetes/argocd/applicationset.yaml` generates one ArgoCD `Application` per app directory under `kubernetes/apps/<namespace>/<app>/app`.
-- Generated apps use server-side apply so Kubernetes-assigned PVC bindings are preserved during sync.
+- `kubernetes/argocd/applicationset.yaml` generates one ArgoCD `Application` per workload under `kubernetes/workloads/<folder>/<app>/app`.
+- The `apps` folder gives each app its own namespace; infrastructure folders use the folder name as their shared namespace. Sync waves are assigned by folder.
+- Generated apps create their destination namespace automatically and use server-side apply so Kubernetes-assigned PVC bindings are preserved during sync.
 - Argo apps are scoped by two AppProjects:
   - `home-ops` for general namespaces with orphan monitoring enabled and targeted ignore rules.
   - `kube-system` for `kube-system` (plus `cilium-secrets`) with orphan warnings disabled to avoid control-plane noise.
@@ -19,7 +20,26 @@ ______________________________________________________________________
 ## App Layout
 
 ```text
-kubernetes/apps/<namespace>/<app>/app/
+kubernetes/workloads/
+├── apps/
+│   ├── camply/app/
+│   ├── echo/app/
+│   ├── hermes-agent/app/
+│   ├── lunchmoney/app/
+│   ├── oauth-pages/app/
+│   ├── openclaw/app/
+│   └── paseo/app/
+├── cert-manager/cert-manager/app/
+├── external-secrets/<app>/app/
+├── kube-system/<app>/app/
+├── network/<app>/app/
+├── observability/<app>/app/
+└── tailscale/tailscale/app/
+```
+
+Each `app/` directory contains:
+
+```text
 ├── kustomization.yaml   # static resources + helmCharts entries
 ├── values.yaml          # chart values
 └── *.sops.yaml          # encrypted manifests/secrets (optional)
@@ -27,6 +47,28 @@ kubernetes/apps/<namespace>/<app>/app/
 
 `kustomization.yaml` uses `helmCharts`; ArgoCD’s CMP plugin decrypts SOPS files and substitutes
 `${SECRET_DOMAIN}` placeholders before apply.
+
+______________________________________________________________________
+
+## Application Namespaces
+
+Each application formerly in `default` has a namespace matching its app name:
+
+| Namespace      | App            |
+| -------------- | -------------- |
+| `camply`       | `camply`       |
+| `echo`         | `echo`         |
+| `hermes-agent` | `hermes-agent` |
+| `lunchmoney`   | `lunchmoney`   |
+| `oauth-pages`  | `oauth-pages`  |
+| `openclaw`     | `openclaw`     |
+| `paseo`        | `paseo`        |
+
+Camply keeps its frontend, API, workers, database, cache, and Prometheus in `camply`.
+Shared Gateways stay in `network`; application HTTPRoutes reference them across namespaces.
+Tailscale configuration is distributed to `paseo` and `lunchmoney`. The built-in `default` namespace has no
+repository-managed apps. For an existing cluster, follow the
+[namespace migration runbook](APP-NAMESPACE-MIGRATION.md) before activating these manifests.
 
 ______________________________________________________________________
 
@@ -67,11 +109,11 @@ ______________________________________________________________________
 
 ## Coding Agents
 
-| Namespace | App            | Role                                                       |
-| --------- | -------------- | ---------------------------------------------------------- |
-| `default` | `paseo`        | Coding-agent daemon and bundled web UI                     |
-| `default` | `openclaw`     | Personal AI assistant gateway and Control UI               |
-| `default` | `hermes-agent` | Self-improving AI agent with Gateway API and Web Dashboard |
+| Namespace      | App            | Role                                                       |
+| -------------- | -------------- | ---------------------------------------------------------- |
+| `paseo`        | `paseo`        | Coding-agent daemon and bundled web UI                     |
+| `openclaw`     | `openclaw`     | Personal AI assistant gateway and Control UI               |
+| `hermes-agent` | `hermes-agent` | Self-improving AI agent with Gateway API and Web Dashboard |
 
 Paseo is served at `paseo.${SECRET_DOMAIN}` through Cloudflare Tunnel and the admin OAuth Gateway.
 The daemon additionally requires a password from the `paseo` 1Password item. It trusts forwarded
@@ -98,10 +140,10 @@ subsequent onboarding changes. See [OpenClaw setup](OPENCLAW-SETUP.md).
 
 ## Private Network Access
 
-| Namespace   | App          | Role                                                                      |
-| ----------- | ------------ | ------------------------------------------------------------------------- |
-| `tailscale` | `tailscale`  | Kubernetes operator and private HTTPS proxy pods                          |
-| `default`   | `lunchmoney` | Lunch Money MCP server, dashboard, PostgreSQL, Valkey, and sync scheduler |
+| Namespace    | App          | Role                                                                      |
+| ------------ | ------------ | ------------------------------------------------------------------------- |
+| `tailscale`  | `tailscale`  | Kubernetes operator and private HTTPS proxy pods                          |
+| `lunchmoney` | `lunchmoney` | Lunch Money MCP server, dashboard, PostgreSQL, Valkey, and sync scheduler |
 
 The Tailscale operator exposes Paseo through a private `Ingress` at
 `https://paseo.<tailnet-DNS-suffix>`, forwarding directly to the existing `paseo:6767` service.

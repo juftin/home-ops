@@ -77,6 +77,12 @@ and Tailscale examples using the existing chart values.
 - **[oauth-pages](https://nginx.org/)**: Static access-denied and logout confirmation pages for
   Envoy Gateway OIDC, including route rewrites from friendly paths to static HTML files.
 
+Application manifests live in `kubernetes/workloads/apps/<app>/app/`, with a namespace matching
+each app name: `camply`, `echo`, `hermes-agent`, `lunchmoney`, `oauth-pages`, `openclaw`, and `paseo`.
+Infrastructure lives alongside `apps/` under `kubernetes/workloads/`, grouped by namespace.
+Existing installations must follow the
+[namespace migration runbook](docs/APP-NAMESPACE-MIGRATION.md) to preserve persistent data.
+
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f52e/512.gif" alt="🔮" width="20" height="20"> Hardware
 
 | Device                   | Num | Processor | Cores | OS Disk    | Data Disk | Memory | OS    | Function   |

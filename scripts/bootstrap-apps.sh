@@ -27,14 +27,15 @@ function wait_for_nodes() {
 function apply_namespaces() {
     log debug "Applying namespaces"
 
-    local -r apps_dir="${ROOT_DIR}/kubernetes/apps"
+    local -r workloads_dir="${ROOT_DIR}/kubernetes/workloads"
+    local namespace_file namespace
 
-    if [[ ! -d "${apps_dir}" ]]; then
-        log error "Directory does not exist" "directory=${apps_dir}"
+    if [[ ! -d "${workloads_dir}" ]]; then
+        log error "Directory does not exist" "directory=${workloads_dir}"
     fi
 
-    for app in "${apps_dir}"/*/; do
-        namespace=$(basename "${app}")
+    while IFS= read -r namespace_file; do
+        namespace=$(yq eval -r '.metadata.name' "${namespace_file}")
 
         # Check if the namespace resources are up-to-date
         if kubectl get namespace "${namespace}" &>/dev/null; then
@@ -50,7 +51,7 @@ function apply_namespaces() {
         else
             log error "Failed to apply namespace resource" "resource=${namespace}"
         fi
-    done
+    done < <(find "${workloads_dir}" -mindepth 2 -maxdepth 3 -type f -name namespace.yaml | sort)
 }
 
 # SOPS secrets to be applied before the helmfile charts are installed
