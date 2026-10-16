@@ -33,7 +33,7 @@ controllers:
         image: *image
         env:
           LUNCHMONEY_ENVIRONMENT: production
-          LUNCHMONEY_ALLOWED_HOSTS: lunchmoney.${SECRET_DOMAIN},lunchmoney-app.${SECRET_DOMAIN},lunchmoney.$(TAILSCALE_DNS_SUFFIX),lunchmoney-app.$(TAILSCALE_DNS_SUFFIX),localhost,127.0.0.1
+          LUNCHMONEY_ALLOWED_HOSTS: lunchmoney.${SECRET_DOMAIN},lunchmoney-app.${SECRET_DOMAIN},lunchmoney.$(TAILSCALE_DNS_SUFFIX),lunchmoney-app.$(TAILSCALE_DNS_SUFFIX),lunchmoney,lunchmoney.default,lunchmoney.default.svc,lunchmoney.default.svc.cluster.local,localhost,127.0.0.1
           DB_PASSWORD:
             valueFrom:
               secretKeyRef:
@@ -57,6 +57,9 @@ controllers:
               httpGet:
                 path: /health
                 port: &port 8000
+                httpHeaders:
+                  - name: Host
+                    value: localhost
               initialDelaySeconds: 15
               periodSeconds: 10
               timeoutSeconds: 5
@@ -68,6 +71,9 @@ controllers:
               httpGet:
                 path: /ready
                 port: *port
+                httpHeaders:
+                  - name: Host
+                    value: localhost
               initialDelaySeconds: 15
               periodSeconds: 10
               timeoutSeconds: 5
