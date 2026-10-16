@@ -198,6 +198,7 @@ controllers:
             drop: ["ALL"]
             add:
               - CHOWN
+              - DAC_OVERRIDE
               - FOWNER
               - SETGID
               - SETUID
@@ -210,11 +211,26 @@ controllers:
   valkey:
     replicas: 1
     strategy: Recreate
+    annotations:
+      reloader.stakater.com/auto: "true"
+    pod:
+      securityContext:
+        runAsUser: 999
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
     containers:
       app:
         image:
           repository: docker.io/valkey/valkey
           tag: 8-alpine
+        command:
+          - valkey-server
+          - --save
+          - "60"
+          - "1"
+          - --loglevel
+          - warning
         probes:
           startup:
             enabled: true
