@@ -24,7 +24,8 @@ ______________________________________________________________________
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f48e/512.gif" alt="🎡" width="20" height="20"> Components
 
 - **[ArgoCD](https://argo-cd.readthedocs.io/)**: GitOps controller for keeping Kubernetes clusters
-  in sync with Git sources.
+  in sync with Git sources. See [GitHub webhook setup](docs/ARGOCD-WEBHOOK-SETUP.md) for immediate
+  refreshes on pushes.
 - **[cert-manager](https://github.com/cert-manager/cert-manager)**: Creates SSL certificates for
   services in the cluster.
 - **[spegel](https://github.com/spegel-org/spegel)**: Stateless cluster local OCI registry mirror.
