@@ -34,12 +34,12 @@ controllers:
         env:
           LUNCHMONEY_ENVIRONMENT: production
           LUNCHMONEY_ALLOWED_HOSTS: lunchmoney.${SECRET_DOMAIN},lunchmoney-app.${SECRET_DOMAIN},lunchmoney.$(TAILSCALE_DNS_SUFFIX),lunchmoney-app.$(TAILSCALE_DNS_SUFFIX),localhost,127.0.0.1
-          POSTGRES_PASSWORD:
+          DB_PASSWORD:
             valueFrom:
               secretKeyRef:
                 name: lunchmoney-secret
                 key: POSTGRES_PASSWORD
-          LUNCHMONEY_DATABASE_URL: postgresql+asyncpg://lunchmoney:$(POSTGRES_PASSWORD)@lunchmoney-db:5432/lunchmoney
+          LUNCHMONEY_DATABASE_URL: postgresql+asyncpg://lunchmoney:$(DB_PASSWORD)@lunchmoney-db:5432/lunchmoney
           LUNCHMONEY_REDIS_URL: redis://lunchmoney-valkey:6379/0
           LUNCHMONEY_ACCESS_TOKEN:
             valueFrom:
@@ -116,12 +116,12 @@ controllers:
           - schedule
         env:
           LUNCHMONEY_ENVIRONMENT: production
-          POSTGRES_PASSWORD:
+          DB_PASSWORD:
             valueFrom:
               secretKeyRef:
                 name: lunchmoney-secret
                 key: POSTGRES_PASSWORD
-          LUNCHMONEY_DATABASE_URL: postgresql+asyncpg://lunchmoney:$(POSTGRES_PASSWORD)@lunchmoney-db:5432/lunchmoney
+          LUNCHMONEY_DATABASE_URL: postgresql+asyncpg://lunchmoney:$(DB_PASSWORD)@lunchmoney-db:5432/lunchmoney
           LUNCHMONEY_REDIS_URL: redis://lunchmoney-valkey:6379/0
           LUNCHMONEY_ACCESS_TOKEN:
             valueFrom:
