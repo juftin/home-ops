@@ -49,11 +49,11 @@ The Docker image includes a wrapper that automatically drops `docker exec` / `ku
 
 ```bash
 # Run the interactive setup wizard inside the container
-kubectl exec -it -n default deployment/hermes-agent -c app -- hermes setup
+kubectl exec -it -n hermes-agent deployment/hermes-agent -c app -- hermes setup
 
 # Check agent status and running gateway services
-kubectl exec -it -n default deployment/hermes-agent -c app -- hermes status --full
+kubectl exec -it -n hermes-agent deployment/hermes-agent -c app -- hermes status --full
 
 # View real-time agent logs
-kubectl exec -it -n default deployment/hermes-agent -c app -- hermes logs --follow
+kubectl exec -it -n hermes-agent deployment/hermes-agent -c app -- hermes logs --follow
 ```

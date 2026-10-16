@@ -17,7 +17,7 @@ Create an item named `lunchmoney` in the 1Password **homelab** vault with the fo
 | `POSTGRES_PASSWORD`       | Password | Yes      | Password for the PostgreSQL database user (`lunchmoney`)       |
 | `LUNCHMONEY_APP_API_KEY`  | Password | No       | Optional key required for REST API calls and metrics endpoints |
 
-The `lunchmoney` `ExternalSecret` syncs these credentials into `lunchmoney-secret` in the `default` namespace.
+The `lunchmoney` `ExternalSecret` syncs these credentials into `lunchmoney-secret` in the `lunchmoney` namespace.
 Reloader automatically restarts workloads when secrets change.
 
 ## Network Access
@@ -35,7 +35,7 @@ Lunch Money is configured with private access only and is not exposed to the pub
 
 ## Architecture & Workloads
 
-All components run under the `lunchmoney` Helm release in the `default` namespace:
+All components run under the `lunchmoney` Helm release in the `lunchmoney` namespace:
 
 - **`lunchmoney` (Web App)**:
   Runs Gunicorn and Uvicorn workers serving the REST API, MCP endpoint (`/mcp`), and financial dashboard (`/`).
@@ -53,14 +53,14 @@ After syncing ArgoCD, verify the deployment:
 
 ```bash
 # Check secret synchronization
-kubectl get externalsecret lunchmoney -n default
+kubectl get externalsecret lunchmoney -n lunchmoney
 
 # Check pod statuses
-kubectl get pods -n default -l app.kubernetes.io/instance=lunchmoney
+kubectl get pods -n lunchmoney -l app.kubernetes.io/instance=lunchmoney
 
 # Check internal HTTPRoute
-kubectl get httproute lunchmoney -n default
+kubectl get httproute lunchmoney -n lunchmoney
 
 # Check Tailscale Ingress
-kubectl get ingress lunchmoney-tailscale -n default
+kubectl get ingress lunchmoney-tailscale -n lunchmoney
 ```

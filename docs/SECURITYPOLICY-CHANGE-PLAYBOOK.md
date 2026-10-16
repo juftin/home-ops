@@ -8,13 +8,13 @@ ______________________________________________________________________
 
 Primary files:
 
-- `kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml`
+- `kubernetes/workloads/network/envoy-gateway/app/oauth-policy.sops.yaml`
   - contains `envoy-oauth-admin-policy` (admins) and `envoy-oauth-users-policy` (users)
-- `kubernetes/apps/network/envoy-gateway/app/oauth-policy-internal.sops.yaml`
+- `kubernetes/workloads/network/envoy-gateway/app/oauth-policy-internal.sops.yaml`
 
 Related secret:
 
-- `kubernetes/apps/network/envoy-gateway/app/oauth-client-secret.sops.yaml`
+- `kubernetes/workloads/network/envoy-gateway/app/oauth-client-secret.sops.yaml`
 
 ______________________________________________________________________
 
@@ -23,7 +23,7 @@ ______________________________________________________________________
 ## 1) Decrypt
 
 ```bash
-sops --decrypt kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml > /tmp/oauth-policy.yaml
+sops --decrypt kubernetes/workloads/network/envoy-gateway/app/oauth-policy.sops.yaml > /tmp/oauth-policy.yaml
 ```
 
 ## 2) Edit
@@ -37,7 +37,7 @@ sops --decrypt kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml 
 ## 3) Re-encrypt and clean up
 
 ```bash
-sops --encrypt /tmp/oauth-policy.yaml > kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml
+sops --encrypt /tmp/oauth-policy.yaml > kubernetes/workloads/network/envoy-gateway/app/oauth-policy.sops.yaml
 rm /tmp/oauth-policy.yaml
 ```
 
@@ -46,7 +46,7 @@ rm /tmp/oauth-policy.yaml
 ```bash
 task lint
 task dev:validate
-git add kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml
+git add kubernetes/workloads/network/envoy-gateway/app/oauth-policy.sops.yaml
 git commit -m "🔐 update oauth allowlist"
 git push
 ```

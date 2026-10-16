@@ -6,7 +6,7 @@ TEST_DIR="$(mktemp -d)"
 trap 'rm -rf "${TEST_DIR}"' EXIT
 
 mkdir -p "${TEST_DIR}/repo/scripts" "${TEST_DIR}/repo/kubernetes/argocd" \
-    "${TEST_DIR}/repo/kubernetes/components/sops" "${TEST_DIR}/repo/kubernetes/apps/default/test/app" \
+    "${TEST_DIR}/repo/kubernetes/components/sops" "${TEST_DIR}/repo/kubernetes/workloads/apps/test/app" \
     "${TEST_DIR}/repo/talos" "${TEST_DIR}/scratch"
 cp "${ROOT_DIR}/scripts/validate-argocd-render.sh" "${TEST_DIR}/repo/scripts/"
 cp "${ROOT_DIR}/scripts/validate-kubernetes-schema.sh" "${TEST_DIR}/repo/scripts/"
@@ -31,7 +31,7 @@ stringData:
   SECRET_DOMAIN: fixture.test
 EOF
 cat <<'EOF' | sops --encrypt --age "${RECIPIENT}" --encrypted-regex '^(stringData|spec)$' \
-    --input-type yaml --output-type yaml /dev/stdin > kubernetes/apps/default/test/app/secret.sops.yaml
+    --input-type yaml --output-type yaml /dev/stdin > kubernetes/workloads/apps/test/app/secret.sops.yaml
 apiVersion: v1
 kind: Secret
 metadata:
@@ -55,14 +55,14 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources: []
 EOF
-cat > kubernetes/apps/default/test/app/kustomization.yaml <<'EOF'
+cat > kubernetes/workloads/apps/test/app/kustomization.yaml <<'EOF'
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - secret.sops.yaml
   - domain.yaml
 EOF
-cat > kubernetes/apps/default/test/app/domain.yaml <<'EOF'
+cat > kubernetes/workloads/apps/test/app/domain.yaml <<'EOF'
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -71,7 +71,7 @@ data:
   domain: ${SECRET_DOMAIN}
   dashed: ${SECRET_DOMAIN/./-}
 EOF
-cp kubernetes/apps/default/test/app/secret.sops.yaml "${TEST_DIR}/original.yaml"
+cp kubernetes/workloads/apps/test/app/secret.sops.yaml "${TEST_DIR}/original.yaml"
 
 # Capture the renderer's output while still using real Kustomize, SOPS, and yq.
 export TEST_RENDERED="${TEST_DIR}/rendered.yaml"
@@ -95,7 +95,7 @@ scripts/validate-argocd-render.sh --offline
 assert_yaml 'select(.kind == "Secret") | .stringData.token == "Y2ktcGxhY2Vob2xkZXI="'
 assert_yaml 'select(.kind == "TestPolicy") | (.spec.enabled == false) and (.spec.count == 1) and (.spec.ratio == 1) and (.spec.subjects[0] == "Y2ktcGxhY2Vob2xkZXI=") and (has("sops") == false)'
 assert_yaml 'select(.kind == "ConfigMap") | (.data.domain == "example.com") and (.data.dashed == "example-com")'
-cmp kubernetes/apps/default/test/app/secret.sops.yaml "${TEST_DIR}/original.yaml"
+cmp kubernetes/workloads/apps/test/app/secret.sops.yaml "${TEST_DIR}/original.yaml"
 test -z "$(find "${TMPDIR}" -mindepth 1 -print -quit)"
 
 # An inline key works even when mise/Task points SOPS_AGE_KEY_FILE at a missing file.
@@ -104,7 +104,7 @@ rm "${TEST_RENDERED}"
 scripts/validate-argocd-render.sh
 assert_yaml 'select(.kind == "Secret") | .stringData.token == "fixture-token"'
 assert_yaml 'select(.kind == "ConfigMap") | .data.domain == "fixture.test"'
-cmp kubernetes/apps/default/test/app/secret.sops.yaml "${TEST_DIR}/original.yaml"
+cmp kubernetes/workloads/apps/test/app/secret.sops.yaml "${TEST_DIR}/original.yaml"
 
 unset SOPS_AGE_KEY
 if scripts/validate-argocd-render.sh >"${TEST_DIR}/missing-key.log" 2>&1; then
@@ -113,33 +113,33 @@ if scripts/validate-argocd-render.sh >"${TEST_DIR}/missing-key.log" 2>&1; then
 fi
 
 # Valid YAML that Kustomize renders must still fail Kubernetes type validation.
-yq --inplace '.data.domain = 42' kubernetes/apps/default/test/app/domain.yaml
+yq --inplace '.data.domain = 42' kubernetes/workloads/apps/test/app/domain.yaml
 if scripts/validate-argocd-render.sh --offline >"${TEST_DIR}/invalid-schema.log" 2>&1; then
     echo "Offline validation unexpectedly accepted an invalid ConfigMap" >&2
     exit 1
 fi
 grep -q 'Invalid: 1' "${TEST_DIR}/invalid-schema.log"
-yq --inplace '.data.domain = "${SECRET_DOMAIN}"' kubernetes/apps/default/test/app/domain.yaml
+yq --inplace '.data.domain = "${SECRET_DOMAIN}"' kubernetes/workloads/apps/test/app/domain.yaml
 
 # Strict validation rejects unknown fields, even when known fields are well typed.
-yq --inplace '.unexpectedField = true' kubernetes/apps/default/test/app/domain.yaml
+yq --inplace '.unexpectedField = true' kubernetes/workloads/apps/test/app/domain.yaml
 if scripts/validate-argocd-render.sh --offline >"${TEST_DIR}/unknown-field.log" 2>&1; then
     echo "Offline validation unexpectedly accepted an unknown ConfigMap field" >&2
     exit 1
 fi
 grep -q 'Invalid: 1' "${TEST_DIR}/unknown-field.log"
-yq --inplace 'del(.unexpectedField)' kubernetes/apps/default/test/app/domain.yaml
+yq --inplace 'del(.unexpectedField)' kubernetes/workloads/apps/test/app/domain.yaml
 
 # Unknown built-in kinds must fail, rather than being treated as custom resources.
-yq --inplace '.kind = "ConfigMapTypo"' kubernetes/apps/default/test/app/domain.yaml
+yq --inplace '.kind = "ConfigMapTypo"' kubernetes/workloads/apps/test/app/domain.yaml
 if scripts/validate-argocd-render.sh --offline >"${TEST_DIR}/missing-schema.log" 2>&1; then
     echo "Offline validation unexpectedly accepted a missing built-in schema" >&2
     exit 1
 fi
 grep -q 'could not find schema' "${TEST_DIR}/missing-schema.log"
-yq --inplace '.kind = "ConfigMap"' kubernetes/apps/default/test/app/domain.yaml
+yq --inplace '.kind = "ConfigMap"' kubernetes/workloads/apps/test/app/domain.yaml
 
-printf '\n  - missing.yaml\n' >> kubernetes/apps/default/test/app/kustomization.yaml
+printf '\n  - missing.yaml\n' >> kubernetes/workloads/apps/test/app/kustomization.yaml
 if scripts/validate-argocd-render.sh --offline >"${TEST_DIR}/invalid-app.log" 2>&1; then
     echo "Offline validation unexpectedly accepted an invalid app" >&2
     exit 1

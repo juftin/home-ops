@@ -34,7 +34,7 @@ ______________________________________________________________________
 
 Store in:
 
-- `kubernetes/apps/network/envoy-gateway/app/oauth-client-secret.sops.yaml`
+- `kubernetes/workloads/network/envoy-gateway/app/oauth-client-secret.sops.yaml`
 
 Field:
 
@@ -46,8 +46,8 @@ This file must stay SOPS-encrypted in Git.
 
 Store in:
 
-- `kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml`
-- `kubernetes/apps/network/envoy-gateway/app/oauth-policy-internal.sops.yaml` (if used)
+- `kubernetes/workloads/network/envoy-gateway/app/oauth-policy.sops.yaml`
+- `kubernetes/workloads/network/envoy-gateway/app/oauth-policy-internal.sops.yaml` (if used)
 
 `oauth-policy.sops.yaml` contains both external group policies:
 
@@ -75,12 +75,12 @@ ______________________________________________________________________
 
 ```bash
 # decrypt
-sops --decrypt kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml > /tmp/oauth-policy.yaml
+sops --decrypt kubernetes/workloads/network/envoy-gateway/app/oauth-policy.sops.yaml > /tmp/oauth-policy.yaml
 
 # edit /tmp/oauth-policy.yaml
 
 # re-encrypt
-sops --encrypt /tmp/oauth-policy.yaml > kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml
+sops --encrypt /tmp/oauth-policy.yaml > kubernetes/workloads/network/envoy-gateway/app/oauth-policy.sops.yaml
 rm /tmp/oauth-policy.yaml
 ```
 
@@ -93,10 +93,10 @@ ______________________________________________________________________
 
 After updating credentials/policies, verify these references are present:
 
-- `kubernetes/apps/network/envoy-gateway/app/kustomization.yaml`
+- `kubernetes/workloads/network/envoy-gateway/app/kustomization.yaml`
   - includes `oauth-client-secret.sops.yaml`
   - includes policy files (`oauth-policy.sops.yaml`, `oauth-policy-internal.sops.yaml`)
-- `kubernetes/apps/network/envoy-gateway/app/envoy.yaml`
+- `kubernetes/workloads/network/envoy-gateway/app/envoy.yaml`
   - OAuth Gateways have correct hostnames
   - OAuth Gateways include `home-ops.io/cloudflare-dns: "true"` label
 
