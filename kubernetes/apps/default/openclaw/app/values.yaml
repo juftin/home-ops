@@ -24,6 +24,16 @@ controllers:
           readOnlyRootFilesystem: false
           allowPrivilegeEscalation: false
           capabilities: {drop: ["ALL"]}
+      install-agents:
+        image: *image
+        env:
+          HOME: /home/node
+          PATH: &path /home/node/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+        command: [/bin/bash, /opt/agent-tools/install-agents.sh]
+        securityContext:
+          readOnlyRootFilesystem: false
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
       install-antigravity:
         image: *image
         env:
@@ -46,6 +56,7 @@ controllers:
         args: [node, openclaw.mjs, gateway, --bind, lan, --port, "18789"]
         env:
           HOME: /home/node
+          PATH: *path
           OPENCLAW_HOME: /home/node
           OPENCLAW_STATE_DIR: /home/node/.openclaw
           OPENCLAW_CONFIG_PATH: /home/node/.openclaw/openclaw.json
@@ -231,6 +242,14 @@ configMaps:
           }
         }
 persistence:
+  agent-tools:
+    type: configMap
+    name: agent-tools
+    advancedMounts:
+      openclaw:
+        install-agents:
+          - path: /opt/agent-tools
+            readOnly: true
   tmp:
     type: emptyDir
     globalMounts:

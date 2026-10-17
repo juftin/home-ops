@@ -43,6 +43,8 @@ ______________________________________________________________________
   DNS records to a DNS provider.
 - **[reloader](https://github.com/stakater/Reloader)**: Automatic reloading of Kubernetes resources
   when ConfigMaps or Secrets change.
+- **[Agent tools](kubernetes/apps/default/agent-tools/app/install-agents.sh)**: Shared init installer
+  for Codex, Claude Code, Antigravity, and the GitHub CLI in Paseo and OpenClaw.
 - **[local-path-provisioner](https://github.com/rancher/local-path-provisioner)**: Dynamic
   node-local persistent volume provisioning.
 - **[Tailscale](https://tailscale.com/)**: Kubernetes operator for private access to cluster applications.
