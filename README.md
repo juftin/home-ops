@@ -43,6 +43,8 @@ ______________________________________________________________________
   DNS records to a DNS provider.
 - **[reloader](https://github.com/stakater/Reloader)**: Automatic reloading of Kubernetes resources
   when ConfigMaps or Secrets change.
+- **[Agent tools](kubernetes/apps/default/agent-tools/app/install-agents.sh)**: Shared init installer
+  for Codex, Claude Code, Antigravity, and the GitHub CLI in Paseo and OpenClaw.
 - **[local-path-provisioner](https://github.com/rancher/local-path-provisioner)**: Dynamic
   node-local persistent volume provisioning.
 - **[Tailscale](https://tailscale.com/)**: Kubernetes operator for private access to cluster applications.
@@ -60,7 +62,7 @@ and Tailscale examples using the existing chart values.
 - **[Paseo](https://github.com/getpaseo/paseo)**: Self-hosted coding-agent daemon and web UI behind
   admin Google SSO, with private Tailscale access and persistent workspaces. See [setup](docs/PASEO-SETUP.md).
 - **[OpenClaw](https://github.com/openclaw/openclaw)**: Personal AI assistant gateway and Control UI
-  behind admin Google SSO, with persistent state. See [setup](docs/OPENCLAW-SETUP.md).
+  behind admin Google SSO, with persistent state and shared coding tools. See [setup](docs/OPENCLAW-SETUP.md).
 - **[Hermes Agent](https://github.com/NousResearch/hermes-agent)**: Self-improving AI agent
   with Gateway API server and Web Dashboard behind admin Google SSO. See [setup](docs/HERMES-SETUP.md).
 - **[Lunch Money](https://github.com/juftin/lunchmoney-app)**: MCP server and financial

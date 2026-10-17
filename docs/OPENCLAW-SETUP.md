@@ -39,6 +39,35 @@ Do not disable device authentication to bypass pairing. See the official
 [Control UI guide](https://docs.openclaw.ai/web/control-ui) and
 [Docker deployment guide](https://docs.openclaw.ai/install/docker).
 
+## Coding Agents and GitHub CLI
+
+The `install-agents` init container runs the same
+[shared installer](../kubernetes/apps/default/agent-tools/app/install-agents.sh) as Paseo. It installs
+or upgrades Codex, Claude Code, Antigravity (`agy`), and the GitHub CLI (`gh`) on each pod start.
+Tools live in `/home/node/.local` on the existing home PVC; `/home/node/.local/bin` is in the gateway's
+`PATH`. A failed upgrade reuses a working installed version; a failed first installation blocks startup.
+The script is supplied by the `agent-tools` ConfigMap, whose changes trigger a restart through Reloader.
+
+Check installation and tool availability:
+
+```bash
+kubectl logs -n default deployment/openclaw -c install-agents
+kubectl exec -n default deployment/openclaw -c app -- codex --version
+kubectl exec -n default deployment/openclaw -c app -- claude --version
+kubectl exec -n default deployment/openclaw -c app -- agy --version
+kubectl exec -n default deployment/openclaw -c app -- gh --version
+```
+
+Authenticate tools inside the OpenClaw pod before using them. For example:
+
+```bash
+kubectl exec -it -n default deployment/openclaw -c app -- codex login --device-auth
+kubectl exec -it -n default deployment/openclaw -c app -- gh auth login
+```
+
+Each app keeps its own provider and GitHub credentials; Paseo's credentials are not shared.
+Installing these CLIs makes them available to agent tools; configure OpenClaw's model providers separately.
+
 ## Storage and Runtime
 
 - The official image is pinned to `ghcr.io/openclaw/openclaw:2026.10.1`.

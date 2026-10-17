@@ -72,6 +72,14 @@ ______________________________________________________________________
 | `default` | `paseo`        | Coding-agent daemon and bundled web UI                     |
 | `default` | `openclaw`     | Personal AI assistant gateway and Control UI               |
 | `default` | `hermes-agent` | Self-improving AI agent with Gateway API and Web Dashboard |
+| `default` | `agent-tools`  | Shared installer ConfigMap for Paseo and OpenClaw          |
+
+The `agent-tools` app owns one ConfigMap generated from `install-agents.sh`. Paseo and OpenClaw mount
+it read-only in their `install-agents` init containers. The script installs or upgrades Codex,
+Claude Code, Antigravity, and the GitHub CLI under each app's persistent `$HOME/.local` and reuses
+working installed versions if upgrades fail. Both app containers include `$HOME/.local/bin` in
+`PATH`. Reloader restarts consumers when the shared ConfigMap changes; the tools and credentials
+remain isolated on each app's own PVC.
 
 Paseo is served at `paseo.${SECRET_DOMAIN}` through Cloudflare Tunnel and the admin OAuth Gateway.
 The daemon additionally requires a password from the `paseo` 1Password item. It trusts forwarded
@@ -94,7 +102,8 @@ Gateway. Its HTTP and WebSocket gateway share port 18789; OpenClaw token authent
 browser device pairing remain enabled behind SSO. A node-local PVC persists `/home/node`,
 including configuration, provider credentials, sessions, and workspaces. One non-root replica
 uses `Recreate`. A first-run init container seeds the gateway configuration without overwriting
-subsequent onboarding changes. See [OpenClaw setup](OPENCLAW-SETUP.md).
+subsequent onboarding changes. The shared agent installer makes coding CLIs and `gh` available
+before the gateway starts. See [OpenClaw setup](OPENCLAW-SETUP.md).
 
 ### Agent isolation
 
