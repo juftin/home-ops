@@ -63,7 +63,8 @@ case "${command_name}" in
 esac
 EOF
 chmod +x "${MOCK_BIN}/mock"
-for command_name in npm curl tar uname; do
+# Shadow host CLIs used by the missing-tool checks.
+for command_name in npm curl tar uname codex claude gh; do
     ln -s mock "${MOCK_BIN}/${command_name}"
 done
 export PATH="${MOCK_BIN}:/usr/bin:/bin"
