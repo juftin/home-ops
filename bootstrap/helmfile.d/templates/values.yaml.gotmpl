@@ -57,7 +57,7 @@ extraObjects:
       namespace: argocd
     spec:
       hostnames:
-        - {{ printf "argocd-webhook.%s" $argocdSecretDomain | quote }}
+        - {{ printf "webhooks.%s" $argocdSecretDomain | quote }}
       parentRefs:
         - name: envoy-external
           namespace: network
@@ -66,8 +66,14 @@ extraObjects:
         - matches:
             - path:
                 type: Exact
-                value: /api/webhook
+                value: /argocd/api/webhook
               method: POST
+          filters:
+            - type: URLRewrite
+              urlRewrite:
+                path:
+                  type: ReplaceFullPath
+                  replaceFullPath: /api/webhook
           backendRefs:
             - name: argocd-server
               port: 80

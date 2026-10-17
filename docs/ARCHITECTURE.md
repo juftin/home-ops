@@ -10,9 +10,10 @@ ______________________________________________________________________
 - `home-ops-root` (bootstrapped by Helmfile) points to `kubernetes/argocd`.
 - `kubernetes/argocd/applicationset.yaml` generates one ArgoCD `Application` per app directory under `kubernetes/apps/<namespace>/<app>/app`.
 - Generated apps use server-side apply so Kubernetes-assigned PVC bindings are preserved during sync.
-- GitHub push webhooks reach `argocd-webhook.${SECRET_DOMAIN}/api/webhook` through the public
+- GitHub push webhooks reach `webhooks.${SECRET_DOMAIN}/argocd/api/webhook` through the public
   `envoy-external` Gateway and refresh existing Applications. Only exact-path POST requests are
-  routed to `argocd-server`; the UI remains on the admin OAuth Gateway. The bootstrap Helm release
+  routed to `argocd-server`, with the path rewritten to `/api/webhook`; the UI remains on the
+  admin OAuth Gateway. The bootstrap Helm release
   owns this route and an ExternalSecret sourcing `GITHUB_WEBHOOK_SECRET` from the `argocd`
   1Password item. See [webhook setup](ARGOCD-WEBHOOK-SETUP.md). ApplicationSet directory discovery
   continues to poll Git.

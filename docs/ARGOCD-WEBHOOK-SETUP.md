@@ -5,9 +5,11 @@ polling. ArgoCD's existing automated sync policies still control deployment. App
 directory discovery uses a separate webhook server and continues to poll; adding an app directory
 may therefore take longer than updating an existing app.
 
-The endpoint is `https://argocd-webhook.<YOUR_DOMAIN>/api/webhook`. Cloudflare Tunnel's existing
-public wildcard sends it to `envoy-external`, which routes only `POST /api/webhook` to
-`argocd-server:80`. The ArgoCD UI stays behind admin Google SSO at `argocd.<YOUR_DOMAIN>`.
+The endpoint is `https://webhooks.<YOUR_DOMAIN>/argocd/api/webhook`. Cloudflare Tunnel's existing
+public wildcard sends it to `envoy-external`, which matches only `POST /argocd/api/webhook` and
+rewrites the upstream path to `/api/webhook` on `argocd-server:80`. The shared `webhooks` hostname
+uses an app-specific `/argocd/` path. The ArgoCD UI stays behind admin Google SSO at
+`argocd.<YOUR_DOMAIN>`.
 
 ## 1. Store the shared secret
 
@@ -44,14 +46,14 @@ branch test with `task dev:stop`.
 Open [juftin/home-ops webhook settings](https://github.com/juftin/home-ops/settings/hooks) and choose
 **Add webhook**:
 
-| Setting          | Value                                              |
-| ---------------- | -------------------------------------------------- |
-| Payload URL      | `https://argocd-webhook.<YOUR_DOMAIN>/api/webhook` |
-| Content type     | `application/json`                                 |
-| Secret           | The `GITHUB_WEBHOOK_SECRET` value from 1Password   |
-| SSL verification | Enable                                             |
-| Events           | Just the push event                                |
-| Active           | Checked                                            |
+| Setting          | Value                                               |
+| ---------------- | --------------------------------------------------- |
+| Payload URL      | `https://webhooks.<YOUR_DOMAIN>/argocd/api/webhook` |
+| Content type     | `application/json`                                  |
+| Secret           | The `GITHUB_WEBHOOK_SECRET` value from 1Password    |
+| SSL verification | Enable                                              |
+| Events           | Just the push event                                 |
+| Active           | Checked                                             |
 
 The GitHub account or token needs repository webhook administration access. For GitHub CLI using a
 classic OAuth token, the scope is `admin:repo_hook`.
@@ -71,13 +73,13 @@ kubectl get application -n argocd <APP_NAME> \
 A successful ping checks connectivity and authentication; the push event checks application
 refresh. A push to a different branch does not deploy it to Applications tracking `main`.
 
-| Symptom                      | Check                                                                                                  |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------ |
-| DNS or TLS failure           | Cloudflare DNS record for the route hostname, wildcard tunnel rule, and the public Gateway certificate |
-| 302 redirect to Google       | Payload URL must use `argocd-webhook`, not the UI hostname                                             |
-| 404                          | Exact path `/api/webhook`, POST method, and HTTPRoute parent conditions                                |
-| Signature validation failure | Matching GitHub and 1Password secrets and a Ready ExternalSecret                                       |
-| HTTP 200 but no update       | Delivery event is `push`; Application repository and target branch match the payload                   |
+| Symptom                      | Check                                                                                                           |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| DNS or TLS failure           | Cloudflare DNS record for the route hostname, wildcard tunnel rule, and the public Gateway certificate          |
+| 302 redirect to Google       | Payload URL must use the `webhooks` hostname                                                                    |
+| 404                          | Exact path `/argocd/api/webhook`, POST method, `/api/webhook` upstream rewrite, and HTTPRoute parent conditions |
+| Signature validation failure | Matching GitHub and 1Password secrets and a Ready ExternalSecret                                                |
+| HTTP 200 but no update       | Delivery event is `push`; Application repository and target branch match the payload                            |
 
 For rotation, update the 1Password field and GitHub webhook secret together, then request a secret
 refresh and redeliver any failed push from GitHub:
