@@ -8,7 +8,7 @@ controllers:
       wait-for-deps:
         image: &image
           repository: ghcr.io/juftin/lunchmoney-app
-          tag: 0.15.0
+          tag: 0.15.1
         command:
           - python
           - -c
