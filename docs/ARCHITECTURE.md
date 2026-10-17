@@ -120,7 +120,10 @@ App-local CiliumNetworkPolicies default-deny ingress and egress. Ingress permits
 Envoy gateway on each app's service ports; Paseo also permits its specific Tailscale ingress proxy.
 Egress permits CoreDNS on TCP/UDP 53 and public HTTP/HTTPS/SSH on TCP 80/443/22. Other cluster
 services (including the other agents), Kubernetes API, nodes, LAN, tailnet, and metadata addresses
-are blocked. DNS is the intentional cluster-service exception. Existing stateful connections can
+are blocked, with explicit exceptions for DNS and OpenClaw accessing only the Lunch Money
+application on TCP 8000 (`http://lunchmoney-app.default.svc.cluster.local:8000`). Its PostgreSQL,
+Valkey, and scheduler pods remain inaccessible to OpenClaw. Paseo and Hermes have no Lunch Money
+exception. Existing stateful connections can
 receive replies; the ingress exception does not authorize agent-initiated connections to proxies.
 See [Cilium policy semantics](https://docs.cilium.io/en/stable/security/policy/layer3/).
 
