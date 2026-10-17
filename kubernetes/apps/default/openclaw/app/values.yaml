@@ -24,6 +24,22 @@ controllers:
           readOnlyRootFilesystem: false
           allowPrivilegeEscalation: false
           capabilities: {drop: ["ALL"]}
+      install-antigravity:
+        image: *image
+        env:
+          HOME: /home/node
+          # renovate: datasource=npm depName=antigravity-claude-proxy
+          PROXY_VERSION: 2.8.7
+        command: [/bin/bash, -c]
+        args:
+          - |-
+            set -euo pipefail
+            npm install --global --allow-scripts=better-sqlite3 --prefix /home/node/.local "antigravity-claude-proxy@${PROXY_VERSION}"
+            node openclaw.mjs config set --strict-json models.providers.antigravity-proxy "$(cat /config/antigravity-provider.json)"
+        securityContext:
+          readOnlyRootFilesystem: false
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
     containers:
       app:
         image: *image
@@ -81,6 +97,53 @@ controllers:
             memory: 512Mi
           limits:
             memory: 4Gi
+      antigravity-proxy:
+        image: *image
+        command: [node]
+        args: [/home/node/.local/lib/node_modules/antigravity-claude-proxy/src/index.js]
+        env:
+          HOME: /home/node
+          HOST: 127.0.0.1
+          PORT: "8080"
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              exec: &proxy-health
+                command:
+                  - node
+                  - -e
+                  - "fetch('http://127.0.0.1:8080/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+              periodSeconds: 5
+              timeoutSeconds: 3
+              failureThreshold: 30
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              exec: *proxy-health
+              periodSeconds: 10
+              timeoutSeconds: 3
+              failureThreshold: 3
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              exec: *proxy-health
+              periodSeconds: 10
+              timeoutSeconds: 3
+              failureThreshold: 3
+        securityContext:
+          readOnlyRootFilesystem: false
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            memory: 512Mi
 defaultPodOptions:
   automountServiceAccountToken: false
   enableServiceLinks: false
@@ -101,6 +164,59 @@ service:
 configMaps:
   config:
     data:
+      antigravity-provider.json: |-
+        {
+          "baseUrl": "http://127.0.0.1:8080",
+          "apiKey": "local-proxy",
+          "api": "anthropic-messages",
+          "models": [
+            {
+              "id": "claude-sonnet-4-6",
+              "name": "Claude Sonnet 4.6 (Antigravity)",
+              "reasoning": false,
+              "input": ["text", "image"],
+              "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+              "contextWindow": 200000,
+              "maxTokens": 16384
+            },
+            {
+              "id": "claude-sonnet-4-6-thinking",
+              "name": "Claude Sonnet 4.6 Thinking (Antigravity)",
+              "reasoning": true,
+              "input": ["text", "image"],
+              "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+              "contextWindow": 200000,
+              "maxTokens": 16384
+            },
+            {
+              "id": "claude-opus-4-6-thinking",
+              "name": "Claude Opus 4.6 Thinking (Antigravity)",
+              "reasoning": true,
+              "input": ["text", "image"],
+              "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+              "contextWindow": 200000,
+              "maxTokens": 32000
+            },
+            {
+              "id": "gemini-3.8-flash-tiered",
+              "name": "Gemini 3.8 Flash (Antigravity)",
+              "reasoning": true,
+              "input": ["text", "image"],
+              "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+              "contextWindow": 1048576,
+              "maxTokens": 65536
+            },
+            {
+              "id": "gemini-3.6-flash-high",
+              "name": "Gemini 3.6 Flash High (Antigravity)",
+              "reasoning": true,
+              "input": ["text", "image"],
+              "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+              "contextWindow": 1048576,
+              "maxTokens": 65536
+            }
+          ]
+        }
       openclaw.json: |-
         {
           "gateway": {
@@ -131,6 +247,9 @@ persistence:
     advancedMounts:
       openclaw:
         config:
+          - path: /config
+            readOnly: true
+        install-antigravity:
           - path: /config
             readOnly: true
 route:
