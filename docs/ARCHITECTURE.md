@@ -103,12 +103,7 @@ browser device pairing remain enabled behind SSO. A node-local PVC persists `/ho
 including configuration, provider credentials, sessions, and workspaces. One non-root replica
 uses `Recreate`. A first-run init container seeds the gateway configuration without overwriting
 subsequent onboarding changes. The shared agent installer makes coding CLIs and `gh` available
-before the gateway starts. An Antigravity Claude Proxy sidecar listens only on `127.0.0.1:8080`
-and provides Claude and Gemini models through the Anthropic Messages API. An init container installs
-the pinned npm package in the persistent home and registers the `antigravity-proxy` model provider
-on every pod start without changing the default model or other providers. Proxy accounts and settings
-persist under `/home/node/.config/antigravity-proxy`; account linking uses a local port-forward.
-The proxy has no Service or HTTPRoute. See [OpenClaw setup](OPENCLAW-SETUP.md).
+before the gateway starts. See [OpenClaw setup](OPENCLAW-SETUP.md).
 
 ### Agent isolation
 
