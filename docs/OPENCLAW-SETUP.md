@@ -55,6 +55,14 @@ Do not disable device authentication to bypass pairing. See the official
 - Docker sandboxing and a managed Chromium browser are not provisioned. Talos has no Docker daemon;
   agent tools execute inside this pod. Configure provider access before expecting chat responses.
 
+## Lunch Money Access
+
+OpenClaw can reach the in-cluster Lunch Money app at
+`http://lunchmoney-app.default.svc.cluster.local:8000`, including its MCP and API endpoints.
+The network exception is limited to the application pods on TCP 8000; it does not grant access
+to PostgreSQL, Valkey, the scheduler, or other cluster services. Application authentication still
+applies; configure any required credentials in OpenClaw without copying them into Git.
+
 ## Validation and Branch Testing
 
 ```bash
