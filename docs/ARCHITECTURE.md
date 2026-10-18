@@ -79,12 +79,13 @@ ______________________________________________________________________
 | `default` | `paseo`        | Coding-agent daemon and bundled web UI                     |
 | `default` | `openclaw`     | Personal AI assistant gateway and Control UI               |
 | `default` | `hermes-agent` | Self-improving AI agent with Gateway API and Web Dashboard |
-| `default` | `agent-tools`  | Shared installer ConfigMap for Paseo and OpenClaw          |
+| `default` | `herdr`        | Persistent agent terminals and browser/phone web UI        |
+| `default` | `agent-tools`  | Shared installer ConfigMap for Paseo, OpenClaw, and Herdr  |
 
-The `agent-tools` app owns one ConfigMap generated from `install-agents.sh`. Paseo and OpenClaw mount
+The `agent-tools` app owns one ConfigMap generated from `install-agents.sh`. Paseo, OpenClaw, and Herdr mount
 it read-only in their `install-agents` init containers. The script installs or upgrades Codex,
 Claude Code, Antigravity, and the GitHub CLI under each app's persistent `$HOME/.local` and reuses
-working installed versions if upgrades fail. Both app containers include `$HOME/.local/bin` in
+working installed versions if upgrades fail. All three app containers include `$HOME/.local/bin` in
 `PATH`. Reloader restarts consumers when the shared ConfigMap changes; the tools and credentials
 remain isolated on each app's own PVC.
 
@@ -112,6 +113,17 @@ uses `Recreate`. A first-run init container seeds the gateway configuration with
 subsequent onboarding changes. The shared agent installer makes coding CLIs and `gh` available
 before the gateway starts. See [OpenClaw setup](OPENCLAW-SETUP.md).
 
+Herdr is served at `herdr.${SECRET_DOMAIN}` through Cloudflare Tunnel and the admin OAuth
+Gateway. One container supervises the headless Herdr server and herdr web ui on port 7317,
+connected over a Unix socket. Pinned Node and Bun images supply the runtimes; an init container
+verifies and installs pinned Herdr and web UI downloads, installs locked UI dependencies, and
+builds the frontend on a pod-local volume. Another init container installs the shared coding
+tools. Node-local PVCs persist `/home/herdr` (layout, transcripts, tools, credentials, and web UI
+device/push state) and `/workspace` (repositories and worktrees). A single non-root replica uses
+`Recreate`; either process exiting restarts the pair. The UI additionally requires a token from
+the `herdr` 1Password item. Its HTTP health probe checks the Herdr socket as well as the web
+server. See [Herdr setup](HERDR-SETUP.md).
+
 ### Agent isolation
 
 Each agent has its own pod and PVCs. All app and init containers run as non-root, drop all Linux
@@ -129,7 +141,7 @@ Egress permits CoreDNS on TCP/UDP 53 and public HTTP/HTTPS/SSH on TCP 80/443/22.
 services (including the other agents), Kubernetes API, nodes, LAN, tailnet, and metadata addresses
 are blocked, with explicit exceptions for DNS and OpenClaw accessing only the Lunch Money
 application on TCP 8000 (`http://lunchmoney-app.default.svc.cluster.local:8000`). Its PostgreSQL,
-Valkey, and scheduler pods remain inaccessible to OpenClaw. Paseo and Hermes have no Lunch Money
+Valkey, and scheduler pods remain inaccessible to OpenClaw. Paseo, Hermes, and Herdr have no Lunch Money
 exception. Existing stateful connections can
 receive replies; the ingress exception does not authorize agent-initiated connections to proxies.
 See [Cilium policy semantics](https://docs.cilium.io/en/stable/security/policy/layer3/).
