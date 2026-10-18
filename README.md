@@ -45,7 +45,7 @@ ______________________________________________________________________
 - **[reloader](https://github.com/stakater/Reloader)**: Automatic reloading of Kubernetes resources
   when ConfigMaps or Secrets change.
 - **[Agent tools](kubernetes/apps/default/agent-tools/app/install-agents.sh)**: Shared init installer
-  for Codex, Claude Code, Antigravity, and the GitHub CLI in Paseo and OpenClaw.
+  for Codex, Claude Code, Antigravity, and the GitHub CLI in Paseo, OpenClaw, and Herdr.
 - **[local-path-provisioner](https://github.com/rancher/local-path-provisioner)**: Dynamic
   node-local persistent volume provisioning.
 - **[Tailscale](https://tailscale.com/)**: Kubernetes operator for private access to cluster applications.
@@ -62,6 +62,9 @@ and Tailscale examples using the existing chart values.
   at recreation.gov and beyond, with frontend, API backend, Celery worker/beat, and Postgres database. See [setup](docs/CAMPLY-SETUP.md).
 - **[Paseo](https://github.com/getpaseo/paseo)**: Self-hosted coding-agent daemon and web UI behind
   admin Google SSO, with private Tailscale access and persistent workspaces. See [setup](docs/PASEO-SETUP.md).
+- **[Herdr](https://github.com/herdrdev/herdr)**: Persistent coding-agent terminals with
+  [herdr web ui](https://github.com/devswha/herdr-web-ui) behind admin Google SSO, with token
+  authentication, isolated provider tools, and persistent workspaces. See [setup](docs/HERDR-SETUP.md).
 - **[OpenClaw](https://github.com/openclaw/openclaw)**: Personal AI assistant gateway and Control UI
   behind admin Google SSO, with persistent state and shared coding tools. See [setup](docs/OPENCLAW-SETUP.md).
 - **[Hermes Agent](https://github.com/NousResearch/hermes-agent)**: Self-improving AI agent
