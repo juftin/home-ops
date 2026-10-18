@@ -1,0 +1,59 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: orca-isolation
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: orca
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: network
+            gateway.envoyproxy.io/owning-gateway-name: envoy-oauth-admin
+      toPorts:
+        - ports:
+            - port: "6768"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: tailscale
+            tailscale.com/parent-resource: orca-tailscale
+            tailscale.com/parent-resource-ns: default
+            tailscale.com/parent-resource-type: ingress
+      toPorts:
+        - ports:
+            - port: "6768"
+              protocol: TCP
+  egress:
+    # DNS is the only permitted connection to another cluster service.
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+    - toEntities: [world]
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+            - port: "22"
+              protocol: TCP
+  egressDeny:
+    - toEntities: [host, remote-node, kube-apiserver]
+    # CIDR rules exclude cluster endpoints; the DNS endpoint rule above is required.
+    - toCIDR:
+        - 10.0.0.0/8
+        - 172.16.0.0/12
+        - 192.168.0.0/16
+        - 169.254.0.0/16
+        - 100.64.0.0/10
+        - fc00::/7
+        - fe80::/10
