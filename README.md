@@ -50,6 +50,9 @@ ______________________________________________________________________
   node-local persistent volume provisioning.
 - **[Tailscale](https://tailscale.com/)**: Kubernetes operator for private access to cluster applications.
   See [setup](docs/TAILSCALE-SETUP.md).
+- **[Renovate runner](https://github.com/renovatebot/renovate)**: Scheduled dependency updates
+  for topic-tagged repositories, with GitHub App authentication and persistent cache.
+  Initially suspended pending credential setup and cutover; see [setup](docs/RENOVATE-SETUP.md).
 
 See [App access](docs/APP-ACCESS.md) for app-local OAuth, public Cloudflare,
 and Tailscale examples using the existing chart values.
