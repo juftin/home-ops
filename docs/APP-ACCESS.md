@@ -43,8 +43,11 @@ apiVersions:
 before the public wildcard. Copy an entry for the same group; admins use
 `envoy-oauth-admin` with TLS origin `oauth.${SECRET_DOMAIN}`, users use
 `envoy-oauth-users` with TLS origin `oauth-users.${SECRET_DOMAIN}`. Public apps use
-the existing wildcard without a tunnel edit. OAuth utility pages already cover
-all app hosts through their wildcard; callback protection remains section-scoped.
+the existing wildcard without a tunnel edit. Add OAuth app hostnames explicitly to
+`oauth-pages` values as well, so exact utility paths outrank each app's catch-all route.
+Register `https://my-app.<domain>/oauth2/callback` in Google before deployment. Sessions
+use host-scoped cookies; callback protection remains section-scoped. Render validation
+checks route/tunnel group agreement and utility hostname coverage.
 
 For multiple ports or paths, specify `route.app.rules`; see
 [Hermes Agent](../kubernetes/apps/default/hermes-agent/app/values.yaml).
