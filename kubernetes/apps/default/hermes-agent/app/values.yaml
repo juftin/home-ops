@@ -7,7 +7,7 @@ controllers:
       app:
         image:
           repository: docker.io/nousresearch/hermes-agent
-          tag: v0.21.6
+          tag: v0.22.5
         # Bypass the root s6 entrypoint; Kubernetes restarts both processes on failure.
         command: [/bin/bash, -c]
         args:
