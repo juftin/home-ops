@@ -51,7 +51,7 @@ ______________________________________________________________________
 
 ### Check
 
-- `spec.oidc.redirectURL` in policy matches the Gateway hostname exactly
+- Rendered `spec.oidc.redirectURL` uses the app request host over HTTPS; Google has that exact app callback registered
 - Redirect URI is registered in Google OAuth client
 - `oauth-pages` includes the exact `/oauth2/callback` route
 - `oauth-pages-public` policy does **not** broadly allow the callback route
@@ -78,12 +78,12 @@ Policy files:
 
 ______________________________________________________________________
 
-## 3) User authenticates but receives denied page
+## 3) User authenticates but receives HTTP 403
 
 ### Check
 
 - User email is present (lowercase) in policy allowlist
-- `email_verified` claim requirement is present and true
+- `oauth-verified-email` EnvoyExtensionPolicy is accepted and the verified JWT contains boolean `email_verified: true`
 
 ```bash
 sops --decrypt kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml | less
@@ -109,6 +109,7 @@ kubectl get httproute -n default oauth-pages -o yaml
 
 - `parentRefs` include `envoy-oauth-admin`, `envoy-oauth-users`, and `envoy-oauth-internal`
   (and `envoy-external` if used)
+- `hostnames` explicitly includes the app host; a wildcard alone loses precedence to the app's exact hostname
 - route rules include exact `/denied` and `/logged-out`
 - rules rewrite to `/denied.html` and `/logged-out.html`
 - `oauth-pages-public` allows only `sectionName: denied` and `sectionName: logged-out`
@@ -142,12 +143,14 @@ kubectl get secret -n network <secret-domain-production-tls-secret>
 
 ______________________________________________________________________
 
-## Emergency Session Invalidation
+## Revocation and Session Invalidation
 
-When access must be revoked immediately after allowlist updates:
+Use the [policy change playbook](SECURITYPOLICY-CHANGE-PLAYBOOK.md#revocation).
+An allowlist change affects subsequent requests after data-plane policy propagation.
+Restarting the controller does not invalidate browser sessions; active streams and
+cookie-signing-key rotation require separate handling.
 
-```bash
-kubectl rollout restart deployment -n network -l app.kubernetes.io/name=envoy-gateway
-```
-
-This forces re-authentication instead of waiting for existing session expiry.
+For repeated login failures after an upgrade, inspect the **rendered** policy: cookie names must match the JWT cookie extractor, token encryption must be disabled for
+this pinned controller's JWT-cookie path, and JWT must verify the OIDC client ID audience.
+OAuth cookies must be stripped before app forwarding. Client query parameters and bearer
+headers do not bypass browser OIDC.

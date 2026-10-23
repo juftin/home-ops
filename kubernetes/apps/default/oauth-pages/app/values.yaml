@@ -264,7 +264,15 @@ route:
       - name: envoy-external
         namespace: network
     hostnames:
-      - '*.${SECRET_DOMAIN}'
+      - paseo.${SECRET_DOMAIN}
+      - herdr.${SECRET_DOMAIN}
+      - hermes.${SECRET_DOMAIN}
+      - openclaw.${SECRET_DOMAIN}
+      - grafana.${SECRET_DOMAIN}
+      - argocd.${SECRET_DOMAIN}
+      - oauth.${SECRET_DOMAIN}
+      - oauth-users.${SECRET_DOMAIN}
+      - oauth-internal.${SECRET_DOMAIN}
     rules:
       - name: callback
         matches:

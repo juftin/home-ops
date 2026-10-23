@@ -7,6 +7,7 @@ resources:
   - ./oauth-client-secret.sops.yaml
   - ./oauth-policy.sops.yaml
   - ./oauth-policy-internal.sops.yaml
+  - ./oauth-verified-email.yaml
 helmCharts:
   - name: gateway-helm
     repo: oci://mirror.gcr.io/envoyproxy
@@ -18,3 +19,58 @@ helmCharts:
 patchesStrategicMerge:
   - ./remove-hook-annotations.yaml
   - ./ignore-extraneous-diffs.yaml
+patches:
+  - path: ./oauth-hardening.yaml
+    target:
+      group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      name: envoy-oauth-(admin|users|internal)-policy
+  - target:
+      kind: SecurityPolicy
+      name: envoy-oauth-admin-policy
+    patch: |-
+      - op: replace
+        path: /spec/targetRefs
+        value: [{group: gateway.networking.k8s.io, kind: Gateway, name: envoy-oauth-admin}]
+  - target:
+      kind: SecurityPolicy
+      name: envoy-oauth-users-policy
+    patch: |-
+      - op: replace
+        path: /spec/targetRefs
+        value: [{group: gateway.networking.k8s.io, kind: Gateway, name: envoy-oauth-users}]
+  - target:
+      kind: SecurityPolicy
+      name: envoy-oauth-internal-policy
+    patch: |-
+      - op: replace
+        path: /spec/targetRefs
+        value: [{group: gateway.networking.k8s.io, kind: Gateway, name: envoy-oauth-internal}]
+replacements:
+  - source:
+      kind: SecurityPolicy
+      name: envoy-oauth-admin-policy
+      fieldPath: spec.oidc.clientID
+    targets:
+      - select:
+          kind: SecurityPolicy
+          name: envoy-oauth-admin-policy
+        fieldPaths: [spec.jwt.providers.0.audiences.0]
+  - source:
+      kind: SecurityPolicy
+      name: envoy-oauth-users-policy
+      fieldPath: spec.oidc.clientID
+    targets:
+      - select:
+          kind: SecurityPolicy
+          name: envoy-oauth-users-policy
+        fieldPaths: [spec.jwt.providers.0.audiences.0]
+  - source:
+      kind: SecurityPolicy
+      name: envoy-oauth-internal-policy
+      fieldPath: spec.oidc.clientID
+    targets:
+      - select:
+          kind: SecurityPolicy
+          name: envoy-oauth-internal-policy
+        fieldPaths: [spec.jwt.providers.0.audiences.0]

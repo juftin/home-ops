@@ -1,5 +1,10 @@
 version: '3'
 tasks:
+  auth:test:
+    desc: Test verified-email enforcement, auth invariants, and the Lunch Money proxy
+    cmd: uv run --no-project --python 3.14 --with lupa==2.6 python {{.ROOT_DIR}}/scripts/tests/test-auth.py
+    preconditions:
+      - which uv yq kubeconform nginx kustomize
   agents:test:
     desc: Test shared agent installation and cached-version fallback without network access
     cmd: 'bash {{.ROOT_DIR}}/scripts/tests/test-install-agents.sh'
@@ -7,17 +12,15 @@ tasks:
     desc: Validate ArgoCD rendering and built-in resource schemas (no cluster required)
     cmds:
       - '{{.ROOT_DIR}}/scripts/validate-argocd-render.sh'
-      - task: validate:bootstrap
     preconditions:
-      - which kustomize helm sops yq kubeconform
+      - which kustomize helm helmfile sops yq kubeconform python3
       - test -x {{.ROOT_DIR}}/scripts/validate-argocd-render.sh
   validate:ci:
     desc: Validate rendering and schemas with placeholder secrets (no age key or cluster required)
     cmds:
       - '{{.ROOT_DIR}}/scripts/validate-argocd-render.sh --offline'
-      - task: validate:bootstrap
     preconditions:
-      - which kustomize helm yq kubeconform
+      - which kustomize helm helmfile yq kubeconform python3
       - test -x {{.ROOT_DIR}}/scripts/validate-argocd-render.sh
   validate:bootstrap:
     desc: Render the ArgoCD bootstrap chart with placeholders and validate built-in schemas

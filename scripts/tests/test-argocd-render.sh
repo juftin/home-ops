@@ -10,6 +10,7 @@ mkdir -p "${TEST_DIR}/repo/scripts" "${TEST_DIR}/repo/kubernetes/argocd" \
     "${TEST_DIR}/repo/talos" "${TEST_DIR}/scratch"
 cp "${ROOT_DIR}/scripts/validate-argocd-render.sh" "${TEST_DIR}/repo/scripts/"
 cp "${ROOT_DIR}/scripts/validate-kubernetes-schema.sh" "${TEST_DIR}/repo/scripts/"
+cp "${ROOT_DIR}/scripts/validate-auth.py" "${TEST_DIR}/repo/scripts/"
 cp "${ROOT_DIR}/scripts/render-argocd-app.sh" "${TEST_DIR}/repo/scripts/render-real.sh"
 cp "${ROOT_DIR}/talos/talenv.yaml" "${TEST_DIR}/repo/talos/"
 git -C "${TEST_DIR}/repo" init --quiet
