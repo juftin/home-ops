@@ -17,7 +17,7 @@ controllers:
       install-runtime:
         image: &image
           repository: docker.io/library/node
-          tag: 24.22.0-bookworm
+          tag: 24.22.1-bookworm
         env: &runtimeEnv
           HOME: /home/herdr
           XDG_CONFIG_HOME: /home/herdr/.config
