@@ -3,7 +3,7 @@ kind: Kustomization
 helmCharts:
   - name: loki
     repo: oci://ghcr.io/grafana-community/helm-charts
-    version: 17.4.11
+    version: 20.0.1
     releaseName: loki
     namespace: observability
     includeCRDs: true
