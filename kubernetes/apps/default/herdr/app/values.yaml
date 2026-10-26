@@ -7,7 +7,7 @@ controllers:
       copy-bun:
         image:
           repository: docker.io/oven/bun
-          tag: 1.4.2-debian
+          tag: 1.4.4-debian
         command: [/bin/sh, -c]
         args: ["mkdir -p /opt/herdr/bin && cp /usr/local/bin/bun /opt/herdr/bin/bun"]
         securityContext: &containerSecurity
