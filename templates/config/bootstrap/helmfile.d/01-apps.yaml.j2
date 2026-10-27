@@ -9,7 +9,7 @@ releases:
   - name: cilium
     namespace: kube-system
     chart: oci://quay.io/cilium/charts/cilium
-    version: 1.19.5
+    version: 1.20.4
     values: ['./templates/values.yaml.gotmpl']
 
   - name: coredns
@@ -23,7 +23,7 @@ releases:
   - name: spegel
     namespace: kube-system
     chart: oci://ghcr.io/spegel-org/helm-charts/spegel
-    version: 0.7.4
+    version: 0.8.0
     values: ['./templates/values.yaml.gotmpl']
     needs: ['kube-system/coredns']
   #% endif %#
@@ -42,6 +42,6 @@ releases:
   - name: argocd
     namespace: argocd
     chart: oci://ghcr.io/argoproj/argo-helm/argo-cd
-    version: 10.1.2
+    version: 10.11.6
     values: ['./templates/values.yaml.gotmpl']
     needs: ['cert-manager/cert-manager']
