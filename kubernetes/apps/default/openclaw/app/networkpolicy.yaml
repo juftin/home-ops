@@ -16,7 +16,7 @@ spec:
             - port: "18789"
               protocol: TCP
   egress:
-    # DNS is the only permitted connection to another cluster service.
+    # Only DNS and the Lunch Money application are reachable in the cluster.
     - toEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: kube-system
@@ -26,6 +26,15 @@ spec:
             - port: "53"
               protocol: UDP
             - port: "53"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: default
+            app.kubernetes.io/instance: lunchmoney
+            app.kubernetes.io/controller: app
+      toPorts:
+        - ports:
+            - port: "8000"
               protocol: TCP
     - toEntities: [world]
       toPorts:

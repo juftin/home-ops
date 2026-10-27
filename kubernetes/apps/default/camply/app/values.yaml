@@ -393,7 +393,7 @@ controllers:
       app:
         image:
           repository: docker.io/prom/prometheus
-          tag: v3.2.1
+          tag: v3.15.1
         args:
           - --config.file=/etc/prometheus/prometheus.yml
           - --storage.tsdb.path=/prometheus
