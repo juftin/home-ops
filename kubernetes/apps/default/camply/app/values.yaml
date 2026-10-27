@@ -276,7 +276,7 @@ controllers:
       app:
         image:
           repository: docker.io/library/postgres
-          tag: "17"
+          tag: "18"
         env:
           POSTGRES_USER: camply
           POSTGRES_DB: camply
