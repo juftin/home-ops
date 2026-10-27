@@ -1,0 +1,613 @@
+controllers:
+  frontend:
+    replicas: 1
+    strategy: RollingUpdate
+    annotations:
+      reloader.stakater.com/auto: "true"
+    containers:
+      app:
+        image:
+          repository: ghcr.io/juftin/camply-frontend
+          tag: latest
+          pullPolicy: Always
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /healthz
+                port: &frontendPort 8080
+              periodSeconds: 5
+              timeoutSeconds: 3
+              failureThreshold: 30
+          liveness: &frontendProbes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /healthz
+                port: *frontendPort
+              periodSeconds: 10
+              timeoutSeconds: 3
+              failureThreshold: 3
+          readiness: *frontendProbes
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+        resources:
+          requests:
+            cpu: 10m
+            memory: 64Mi
+          limits:
+            memory: 256Mi
+  backend:
+    replicas: 1
+    strategy: RollingUpdate
+    annotations:
+      reloader.stakater.com/auto: "true"
+    initContainers:
+      wait-for-db:
+        image: &backendImage
+          repository: ghcr.io/juftin/camply-backend
+          tag: latest
+          pullPolicy: Always
+        command:
+          - python
+          - -c
+          - |
+            import socket, time
+            for _ in range(60):
+                try:
+                    with socket.create_connection(("camply-db", 5432), timeout=2):
+                        print("Database is ready")
+                        break
+                except OSError:
+                    time.sleep(2)
+            else:
+                print("Database wait timed out", flush=True)
+                exit(1)
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+    containers:
+      app:
+        image: *backendImage
+        env:
+          CAMPLY_DB_DRIVERNAME: postgresql+psycopg
+          CAMPLY_DB_HOST: camply-db
+          CAMPLY_DB_PORT: 5432
+          CAMPLY_DB_USERNAME: camply
+          CAMPLY_DB_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: camply-home-ops
+                key: POSTGRES_PASSWORD
+          CAMPLY_DB_DATABASE: camply
+          CAMPLY_VALKEY_URL: redis://camply-valkey:6379/0
+          CAMPLY_ENVIRONMENT: production
+          CAMPLY_DEBUG: false
+          CAMPLY_AUTH_MODE: session
+          CAMPLY_LOGIN_USERNAME:
+            valueFrom:
+              secretKeyRef:
+                name: camply-home-ops
+                key: CAMPLY_LOGIN_USERNAME
+          CAMPLY_LOGIN_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: camply-home-ops
+                key: CAMPLY_LOGIN_PASSWORD
+          CAMPLY_SESSION_SECRET:
+            valueFrom:
+              secretKeyRef:
+                name: camply-home-ops
+                key: CAMPLY_SESSION_SECRET
+          CAMPLY_SESSION_MAX_AGE: 43200
+          CAMPLY_SESSION_COOKIE_SECURE: true
+          CAMPLY_CORS_ORIGINS: '["https://camply.${SECRET_DOMAIN}"]'
+          GUNICORN_WORKERS: 2
+          PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus_multiproc
+          CAMPLY_PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus_multiproc
+          CAMPLY_PROMETHEUS_URL: http://camply-prometheus:9090
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /api/health
+                port: &backendPort 8000
+              periodSeconds: 5
+              timeoutSeconds: 3
+              failureThreshold: 30
+          liveness: &backendProbes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /api/health
+                port: *backendPort
+              periodSeconds: 10
+              timeoutSeconds: 3
+              failureThreshold: 3
+          readiness: *backendProbes
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+        resources:
+          requests:
+            cpu: 50m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
+  worker:
+    replicas: 1
+    strategy: RollingUpdate
+    annotations:
+      reloader.stakater.com/auto: "true"
+    initContainers:
+      wait-for-services:
+        image: *backendImage
+        command:
+          - python
+          - -c
+          - |
+            import socket, time
+            for host, port in [("camply-db", 5432), ("camply-valkey", 6379)]:
+                for _ in range(60):
+                    try:
+                        with socket.create_connection((host, port), timeout=2):
+                            break
+                    except OSError:
+                        time.sleep(2)
+                else:
+                    exit(1)
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+    containers:
+      app:
+        image: *backendImage
+        args:
+          - celery
+          - -A
+          - worker.celery_app
+          - worker
+          - -l
+          - info
+          - -Q
+          - celery
+          - --concurrency=4
+        env:
+          CAMPLY_DB_DRIVERNAME: postgresql+psycopg
+          CAMPLY_DB_HOST: camply-db
+          CAMPLY_DB_PORT: 5432
+          CAMPLY_DB_USERNAME: camply
+          CAMPLY_DB_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: camply-home-ops
+                key: POSTGRES_PASSWORD
+          CAMPLY_DB_DATABASE: camply
+          CAMPLY_VALKEY_URL: redis://camply-valkey:6379/0
+          SKIP_MIGRATIONS: "1"
+          CAMPLY_METRICS_PORT: 8001
+          PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus_multiproc
+          CAMPLY_PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus_multiproc
+          CAMPLY_PROMETHEUS_URL: http://camply-prometheus:9090
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+        resources:
+          requests:
+            cpu: 50m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
+  beat:
+    replicas: 1
+    strategy: Recreate
+    annotations:
+      reloader.stakater.com/auto: "true"
+    initContainers:
+      wait-for-services:
+        image: *backendImage
+        command:
+          - python
+          - -c
+          - |
+            import socket, time
+            for host, port in [("camply-db", 5432), ("camply-valkey", 6379)]:
+                for _ in range(60):
+                    try:
+                        with socket.create_connection((host, port), timeout=2):
+                            break
+                    except OSError:
+                        time.sleep(2)
+                else:
+                    exit(1)
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+    containers:
+      app:
+        image: *backendImage
+        args:
+          - sh
+          - -c
+          - "celery -A worker.celery_app call camply.catalog.sync_all_providers --expires=600 && celery -A worker.celery_app beat -l info"
+        env:
+          CAMPLY_DB_DRIVERNAME: postgresql+psycopg
+          CAMPLY_DB_HOST: camply-db
+          CAMPLY_DB_PORT: 5432
+          CAMPLY_DB_USERNAME: camply
+          CAMPLY_DB_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: camply-home-ops
+                key: POSTGRES_PASSWORD
+          CAMPLY_DB_DATABASE: camply
+          CAMPLY_VALKEY_URL: redis://camply-valkey:6379/0
+          SKIP_MIGRATIONS: "1"
+          CAMPLY_METRICS_PORT: 8001
+          PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus_multiproc
+          CAMPLY_PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus_multiproc
+          CAMPLY_PROMETHEUS_URL: http://camply-prometheus:9090
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+        resources:
+          requests:
+            cpu: 20m
+            memory: 128Mi
+          limits:
+            memory: 512Mi
+  db:
+    replicas: 1
+    strategy: Recreate
+    annotations:
+      reloader.stakater.com/auto: "true"
+    pod:
+      securityContext:
+        fsGroup: 999
+        fsGroupChangePolicy: OnRootMismatch
+    containers:
+      app:
+        image:
+          repository: docker.io/library/postgres
+          tag: "17"
+        env:
+          POSTGRES_USER: camply
+          POSTGRES_DB: camply
+          POSTGRES_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: camply-home-ops
+                key: POSTGRES_PASSWORD
+          PGDATA: /var/lib/postgresql/data/pgdata
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              exec:
+                command:
+                  - pg_isready
+                  - -U
+                  - camply
+              periodSeconds: 5
+              timeoutSeconds: 3
+              failureThreshold: 30
+          liveness: &dbProbes
+            enabled: true
+            custom: true
+            spec:
+              exec:
+                command:
+                  - pg_isready
+                  - -U
+                  - camply
+              periodSeconds: 10
+              timeoutSeconds: 3
+              failureThreshold: 3
+          readiness: *dbProbes
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+            add:
+              - CHOWN
+              - DAC_OVERRIDE
+              - FOWNER
+              - SETGID
+              - SETUID
+        resources:
+          requests:
+            cpu: 50m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
+  valkey:
+    replicas: 1
+    strategy: Recreate
+    annotations:
+      reloader.stakater.com/auto: "true"
+    containers:
+      app:
+        image:
+          repository: docker.io/valkey/valkey
+          tag: 8-alpine
+        command:
+          - valkey-server
+          - --save
+          - "60"
+          - "1"
+          - --loglevel
+          - warning
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              exec:
+                command:
+                  - valkey-cli
+                  - ping
+              periodSeconds: 5
+              timeoutSeconds: 3
+              failureThreshold: 30
+          liveness: &valkeyProbes
+            enabled: true
+            custom: true
+            spec:
+              exec:
+                command:
+                  - valkey-cli
+                  - ping
+              periodSeconds: 10
+              timeoutSeconds: 3
+              failureThreshold: 3
+          readiness: *valkeyProbes
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+        resources:
+          requests:
+            cpu: 20m
+            memory: 64Mi
+          limits:
+            memory: 256Mi
+  prometheus:
+    replicas: 1
+    strategy: Recreate
+    annotations:
+      reloader.stakater.com/auto: "true"
+    pod:
+      securityContext:
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+        fsGroupChangePolicy: OnRootMismatch
+    containers:
+      app:
+        image:
+          repository: docker.io/prom/prometheus
+          tag: v3.15.1
+        args:
+          - --config.file=/etc/prometheus/prometheus.yml
+          - --storage.tsdb.path=/prometheus
+          - --web.console.libraries=/usr/share/prometheus/console_libraries
+          - --web.console.templates=/usr/share/prometheus/consoles
+          - --storage.tsdb.retention.time=30d
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /-/healthy
+                port: &prometheusPort 9090
+              periodSeconds: 5
+              timeoutSeconds: 3
+              failureThreshold: 30
+          liveness: &prometheusProbes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /-/healthy
+                port: *prometheusPort
+              periodSeconds: 10
+              timeoutSeconds: 3
+              failureThreshold: 3
+          readiness: *prometheusProbes
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+        resources:
+          requests:
+            cpu: 10m
+            memory: 64Mi
+          limits:
+            memory: 512Mi
+defaultPodOptions:
+  automountServiceAccountToken: false
+service:
+  frontend:
+    controller: frontend
+    ports:
+      http:
+        port: *frontendPort
+  backend:
+    controller: backend
+    ports:
+      http:
+        port: *backendPort
+  worker:
+    controller: worker
+    ports:
+      metrics:
+        port: 8001
+  db:
+    controller: db
+    ports:
+      postgres:
+        port: 5432
+  valkey:
+    controller: valkey
+    ports:
+      valkey:
+        port: 6379
+  prometheus:
+    controller: prometheus
+    ports:
+      http:
+        port: *prometheusPort
+configMaps:
+  nginx:
+    data:
+      default.conf: |-
+        server {
+            listen 8080;
+            server_name _;
+
+            root /usr/share/nginx/html;
+            index index.html;
+
+            client_body_temp_path /tmp/client_body_temp;
+            proxy_temp_path /tmp/proxy_temp;
+            fastcgi_temp_path /tmp/fastcgi_temp;
+            uwsgi_temp_path /tmp/uwsgi_temp;
+            scgi_temp_path /tmp/scgi_temp;
+
+            # Gzip compression for text, script, and style assets
+            gzip on;
+            gzip_vary on;
+            gzip_proxied any;
+            gzip_comp_level 6;
+            gzip_types text/plain text/css text/xml application/json application/javascript application/rss+xml application/atom+xml image/svg+xml;
+
+            location = /healthz {
+                access_log off;
+                add_header Content-Type text/plain;
+                return 200 'OK';
+            }
+
+            # Content-hashed static assets (safe to cache forever)
+            location /assets/ {
+                expires 1y;
+                add_header Cache-Control "public, max-age=31536000, immutable";
+                access_log off;
+            }
+
+            # Ensure index.html is always revalidated for new deployments
+            location = /index.html {
+                add_header Cache-Control "no-cache";
+            }
+
+            location /api/ {
+                proxy_pass http://camply-backend:8000;
+                proxy_http_version 1.1;
+                proxy_set_header Connection "";
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+            }
+
+            location / {
+                try_files $uri $uri/ /index.html;
+            }
+        }
+  prometheus:
+    data:
+      prometheus.yml: |-
+        global:
+          scrape_interval: 15s
+          evaluation_interval: 15s
+          external_labels:
+            application: camply
+
+        scrape_configs:
+          - job_name: "camply-backend"
+            metrics_path: "/metrics"
+            static_configs:
+              - targets: ["camply-backend:8000"]
+            scrape_interval: 15s
+
+          - job_name: "camply-worker"
+            metrics_path: "/metrics"
+            static_configs:
+              - targets: ["camply-worker:8001"]
+            scrape_interval: 15s
+
+          - job_name: "prometheus"
+            static_configs:
+              - targets: ["localhost:9090"]
+persistence:
+  db-data:
+    storageClass: node-local
+    accessMode: ReadWriteOnce
+    size: 10Gi
+    advancedMounts:
+      db:
+        app:
+          - path: /var/lib/postgresql/data
+  valkey-data:
+    storageClass: node-local
+    accessMode: ReadWriteOnce
+    size: 2Gi
+    advancedMounts:
+      valkey:
+        app:
+          - path: /data
+  prometheus-data:
+    storageClass: node-local
+    accessMode: ReadWriteOnce
+    size: 5Gi
+    advancedMounts:
+      prometheus:
+        app:
+          - path: /prometheus
+  prometheus-config:
+    type: configMap
+    identifier: prometheus
+    advancedMounts:
+      prometheus:
+        app:
+          - path: /etc/prometheus/prometheus.yml
+            subPath: prometheus.yml
+            readOnly: true
+  nginx-config:
+    type: configMap
+    identifier: nginx
+    advancedMounts:
+      frontend:
+        app:
+          - path: /etc/nginx/conf.d/default.conf
+            subPath: default.conf
+            readOnly: true
+route:
+  app:
+    hostnames:
+      - camply.${SECRET_DOMAIN}
+    parentRefs:
+      - name: envoy-external
+        namespace: network
+        sectionName: https
+    rules:
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /api
+        backendRefs:
+          - name: camply-backend
+            port: *backendPort
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /
+        backendRefs:
+          - name: camply-frontend
+            port: *frontendPort

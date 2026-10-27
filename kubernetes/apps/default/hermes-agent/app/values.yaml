@@ -7,12 +7,26 @@ controllers:
       app:
         image:
           repository: docker.io/nousresearch/hermes-agent
-          tag: v0.21.6
+          tag: v0.22.5
+        # Bypass the root s6 entrypoint; Kubernetes restarts both processes on failure.
+        command: [/bin/bash, -c]
         args:
-          - gateway
-          - run
+          - |
+            set -euo pipefail
+            /bin/sh /opt/hermes/docker/stage2-hook.sh
+            if [ -f /etc/hermes/agent-browser-executable-path ]; then
+              export AGENT_BROWSER_EXECUTABLE_PATH="$(cat /etc/hermes/agent-browser-executable-path)"
+            fi
+            trap 'kill "$gateway_pid" "$dashboard_pid" 2>/dev/null || true' EXIT
+            trap 'exit 143' TERM INT
+            hermes gateway run &
+            gateway_pid=$!
+            hermes dashboard --host 0.0.0.0 --port 9119 --no-open &
+            dashboard_pid=$!
+            wait -n "$gateway_pid" "$dashboard_pid"
+            exit 1
         env:
-          HERMES_DASHBOARD: "1"
+          HOME: /opt/data
           HERMES_DASHBOARD_HOST: 0.0.0.0
           HERMES_DASHBOARD_PORT: &dashboardPort 9119
           HERMES_DASHBOARD_BASIC_AUTH_USERNAME:
@@ -59,7 +73,9 @@ controllers:
               failureThreshold: 3
           readiness: *probes
         securityContext:
+          readOnlyRootFilesystem: false
           allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
         resources:
           requests:
             cpu: 100m
@@ -68,7 +84,13 @@ controllers:
             memory: 4Gi
 defaultPodOptions:
   automountServiceAccountToken: false
+  enableServiceLinks: false
   securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+    runAsNonRoot: true
+    runAsUser: 10000
+    runAsGroup: 10000
     fsGroup: 10000
     fsGroupChangePolicy: OnRootMismatch
 service:
@@ -80,6 +102,14 @@ service:
       api:
         port: *apiPort
 persistence:
+  run:
+    type: emptyDir
+    globalMounts:
+      - path: /run
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp
   data:
     storageClass: node-local
     accessMode: ReadWriteOnce

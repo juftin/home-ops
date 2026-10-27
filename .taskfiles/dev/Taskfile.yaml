@@ -1,5 +1,8 @@
 version: '3'
 tasks:
+  agents:test:
+    desc: Test shared agent installation and cached-version fallback without network access
+    cmd: 'bash {{.ROOT_DIR}}/scripts/tests/test-install-agents.sh'
   validate:
     desc: Validate ArgoCD rendering and built-in resource schemas (no cluster required)
     cmds:
