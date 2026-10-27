@@ -1,0 +1,122 @@
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyPatchPolicy
+metadata:
+  name: envoy-oauth-admin-header-limits
+  namespace: network
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: envoy-oauth-admin
+  type: JSONPatch
+  jsonPatches:
+    - type: type.googleapis.com/envoy.config.listener.v3.Listener
+      name: network/envoy-oauth-admin/https
+      operation:
+        op: add
+        jsonPath: "..filter_chains[?@.filters[0].name == 'envoy.filters.network.http_connection_manager'].filters[0].typed_config.common_http_protocol_options"
+        path: max_headers_count
+        value: 1000
+    - type: type.googleapis.com/envoy.config.listener.v3.Listener
+      name: network/envoy-oauth-admin/https
+      operation:
+        op: add
+        jsonPath: "..filter_chains[?@.filters[0].name == 'envoy.filters.network.http_connection_manager'].filters[0].typed_config"
+        path: max_request_headers_kb
+        value: 128
+    - type: type.googleapis.com/envoy.config.listener.v3.Listener
+      name: network/envoy-oauth-admin/https-quic
+      operation:
+        op: add
+        jsonPath: "..filter_chains[?@.filters[0].name == 'envoy.filters.network.http_connection_manager'].filters[0].typed_config.common_http_protocol_options"
+        path: max_headers_count
+        value: 1000
+    - type: type.googleapis.com/envoy.config.listener.v3.Listener
+      name: network/envoy-oauth-admin/https-quic
+      operation:
+        op: add
+        jsonPath: "..filter_chains[?@.filters[0].name == 'envoy.filters.network.http_connection_manager'].filters[0].typed_config"
+        path: max_request_headers_kb
+        value: 128
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyPatchPolicy
+metadata:
+  name: envoy-oauth-users-header-limits
+  namespace: network
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: envoy-oauth-users
+  type: JSONPatch
+  jsonPatches:
+    - type: type.googleapis.com/envoy.config.listener.v3.Listener
+      name: network/envoy-oauth-users/https
+      operation:
+        op: add
+        jsonPath: "..filter_chains[?@.filters[0].name == 'envoy.filters.network.http_connection_manager'].filters[0].typed_config.common_http_protocol_options"
+        path: max_headers_count
+        value: 1000
+    - type: type.googleapis.com/envoy.config.listener.v3.Listener
+      name: network/envoy-oauth-users/https
+      operation:
+        op: add
+        jsonPath: "..filter_chains[?@.filters[0].name == 'envoy.filters.network.http_connection_manager'].filters[0].typed_config"
+        path: max_request_headers_kb
+        value: 128
+    - type: type.googleapis.com/envoy.config.listener.v3.Listener
+      name: network/envoy-oauth-users/https-quic
+      operation:
+        op: add
+        jsonPath: "..filter_chains[?@.filters[0].name == 'envoy.filters.network.http_connection_manager'].filters[0].typed_config.common_http_protocol_options"
+        path: max_headers_count
+        value: 1000
+    - type: type.googleapis.com/envoy.config.listener.v3.Listener
+      name: network/envoy-oauth-users/https-quic
+      operation:
+        op: add
+        jsonPath: "..filter_chains[?@.filters[0].name == 'envoy.filters.network.http_connection_manager'].filters[0].typed_config"
+        path: max_request_headers_kb
+        value: 128
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyPatchPolicy
+metadata:
+  name: envoy-oauth-internal-header-limits
+  namespace: network
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: envoy-oauth-internal
+  type: JSONPatch
+  jsonPatches:
+    - type: type.googleapis.com/envoy.config.listener.v3.Listener
+      name: network/envoy-oauth-internal/https
+      operation:
+        op: add
+        jsonPath: "..filter_chains[?@.filters[0].name == 'envoy.filters.network.http_connection_manager'].filters[0].typed_config.common_http_protocol_options"
+        path: max_headers_count
+        value: 1000
+    - type: type.googleapis.com/envoy.config.listener.v3.Listener
+      name: network/envoy-oauth-internal/https
+      operation:
+        op: add
+        jsonPath: "..filter_chains[?@.filters[0].name == 'envoy.filters.network.http_connection_manager'].filters[0].typed_config"
+        path: max_request_headers_kb
+        value: 128
+    - type: type.googleapis.com/envoy.config.listener.v3.Listener
+      name: network/envoy-oauth-internal/https-quic
+      operation:
+        op: add
+        jsonPath: "..filter_chains[?@.filters[0].name == 'envoy.filters.network.http_connection_manager'].filters[0].typed_config.common_http_protocol_options"
+        path: max_headers_count
+        value: 1000
+    - type: type.googleapis.com/envoy.config.listener.v3.Listener
+      name: network/envoy-oauth-internal/https-quic
+      operation:
+        op: add
+        jsonPath: "..filter_chains[?@.filters[0].name == 'envoy.filters.network.http_connection_manager'].filters[0].typed_config"
+        path: max_request_headers_kb
+        value: 128

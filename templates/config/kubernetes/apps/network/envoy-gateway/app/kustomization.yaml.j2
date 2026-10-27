@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - ./certificate.yaml
   - ./envoy.yaml
+  - ./oauth-header-limits.yaml
   - ./podmonitor.yaml
 helmCharts:
   - name: gateway-helm
