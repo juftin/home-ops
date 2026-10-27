@@ -4,7 +4,7 @@ set -euo pipefail
 
 HERDR_VERSION=0.9.5
 WEB_UI_VERSION=0.4.11
-WEB_UI_SHA256=9d15e826ab852d179f970b930dca919b73ce9f91f81acd76e35fbca9f897313c
+WEB_UI_SHA256=7ab8cb83f42c46522023b017b607ce15d435d4b4ed58ed43c68acd06ad470828
 
 case "$(uname -m)" in
     x86_64)
@@ -27,7 +27,7 @@ curl --fail --silent --show-error --location --retry 3 \
 printf '%s  %s\n' "${HERDR_SHA256}" "${TMP_DIR}/herdr" | sha256sum --check
 install -m 0755 "${TMP_DIR}/herdr" /opt/herdr/bin/herdr
 curl --fail --silent --show-error --location --retry 3 \
-    "https://codeload.github.com/devswha/herdr-web-ui/tar.gz/refs/tags/v${WEB_UI_VERSION}" \
+    "https://codeload.github.com/devswha/ovis/tar.gz/refs/tags/v${WEB_UI_VERSION}" \
     -o "${TMP_DIR}/web-ui.tar.gz"
 printf '%s  %s\n' "${WEB_UI_SHA256}" "${TMP_DIR}/web-ui.tar.gz" | sha256sum --check
 tar -xzf "${TMP_DIR}/web-ui.tar.gz" --strip-components=1 -C /opt/herdr/web-ui
