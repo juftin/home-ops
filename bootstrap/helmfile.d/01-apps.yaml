@@ -11,13 +11,13 @@ releases:
   - name: coredns
     namespace: kube-system
     chart: oci://ghcr.io/coredns/charts/coredns
-    version: 1.48.2
+    version: 1.49.0
     values: ['./templates/values.yaml.gotmpl']
     needs: ['kube-system/cilium']
   - name: cert-manager
     namespace: cert-manager
     chart: oci://quay.io/jetstack/charts/cert-manager
-    version: v1.21.2
+    version: v1.21.3
     values: ['./templates/values.yaml.gotmpl']
     needs: ['kube-system/coredns']
   - name: argocd
