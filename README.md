@@ -24,7 +24,8 @@ ______________________________________________________________________
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f48e/512.gif" alt="🎡" width="20" height="20"> Components
 
 - **[ArgoCD](https://argo-cd.readthedocs.io/)**: GitOps controller for keeping Kubernetes clusters
-  in sync with Git sources.
+  in sync with Git sources. See [GitHub webhook setup](docs/ARGOCD-WEBHOOK-SETUP.md) for immediate
+  refreshes on pushes.
 - **[cert-manager](https://github.com/cert-manager/cert-manager)**: Creates SSL certificates for
   services in the cluster.
 - **[spegel](https://github.com/spegel-org/spegel)**: Stateless cluster local OCI registry mirror.
@@ -43,6 +44,8 @@ ______________________________________________________________________
   DNS records to a DNS provider.
 - **[reloader](https://github.com/stakater/Reloader)**: Automatic reloading of Kubernetes resources
   when ConfigMaps or Secrets change.
+- **[Agent tools](kubernetes/apps/default/agent-tools/app/install-agents.sh)**: Shared init installer
+  for Codex, Claude Code, Antigravity, and the GitHub CLI in Paseo, OpenClaw, and Herdr.
 - **[local-path-provisioner](https://github.com/rancher/local-path-provisioner)**: Dynamic
   node-local persistent volume provisioning.
 - **[Tailscale](https://tailscale.com/)**: Kubernetes operator for private access to cluster applications.
@@ -55,12 +58,20 @@ and Tailscale examples using the existing chart values.
 
 - **[echo](https://github.com/mendhak/docker-http-https-echo)**: Simple HTTP/HTTPS echo server for
   testing.
+- **[Camply](https://github.com/juftin/camply)**: The campsite finder ⛺️, finder of available campsites
+  at recreation.gov and beyond, with frontend, API backend, Celery worker/beat, and Postgres database. See [setup](docs/CAMPLY-SETUP.md).
 - **[Paseo](https://github.com/getpaseo/paseo)**: Self-hosted coding-agent daemon and web UI behind
   admin Google SSO, with private Tailscale access and persistent workspaces. See [setup](docs/PASEO-SETUP.md).
+- **[Herdr](https://github.com/herdrdev/herdr)**: Persistent coding-agent terminals with
+  [herdr web ui](https://github.com/devswha/herdr-web-ui) behind admin Google SSO, with token
+  authentication, isolated provider tools, and persistent workspaces. See [setup](docs/HERDR-SETUP.md).
 - **[OpenClaw](https://github.com/openclaw/openclaw)**: Personal AI assistant gateway and Control UI
-  behind admin Google SSO, with persistent state. See [setup](docs/OPENCLAW-SETUP.md).
+  behind admin Google SSO, with persistent state and shared coding tools. See [setup](docs/OPENCLAW-SETUP.md).
 - **[Hermes Agent](https://github.com/NousResearch/hermes-agent)**: Self-improving AI agent
   with Gateway API server and Web Dashboard behind admin Google SSO. See [setup](docs/HERMES-SETUP.md).
+- **[Lunch Money](https://github.com/juftin/lunchmoney-app)**: MCP server and financial
+  dashboard for Lunch Money with web API, PostgreSQL database, Valkey distributed locking, and
+  scheduled synchronization, accessible internally and via Tailscale. See [setup](docs/LUNCHMONEY-SETUP.md).
 - **[Grafana](https://grafana.com/)**: Cluster dashboards and Explore UI.
 - **[Prometheus](https://prometheus.io/)**: Scrapes and stores Kubernetes metrics with 30-day
   retention.

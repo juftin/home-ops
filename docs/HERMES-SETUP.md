@@ -23,15 +23,16 @@ Reloader automatically restarts the pod when credentials change in 1Password.
 ## Architecture and Volumes
 
 - **Image and Supervision**: The deployment runs `docker.io/nousresearch/hermes-agent:v0.21.6` with `gateway run`.
-  The container uses `s6-overlay` for process supervision, managing both the gateway and web dashboard with
-  automatic crash recovery and log rotation.
+  A non-root launcher runs the image bootstrap hook, gateway, and dashboard directly, bypassing the root
+  s6 entrypoint. If either process exits, the container exits and Kubernetes restarts it. Dynamic s6-supervised
+  profile gateways are not supported by this deployment.
 - **Persistent Data**: The `/opt/data` volume is the single source of truth for all Hermes state, including
   configuration, API keys (`.env`), sessions, persistent memory, and installed skills.
 - **SQLite Database**: Sessions and memory are kept in `/opt/data/state.db`. The volume uses `storageClass: node-local`
   (ext4 on Talos), which fully supports SQLite's default WAL (Write-Ahead Logging) journal mode.
 - **Concurrency**: A single replica uses `strategy: Recreate` because Hermes session stores and SQLite files
   do not support concurrent multi-instance writes.
-- **User Identity**: The container drops privileges to the unprivileged `hermes` user (`UID 10000`, `GID 10000`).
+- **User Identity**: The entire container runs as the unprivileged `hermes` user (`UID 10000`, `GID 10000`).
   The pod sets `fsGroup: 10000` to maintain proper file permissions on the persistent volume.
 
 ## Endpoints

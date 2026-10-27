@@ -47,7 +47,7 @@ metadata:
   labels:
     home-ops.io/cloudflare-dns: "true"
   annotations:
-    external-dns.alpha.kubernetes.io/target: external.${SECRET_DOMAIN}
+    external-dns.kubernetes.io/target: external.${SECRET_DOMAIN}
 spec:
   gatewayClassName: envoy
   infrastructure:
@@ -79,7 +79,7 @@ kind: Gateway
 metadata:
   name: envoy-internal
   annotations:
-    external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
+    external-dns.kubernetes.io/target: internal.${SECRET_DOMAIN}
 spec:
   gatewayClassName: envoy
   infrastructure:
@@ -204,7 +204,7 @@ metadata:
     home-ops.io/cloudflare-dns: "true"
     home-ops.io/oauth-gateway: "true"
   annotations:
-    external-dns.alpha.kubernetes.io/target: external.${SECRET_DOMAIN}
+    external-dns.kubernetes.io/target: external.${SECRET_DOMAIN}
     lbipam.cilium.io/ips: "192.168.1.149"
 spec:
   gatewayClassName: envoy
@@ -238,7 +238,7 @@ metadata:
     home-ops.io/cloudflare-dns: "true"
     home-ops.io/oauth-gateway: "true"
   annotations:
-    external-dns.alpha.kubernetes.io/target: external.${SECRET_DOMAIN}
+    external-dns.kubernetes.io/target: external.${SECRET_DOMAIN}
     lbipam.cilium.io/ips: "192.168.1.151"
 spec:
   gatewayClassName: envoy
@@ -272,7 +272,7 @@ metadata:
     home-ops.io/cloudflare-dns: "true"
     home-ops.io/oauth-gateway: "true"
   annotations:
-    external-dns.alpha.kubernetes.io/target: internal.${SECRET_DOMAIN}
+    external-dns.kubernetes.io/target: internal.${SECRET_DOMAIN}
     lbipam.cilium.io/ips: "192.168.1.150"
 spec:
   gatewayClassName: envoy

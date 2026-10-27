@@ -13,6 +13,7 @@ ______________________________________________________________________
 | Task                           | Description                                                            |
 | ------------------------------ | ---------------------------------------------------------------------- |
 | `task lint`                    | Run pre-commit formatting, Actionlint, and ShellCheck                  |
+| `task dev:agents:test`         | Test shared agent installs and upgrade fallback without network access |
 | `task dev:validate`            | Render apps with decryption and validate built-in resource schemas     |
 | `task dev:validate:ci`         | Render and validate schemas with placeholder secrets (same as PR CI)   |
 | `task dev:validate:bootstrap`  | Render the ArgoCD bootstrap chart and validate built-in schemas        |

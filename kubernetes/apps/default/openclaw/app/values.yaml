@@ -8,7 +8,7 @@ controllers:
       config:
         image: &image
           repository: ghcr.io/openclaw/openclaw
-          tag: 2026.10.1
+          tag: 2026.10.7
         command: [node]
         args:
           - -e
@@ -21,6 +21,17 @@ controllers:
               fs.chmodSync(dir + '/openclaw.json', 0o600);
             }
         securityContext:
+          readOnlyRootFilesystem: false
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+      install-agents:
+        image: *image
+        env:
+          HOME: /home/node
+          PATH: &path /home/node/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+        command: [/bin/bash, /opt/agent-tools/install-agents.sh]
+        securityContext:
+          readOnlyRootFilesystem: false
           allowPrivilegeEscalation: false
           capabilities: {drop: ["ALL"]}
     containers:
@@ -29,6 +40,7 @@ controllers:
         args: [node, openclaw.mjs, gateway, --bind, lan, --port, "18789"]
         env:
           HOME: /home/node
+          PATH: *path
           OPENCLAW_HOME: /home/node
           OPENCLAW_STATE_DIR: /home/node/.openclaw
           OPENCLAW_CONFIG_PATH: /home/node/.openclaw/openclaw.json
@@ -71,6 +83,7 @@ controllers:
               timeoutSeconds: 3
               failureThreshold: 3
         securityContext:
+          readOnlyRootFilesystem: false
           allowPrivilegeEscalation: false
           capabilities: {drop: ["ALL"]}
         resources:
@@ -81,7 +94,10 @@ controllers:
             memory: 4Gi
 defaultPodOptions:
   automountServiceAccountToken: false
+  enableServiceLinks: false
   securityContext:
+    seccompProfile:
+      type: RuntimeDefault
     runAsNonRoot: true
     runAsUser: 1000
     runAsGroup: 1000
@@ -110,6 +126,18 @@ configMaps:
           }
         }
 persistence:
+  agent-tools:
+    type: configMap
+    name: agent-tools
+    advancedMounts:
+      openclaw:
+        install-agents:
+          - path: /opt/agent-tools
+            readOnly: true
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp
   home:
     storageClass: node-local
     accessMode: ReadWriteOnce
