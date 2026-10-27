@@ -72,6 +72,22 @@ ______________________________________________________________________
 - ArgoCD repo-server mounts `sops-age` and decrypts during render.
 - New app secrets should prefer External Secrets Operator + 1Password over new committed SOPS files.
 
+## Dependency Updates
+
+| Namespace | App        | Role                                                                 |
+| --------- | ---------- | -------------------------------------------------------------------- |
+| `default` | `renovate` | Scheduled dependency updates across topic-tagged GitHub repositories |
+
+The official Renovate Helm chart runs a CronJob every 30 minutes. It discovers
+`juftin/*` repositories with the `renovate-enabled` topic and uses the shared
+`juftin/renovate` presets, retaining repository-local overrides. External Secrets
+supplies GitHub App credentials from 1Password; each Job creates a fresh installation
+token. A node-local PVC persists the SQLite package cache, repository extraction
+cache, and Git checkouts for reuse across Jobs. Scheduled runs cannot overlap, and each
+Job has a 55-minute deadline to stay within token lifetime. The workload has no
+network endpoint or Kubernetes API access. It starts suspended for setup and dry-run
+verification before disabling the previous runners. See [Renovate setup](RENOVATE-SETUP.md).
+
 ## Coding Agents
 
 | Namespace | App            | Role                                                       |
