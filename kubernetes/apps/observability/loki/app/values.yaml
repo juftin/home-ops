@@ -38,6 +38,8 @@ memberlist:
     publishNotReadyAddresses: true
 test:
   enabled: false
+lokiCanary:
+  enabled: false
 monitoring:
   selfMonitoring:
     enabled: false

@@ -1,0 +1,332 @@
+controllers:
+  app:
+    replicas: 1
+    strategy: RollingUpdate
+    annotations:
+      reloader.stakater.com/auto: "true"
+    initContainers:
+      wait-for-deps:
+        image: &image
+          repository: ghcr.io/juftin/lunchmoney-app
+          tag: 0.15.2
+        command:
+          - python
+          - -c
+          - |
+            import socket, time
+            for host, port in [("lunchmoney-db", 5432), ("lunchmoney-valkey", 6379)]:
+                for _ in range(60):
+                    try:
+                        with socket.create_connection((host, port), timeout=2):
+                            print(f"{host}:{port} is ready")
+                            break
+                    except OSError:
+                        time.sleep(2)
+                else:
+                    print(f"Timed out waiting for {host}:{port}", flush=True)
+                    exit(1)
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+    containers:
+      app:
+        image: *image
+        env:
+          LUNCHMONEY_ENVIRONMENT: production
+          LUNCHMONEY_ALLOWED_HOSTS: lunchmoney.${SECRET_DOMAIN},lunchmoney-app.${SECRET_DOMAIN},lunchmoney.$(TAILSCALE_DNS_SUFFIX),lunchmoney-app.$(TAILSCALE_DNS_SUFFIX),lunchmoney,lunchmoney.default,lunchmoney.default.svc,lunchmoney.default.svc.cluster.local,lunchmoney-app,lunchmoney-app.default,lunchmoney-app.default.svc,lunchmoney-app.default.svc.cluster.local,localhost,127.0.0.1
+          DB_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: lunchmoney-secret
+                key: POSTGRES_PASSWORD
+          LUNCHMONEY_DATABASE_URL: postgresql+asyncpg://lunchmoney:$(DB_PASSWORD)@lunchmoney-db:5432/lunchmoney
+          LUNCHMONEY_REDIS_URL: redis://lunchmoney-valkey:6379/0
+          LUNCHMONEY_ACCESS_TOKEN:
+            valueFrom:
+              secretKeyRef:
+                name: lunchmoney-secret
+                key: LUNCHMONEY_ACCESS_TOKEN
+        envFrom:
+          - secretRef:
+              name: tailscale-config
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /health
+                port: &port 8000
+                httpHeaders:
+                  - name: Host
+                    value: localhost
+              initialDelaySeconds: 15
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 3
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /ready
+                port: *port
+                httpHeaders:
+                  - name: Host
+                    value: localhost
+              initialDelaySeconds: 15
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 3
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+        resources:
+          requests:
+            cpu: 10m
+            memory: 128Mi
+          limits:
+            memory: 512Mi
+  scheduler:
+    replicas: 1
+    strategy: Recreate
+    annotations:
+      reloader.stakater.com/auto: "true"
+    initContainers:
+      wait-for-deps:
+        image: *image
+        command:
+          - python
+          - -c
+          - |
+            import socket, time
+            for host, port in [("lunchmoney-db", 5432), ("lunchmoney-valkey", 6379)]:
+                for _ in range(60):
+                    try:
+                        with socket.create_connection((host, port), timeout=2):
+                            print(f"{host}:{port} is ready")
+                            break
+                    except OSError:
+                        time.sleep(2)
+                else:
+                    print(f"Timed out waiting for {host}:{port}", flush=True)
+                    exit(1)
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+    containers:
+      app:
+        image: *image
+        command:
+          - lunchmoney-app
+          - schedule
+        env:
+          LUNCHMONEY_ENVIRONMENT: production
+          DB_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: lunchmoney-secret
+                key: POSTGRES_PASSWORD
+          LUNCHMONEY_DATABASE_URL: postgresql+asyncpg://lunchmoney:$(DB_PASSWORD)@lunchmoney-db:5432/lunchmoney
+          LUNCHMONEY_REDIS_URL: redis://lunchmoney-valkey:6379/0
+          LUNCHMONEY_ACCESS_TOKEN:
+            valueFrom:
+              secretKeyRef:
+                name: lunchmoney-secret
+                key: LUNCHMONEY_ACCESS_TOKEN
+          LUNCHMONEY_SCHEDULE_CRON: "0 * * * *"
+          LUNCHMONEY_SCHEDULE_TIMEZONE: America/Denver
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+        resources:
+          requests:
+            cpu: 10m
+            memory: 128Mi
+          limits:
+            memory: 512Mi
+  db:
+    replicas: 1
+    strategy: Recreate
+    annotations:
+      reloader.stakater.com/auto: "true"
+    pod:
+      securityContext:
+        fsGroup: 999
+        fsGroupChangePolicy: OnRootMismatch
+    containers:
+      app:
+        image:
+          repository: docker.io/library/postgres
+          tag: 17-alpine
+        env:
+          POSTGRES_USER: lunchmoney
+          POSTGRES_DB: lunchmoney
+          POSTGRES_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: lunchmoney-secret
+                key: POSTGRES_PASSWORD
+          PGDATA: /var/lib/postgresql/data/pgdata
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              exec:
+                command:
+                  - pg_isready
+                  - -U
+                  - lunchmoney
+                  - -d
+                  - lunchmoney
+              periodSeconds: 5
+              timeoutSeconds: 3
+              failureThreshold: 30
+          liveness: &dbProbes
+            enabled: true
+            custom: true
+            spec:
+              exec:
+                command:
+                  - pg_isready
+                  - -U
+                  - lunchmoney
+                  - -d
+                  - lunchmoney
+              periodSeconds: 10
+              timeoutSeconds: 3
+              failureThreshold: 3
+          readiness: *dbProbes
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+            add:
+              - CHOWN
+              - DAC_OVERRIDE
+              - FOWNER
+              - SETGID
+              - SETUID
+        resources:
+          requests:
+            cpu: 10m
+            memory: 128Mi
+          limits:
+            memory: 512Mi
+  valkey:
+    replicas: 1
+    strategy: Recreate
+    annotations:
+      reloader.stakater.com/auto: "true"
+    pod:
+      securityContext:
+        runAsUser: 999
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+    containers:
+      app:
+        image:
+          repository: docker.io/valkey/valkey
+          tag: 8-alpine
+        command:
+          - valkey-server
+          - --save
+          - "60"
+          - "1"
+          - --loglevel
+          - warning
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              exec:
+                command:
+                  - valkey-cli
+                  - ping
+              periodSeconds: 5
+              timeoutSeconds: 3
+              failureThreshold: 30
+          liveness: &valkeyProbes
+            enabled: true
+            custom: true
+            spec:
+              exec:
+                command:
+                  - valkey-cli
+                  - ping
+              periodSeconds: 10
+              timeoutSeconds: 3
+              failureThreshold: 3
+          readiness: *valkeyProbes
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            memory: 128Mi
+defaultPodOptions:
+  automountServiceAccountToken: false
+service:
+  app:
+    controller: app
+    ports:
+      http:
+        port: *port
+  db:
+    controller: db
+    ports:
+      postgres:
+        port: 5432
+  valkey:
+    controller: valkey
+    ports:
+      valkey:
+        port: 6379
+persistence:
+  db-data:
+    storageClass: node-local
+    accessMode: ReadWriteOnce
+    size: 5Gi
+    advancedMounts:
+      db:
+        app:
+          - path: /var/lib/postgresql/data
+  valkey-data:
+    storageClass: node-local
+    accessMode: ReadWriteOnce
+    size: 1Gi
+    advancedMounts:
+      valkey:
+        app:
+          - path: /data
+route:
+  app:
+    hostnames:
+      - lunchmoney.${SECRET_DOMAIN}
+      - lunchmoney-app.${SECRET_DOMAIN}
+    parentRefs:
+      - name: envoy-internal
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - name: lunchmoney-app
+            port: *port
+ingress:
+  tailscale:
+    suffix: tailscale
+    className: tailscale
+    defaultBackend:
+      service:
+        name: lunchmoney-app
+        port:
+          number: *port
+    tls:
+      - hosts:
+          - lunchmoney

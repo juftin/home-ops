@@ -3,7 +3,8 @@
 Use the app-template chart's existing `route` and `ingress` settings in the app's
 `values.yaml`. [Paseo](../kubernetes/apps/default/paseo/app/values.yaml) includes
 admin OAuth and Tailscale; [echo](../kubernetes/apps/default/echo/app/values.yaml)
-is the public example.
+is the public example; [Lunch Money](../kubernetes/apps/default/lunchmoney/app/values.yaml)
+is the internal Gateway and Tailscale example.
 
 ## Public or OAuth
 
@@ -25,6 +26,7 @@ Choose the Gateway:
 | Gateway             | Access                                                    |
 | ------------------- | --------------------------------------------------------- |
 | `envoy-external`    | Public Cloudflare Tunnel; application authentication only |
+| `envoy-internal`    | Internal LAN Gateway; cluster local DNS via k8s-gateway   |
 | `envoy-oauth-admin` | Google SSO, admins                                        |
 | `envoy-oauth-users` | Google SSO, users                                         |
 
