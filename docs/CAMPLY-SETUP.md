@@ -35,6 +35,11 @@ Camply is deployed using the `app-template` chart with dedicated controllers:
 - **Cache/Broker** (`camply-valkey`): Valkey 8 instance serving as Celery message broker and result backend.
 - **Monitoring** (`camply-prometheus`): Isolated Prometheus 3 instance with a 5Gi `node-local` persistent volume, scraping backend and worker metrics to power Camply's built-in Admin Trends dashboard.
 
+Worker, beat, and the initial provider-sync call use `celery -A camply.worker.celery_app`.
+The backend image now packages Python modules under `camply`; the old
+`worker.celery_app` entry point is no longer available. Keep these Helm arguments
+aligned with the image when upgrading. The API uses the image's default command.
+
 ## Ingress and Access
 
 - **Public Route**: Exposes `camply.${SECRET_DOMAIN}` through Cloudflare Tunnel and the `envoy-external`

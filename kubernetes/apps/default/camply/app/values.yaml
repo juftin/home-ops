@@ -172,7 +172,7 @@ controllers:
         args:
           - celery
           - -A
-          - worker.celery_app
+          - camply.worker.celery_app
           - worker
           - -l
           - info
@@ -236,7 +236,7 @@ controllers:
         args:
           - sh
           - -c
-          - "celery -A worker.celery_app call camply.catalog.sync_all_providers --expires=600 && celery -A worker.celery_app beat -l info"
+          - "celery -A camply.worker.celery_app call camply.catalog.sync_all_providers --expires=600 && celery -A camply.worker.celery_app beat -l info"
         env:
           CAMPLY_DB_DRIVERNAME: postgresql+psycopg
           CAMPLY_DB_HOST: camply-db
