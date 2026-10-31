@@ -59,16 +59,18 @@ dispatch queues asynchronous work without waiting for ingestion to complete. Bar
 
 ## Health checks
 
-All four application roles use `camply serve healthcheck <role>` as Kubernetes exec probes for
-startup, liveness, and readiness. Each probe has a ten-second Kubernetes timeout; HTTP and
-worker commands use a five-second internal timeout.
+Frontend and backend use native Kubernetes HTTP probes for startup, liveness, and readiness.
+Worker and beat use the matching `camply serve healthcheck <role>` commands as exec probes.
+HTTP probes have a three-second timeout; exec probes have a ten-second Kubernetes timeout,
+with a five-second internal timeout for the worker ping. The HTTP CLI commands remain useful
+for manual diagnostics, and the API-wait init container uses the custom-URL backend command.
 
-| Role     | Command                                         | What it verifies                                                             |
-| -------- | ----------------------------------------------- | ---------------------------------------------------------------------------- |
-| Frontend | `camply serve healthcheck frontend --timeout 5` | Local Nginx `/healthz`, independently of the API upstream                    |
-| Backend  | `camply serve healthcheck backend --timeout 5`  | Local API `/api/health` HTTP liveness                                        |
-| Worker   | `camply serve healthcheck worker --timeout 5`   | A directed Celery ping to this pod's `celery@<hostname>` node through Valkey |
-| Beat     | `camply serve healthcheck beat`                 | A fresh scheduling-loop heartbeat from a live local PID                      |
+| Role     | Kubernetes probe                              | What it verifies                                                             |
+| -------- | --------------------------------------------- | ---------------------------------------------------------------------------- |
+| Frontend | HTTP GET `/healthz` on port `8080`            | Nginx responds on the pod IP, independently of the API upstream              |
+| Backend  | HTTP GET `/api/health` on port `8000`         | API HTTP liveness on the pod IP                                              |
+| Worker   | `camply serve healthcheck worker --timeout 5` | A directed Celery ping to this pod's `celery@<hostname>` node through Valkey |
+| Beat     | `camply serve healthcheck beat`               | A fresh scheduling-loop heartbeat from a live local PID                      |
 
 Worker and beat startup probes allow 30 failures at ten-second intervals. Their readiness
 checks run every 30 seconds and fail after three unsuccessful checks. Worker liveness requires

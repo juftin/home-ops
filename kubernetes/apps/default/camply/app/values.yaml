@@ -30,24 +30,19 @@ controllers:
             enabled: true
             custom: true
             spec:
-              exec: &frontendHealthcheck
-                command:
-                  - camply
-                  - serve
-                  - healthcheck
-                  - frontend
-                  - --timeout
-                  - "5"
+              httpGet: &frontendHttpCheck
+                path: /healthz
+                port: 8080
               periodSeconds: 5
-              timeoutSeconds: 10
+              timeoutSeconds: 3
               failureThreshold: 30
           liveness: &frontendProbes
             enabled: true
             custom: true
             spec:
-              exec: *frontendHealthcheck
+              httpGet: *frontendHttpCheck
               periodSeconds: 10
-              timeoutSeconds: 10
+              timeoutSeconds: 3
               failureThreshold: 3
           readiness: *frontendProbes
         securityContext:
@@ -136,24 +131,19 @@ controllers:
             enabled: true
             custom: true
             spec:
-              exec: &backendHealthcheck
-                command:
-                  - camply
-                  - serve
-                  - healthcheck
-                  - backend
-                  - --timeout
-                  - "5"
+              httpGet: &backendHttpCheck
+                path: /api/health
+                port: 8000
               periodSeconds: 5
-              timeoutSeconds: 10
+              timeoutSeconds: 3
               failureThreshold: 30
           liveness: &backendProbes
             enabled: true
             custom: true
             spec:
-              exec: *backendHealthcheck
+              httpGet: *backendHttpCheck
               periodSeconds: 10
-              timeoutSeconds: 10
+              timeoutSeconds: 3
               failureThreshold: 3
           readiness: *backendProbes
         securityContext:
