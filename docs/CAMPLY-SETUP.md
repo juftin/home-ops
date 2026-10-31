@@ -26,32 +26,35 @@ worker, beat, and their wait init containers share `ghcr.io/juftin/camply:latest
 
 - **Frontend** (`camply-frontend`): React + Vite single-page application served via Nginx on port `8080`
   with gzip compression and immutable asset caching. `camply serve frontend` locates the bundled UI
-  and renders the packaged Nginx configuration. Its `/api/` proxy uses `backend:8000`, an internal
-  Service selecting the same API pods as `camply-backend`.
+  and renders the packaged Nginx configuration. `CAMPLY_BACKEND_URL: http://camply-backend:8000`
+  directs its `/api/` proxy to the API Service. The upstream default is `http://backend:8000`.
 - **Backend API** (`camply-backend`): FastAPI application running under Gunicorn on port `8000` with
   `GZipMiddleware` response compression. `camply serve backend` applies Alembic database migrations
   on startup before serving the API. Exposes
   `/api/health` for health probes.
 - **Worker** (`camply-worker`): Celery worker consuming tasks from the `celery` queue for campsite
   availability searches. `camply serve worker` defaults to this queue and concurrency 4.
-- **Beat** (`camply-beat`): `camply serve beat` schedules periodic provider catalog sync and poller
-  tasks after the initial provider-sync task is dispatched.
+- **Beat** (`camply-beat`): `camply serve beat --sync-providers` enqueues an initial provider
+  catalog sync, then starts the scheduler for periodic catalog sync and poller tasks.
 - **Database** (`camply-db`): PostgreSQL 17 with a 10Gi `node-local` persistent volume claim.
 - **Cache/Broker** (`camply-valkey`): Valkey 8 instance serving as Celery message broker and result backend.
 - **Monitoring** (`camply-prometheus`): Isolated Prometheus 3 instance with a 5Gi `node-local` persistent volume, scraping backend and worker metrics to power Camply's built-in Admin Trends dashboard.
 
-Only the initial provider-sync dispatch still uses `celery -A camply.worker.celery_app call camply.catalog.sync_all_providers --expires=600`. The scheduler shell uses `exec camply serve beat`
-after dispatch so Celery receives shutdown signals directly. Worker and beat retain
-`SKIP_MIGRATIONS=1`; the CLI roles do not run migrations, and this flag also prevents the
-image entrypoint from migrating before the scheduler shell runs.
+Worker and beat share a wait init container that checks PostgreSQL and Valkey, then waits for
+`http://camply-backend:8000/api/health`. The API becomes available after migrations finish, so
+workers cannot process tasks against an unmigrated database. Only the backend applies migrations.
+
+The beat CLI's opt-in `--sync-providers` flag dispatches the catalog task with a ten-minute
+expiry before replacing the process with Celery beat. Dispatch failure stops startup; successful
+dispatch queues asynchronous work without waiting for ingestion to complete. Bare
+`camply serve beat` does not dispatch an initial sync.
 
 Application pods have a 60-second termination grace period. Python roles receive Kubernetes'
 default SIGTERM. The frontend's pre-stop hook sends SIGQUIT to Nginx and waits for it to exit,
 allowing graceful connection draining before Kubernetes sends SIGTERM.
 
-The `backend` Service name is required by the packaged Nginx template and is reserved for Camply
-in the `default` namespace. The existing `camply-backend` Service continues to serve ingress and
-Prometheus. There is no application-specific Nginx ConfigMap or asset-path override to maintain.
+The frontend proxy, ingress, and Prometheus use the existing `camply-backend` Service.
+There is no application-specific Nginx ConfigMap or asset-path override to maintain.
 
 ## Upgrade prerequisite
 

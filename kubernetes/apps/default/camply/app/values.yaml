@@ -16,6 +16,8 @@ controllers:
           - camply
           - serve
           - frontend
+        env:
+          CAMPLY_BACKEND_URL: http://camply-backend:8000
         lifecycle:
           preStop:
             exec:
@@ -163,13 +165,14 @@ controllers:
       reloader.stakater.com/auto: "true"
     pod: *appPodOptions
     initContainers:
-      wait-for-services:
+      wait-for-services: &waitForServices
         image: *camplyImage
         command:
           - python
           - -c
           - |
             import socket, time
+            from urllib.request import urlopen
             for host, port in [("camply-db", 5432), ("camply-valkey", 6379)]:
                 for _ in range(60):
                     try:
@@ -179,6 +182,14 @@ controllers:
                         time.sleep(2)
                 else:
                     exit(1)
+            for _ in range(60):
+                try:
+                    with urlopen("http://camply-backend:8000/api/health", timeout=2):
+                        break
+                except OSError:
+                    time.sleep(2)
+            else:
+                exit(1)
         securityContext:
           allowPrivilegeEscalation: false
           capabilities: {drop: ["ALL"]}
@@ -201,7 +212,6 @@ controllers:
                 key: POSTGRES_PASSWORD
           CAMPLY_DB_DATABASE: camply
           CAMPLY_VALKEY_URL: redis://camply-valkey:6379/0
-          SKIP_MIGRATIONS: "1"
           CAMPLY_METRICS_PORT: 8001
           PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus_multiproc
           CAMPLY_PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus_multiproc
@@ -222,32 +232,15 @@ controllers:
       reloader.stakater.com/auto: "true"
     pod: *appPodOptions
     initContainers:
-      wait-for-services:
-        image: *camplyImage
-        command:
-          - python
-          - -c
-          - |
-            import socket, time
-            for host, port in [("camply-db", 5432), ("camply-valkey", 6379)]:
-                for _ in range(60):
-                    try:
-                        with socket.create_connection((host, port), timeout=2):
-                            break
-                    except OSError:
-                        time.sleep(2)
-                else:
-                    exit(1)
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities: {drop: ["ALL"]}
+      wait-for-services: *waitForServices
     containers:
       app:
         image: *camplyImage
         args:
-          - sh
-          - -c
-          - "celery -A camply.worker.celery_app call camply.catalog.sync_all_providers --expires=600 && exec camply serve beat"
+          - camply
+          - serve
+          - beat
+          - --sync-providers
         env:
           CAMPLY_DB_DRIVERNAME: postgresql+psycopg
           CAMPLY_DB_HOST: camply-db
@@ -260,7 +253,6 @@ controllers:
                 key: POSTGRES_PASSWORD
           CAMPLY_DB_DATABASE: camply
           CAMPLY_VALKEY_URL: redis://camply-valkey:6379/0
-          SKIP_MIGRATIONS: "1"
           CAMPLY_METRICS_PORT: 8001
           PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus_multiproc
           CAMPLY_PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus_multiproc
@@ -445,12 +437,6 @@ controllers:
 defaultPodOptions:
   automountServiceAccountToken: false
 service:
-  backend-proxy:
-    forceRename: backend
-    controller: backend
-    ports:
-      http:
-        port: *backendPort
   frontend:
     controller: frontend
     ports:
