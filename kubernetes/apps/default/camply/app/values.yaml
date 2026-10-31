@@ -60,6 +60,7 @@ controllers:
     replicas: 1
     strategy: RollingUpdate
     annotations:
+      argocd.argoproj.io/sync-wave: "0"
       reloader.stakater.com/auto: "true"
     pod: *appPodOptions
     initContainers:
@@ -162,6 +163,7 @@ controllers:
     replicas: 1
     strategy: RollingUpdate
     annotations:
+      argocd.argoproj.io/sync-wave: "1"
       reloader.stakater.com/auto: "true"
     pod: *appPodOptions
     initContainers:
@@ -229,6 +231,7 @@ controllers:
     replicas: 1
     strategy: Recreate
     annotations:
+      argocd.argoproj.io/sync-wave: "1"
       reloader.stakater.com/auto: "true"
     pod: *appPodOptions
     initContainers:

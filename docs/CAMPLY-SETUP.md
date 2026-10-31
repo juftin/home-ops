@@ -42,7 +42,14 @@ worker, beat, and their wait init containers share `ghcr.io/juftin/camply:latest
 
 Worker and beat share a wait init container that checks PostgreSQL and Valkey, then waits for
 `http://camply-backend:8000/api/health`. The API becomes available after migrations finish, so
-workers cannot process tasks against an unmigrated database. Only the backend applies migrations.
+new workers wait for API readiness. Only the backend applies migrations.
+
+During a full ArgoCD sync, the backend Deployment is in wave `0`; worker and beat Deployments
+are in wave `1`. ArgoCD waits for the new backend rollout to become healthy before updating
+worker/beat, preventing an old API pod's health response from allowing their rollout before the
+new backend finishes migrating. The init check also covers subsequent pod restarts. Use a full
+Camply app sync for coordinated upgrades; selectively syncing worker/beat bypasses this rollout
+ordering.
 
 The beat CLI's opt-in `--sync-providers` flag dispatches the catalog task with a ten-minute
 expiry before replacing the process with Celery beat. Dispatch failure stops startup; successful
