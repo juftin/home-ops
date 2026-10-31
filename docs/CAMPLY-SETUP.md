@@ -35,9 +35,11 @@ Frontend, API, worker, beat, and migration Job containers use the versioned `ghc
   availability searches. `camply serve worker` defaults to this queue and concurrency 4.
 - **Beat** (`camply-beat`): Singleton scheduler running `camply serve beat --sync-providers` with `Recreate`
   strategy, enqueuing an initial provider catalog sync before starting periodic schedules.
-- **Database** (`camply-postgresql`): PostgreSQL 17 attached to the existing 10Gi `node-local` persistent volume claim (`camply-db-data`).
-- **Cache/Broker** (`camply-valkey`): Valkey instance serving as Celery message broker and result backend, attached to `camply-valkey-data`.
-- **Monitoring** (`camply-prometheus`): Isolated Prometheus instance attached to `camply-prometheus-data`, scraping backend and worker metrics to power Camply's built-in Admin Trends dashboard.
+- **Database** (`camply-postgresql`): PostgreSQL 17 attached to persistent volume claim `camply-db-data` (10Gi `node-local`).
+- **Cache/Broker** (`camply-valkey`): Valkey instance serving as Celery message broker and result backend, attached to `camply-valkey-data` (2Gi).
+- **Monitoring** (`camply-prometheus`): Isolated Prometheus instance attached to `camply-prometheus-data` (5Gi), scraping backend and worker metrics to power Camply's built-in Admin Trends dashboard.
+
+The three volume claims (`camply-db-data`, `camply-valkey-data`, and `camply-prometheus-data`) are declared statically in `pvc.yaml` with `argocd.argoproj.io/sync-options: Prune=false` and `helm.sh/resource-policy: keep` so that ArgoCD automated pruning never destroys application state across chart updates.
 
 ## Migration Startup Barrier
 

@@ -74,14 +74,13 @@ ______________________________________________________________________
 
 ## Coding Agents
 
-| Namespace | App            | Role                                                                                |
-| --------- | -------------- | ----------------------------------------------------------------------------------- |
-| `default` | `camply`       | Camply campsite finder with frontend, API backend, Celery worker/beat, and Postgres |
-| `default` | `paseo`        | Coding-agent daemon and bundled web UI                                              |
-| `default` | `openclaw`     | Personal AI assistant gateway and Control UI                                        |
-| `default` | `hermes-agent` | Self-improving AI agent with Gateway API and Web Dashboard                          |
-| `default` | `herdr`        | Persistent agent terminals and browser/phone web UI                                 |
-| `default` | `agent-tools`  | Shared installer ConfigMap for Paseo, OpenClaw, and Herdr                           |
+| Namespace | App            | Role                                                       |
+| --------- | -------------- | ---------------------------------------------------------- |
+| `default` | `paseo`        | Coding-agent daemon and bundled web UI                     |
+| `default` | `openclaw`     | Personal AI assistant gateway and Control UI               |
+| `default` | `hermes-agent` | Self-improving AI agent with Gateway API and Web Dashboard |
+| `default` | `herdr`        | Persistent agent terminals and browser/phone web UI        |
+| `default` | `agent-tools`  | Shared installer ConfigMap for Paseo, OpenClaw, and Herdr  |
 
 The `agent-tools` app owns one ConfigMap generated from `install-agents.sh`. Paseo, OpenClaw, and Herdr mount
 it read-only in their `install-agents` init containers. The script installs or upgrades Codex,
@@ -185,8 +184,8 @@ No Funnel or Kubernetes API proxy is enabled. See [Tailscale setup](TAILSCALE-SE
 
 ## App Access
 
-App-template workloads configure HTTPRoutes and Tailscale Ingresses in their own
-`values.yaml`, using the chart's built-in resources. Grafana uses the bundled
+Workloads configure HTTPRoutes and Tailscale Ingresses in their own
+`values.yaml`, using chart-native resources (such as `camply-web` or `app-template`). Grafana uses the bundled
 Grafana chart's `grafana.route.main` settings, and ArgoCD uses `server.httproute`
 in its Helmfile bootstrap values. Public apps use
 `envoy-external`; OAuth apps choose the admin or users Gateway and have an explicit

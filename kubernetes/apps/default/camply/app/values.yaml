@@ -28,15 +28,12 @@ backend:
 postgresql:
   persistence:
     existingClaim: camply-db-data
-    storageClass: node-local
 valkey:
   persistence:
     existingClaim: camply-valkey-data
-    storageClass: node-local
 prometheus:
   persistence:
     existingClaim: camply-prometheus-data
-    storageClass: node-local
 route:
   enabled: true
   hostnames:
