@@ -74,13 +74,14 @@ ______________________________________________________________________
 
 ## Coding Agents
 
-| Namespace | App            | Role                                                       |
-| --------- | -------------- | ---------------------------------------------------------- |
-| `default` | `paseo`        | Coding-agent daemon and bundled web UI                     |
-| `default` | `openclaw`     | Personal AI assistant gateway and Control UI               |
-| `default` | `hermes-agent` | Self-improving AI agent with Gateway API and Web Dashboard |
-| `default` | `herdr`        | Persistent agent terminals and browser/phone web UI        |
-| `default` | `agent-tools`  | Shared installer ConfigMap for Paseo, OpenClaw, and Herdr  |
+| Namespace | App            | Role                                                                                |
+| --------- | -------------- | ----------------------------------------------------------------------------------- |
+| `default` | `camply`       | Camply campsite finder with frontend, API backend, Celery worker/beat, and Postgres |
+| `default` | `paseo`        | Coding-agent daemon and bundled web UI                                              |
+| `default` | `openclaw`     | Personal AI assistant gateway and Control UI                                        |
+| `default` | `hermes-agent` | Self-improving AI agent with Gateway API and Web Dashboard                          |
+| `default` | `herdr`        | Persistent agent terminals and browser/phone web UI                                 |
+| `default` | `agent-tools`  | Shared installer ConfigMap for Paseo, OpenClaw, and Herdr                           |
 
 The `agent-tools` app owns one ConfigMap generated from `install-agents.sh`. Paseo, OpenClaw, and Herdr mount
 it read-only in their `install-agents` init containers. The script installs or upgrades Codex,
