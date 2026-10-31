@@ -21,24 +21,57 @@ Reloader automatically restarts the deployments when secrets change in 1Password
 
 ## Architecture and Components
 
-Camply is deployed using the `app-template` chart with dedicated controllers:
+Camply is deployed using the `app-template` chart with dedicated controllers. Frontend, API,
+worker, beat, and their wait init containers share `ghcr.io/juftin/camply:latest`:
 
 - **Frontend** (`camply-frontend`): React + Vite single-page application served via Nginx on port `8080`
-  with gzip compression and immutable asset caching. Reverse-proxies `/api/` to `camply-backend:8000`.
+  with gzip compression and immutable asset caching. `camply serve frontend` locates the bundled UI
+  and renders the packaged Nginx configuration. `CAMPLY_BACKEND_URL: http://camply-backend:8000`
+  directs its `/api/` proxy to the API Service. The upstream default is `http://backend:8000`.
 - **Backend API** (`camply-backend`): FastAPI application running under Gunicorn on port `8000` with
-  `GZipMiddleware` response compression. Applies Alembic database migrations on startup. Exposes
+  `GZipMiddleware` response compression. `camply serve backend` applies Alembic database migrations
+  on startup before serving the API. Exposes
   `/api/health` for health probes.
 - **Worker** (`camply-worker`): Celery worker consuming tasks from the `celery` queue for campsite
-  availability searches.
-- **Beat** (`camply-beat`): Celery beat scheduler for periodic provider catalog sync and poller tasks.
+  availability searches. `camply serve worker` defaults to this queue and concurrency 4.
+- **Beat** (`camply-beat`): `camply serve beat --sync-providers` enqueues an initial provider
+  catalog sync, then starts the scheduler for periodic catalog sync and poller tasks.
 - **Database** (`camply-db`): PostgreSQL 17 with a 10Gi `node-local` persistent volume claim.
 - **Cache/Broker** (`camply-valkey`): Valkey 8 instance serving as Celery message broker and result backend.
 - **Monitoring** (`camply-prometheus`): Isolated Prometheus 3 instance with a 5Gi `node-local` persistent volume, scraping backend and worker metrics to power Camply's built-in Admin Trends dashboard.
 
-Worker, beat, and the initial provider-sync call use `celery -A camply.worker.celery_app`.
-The backend image now packages Python modules under `camply`; the old
-`worker.celery_app` entry point is no longer available. Keep these Helm arguments
-aligned with the image when upgrading. The API uses the image's default command.
+Worker and beat share a wait init container that checks PostgreSQL and Valkey, then waits for
+`http://camply-backend:8000/api/health`. The API becomes available after migrations finish, so
+new workers wait for API readiness. Only the backend applies migrations.
+
+During a full ArgoCD sync, the backend Deployment is in wave `0`; worker and beat Deployments
+are in wave `1`. ArgoCD waits for the new backend rollout to become healthy before updating
+worker/beat, preventing an old API pod's health response from allowing their rollout before the
+new backend finishes migrating. The init check also covers subsequent pod restarts. Use a full
+Camply app sync for coordinated upgrades; selectively syncing worker/beat bypasses this rollout
+ordering.
+
+The beat CLI's opt-in `--sync-providers` flag dispatches the catalog task with a ten-minute
+expiry before replacing the process with Celery beat. Dispatch failure stops startup; successful
+dispatch queues asynchronous work without waiting for ingestion to complete. Bare
+`camply serve beat` does not dispatch an initial sync.
+
+Application pods have a 60-second termination grace period. Python roles receive Kubernetes'
+default SIGTERM. The frontend's pre-stop hook sends SIGQUIT to Nginx and waits for it to exit,
+allowing graceful connection draining before Kubernetes sends SIGTERM.
+
+The frontend proxy, ingress, and Prometheus use the existing `camply-backend` Service.
+There is no application-specific Nginx ConfigMap or asset-path override to maintain.
+
+## Upgrade prerequisite
+
+This deployment requires the unified image and CLI entrypoints introduced by
+[camply-web#261](https://github.com/juftin/camply-web/pull/261). Before deploying, confirm that it
+has merged and `ghcr.io/juftin/camply:latest` has been published with all four serving roles.
+Validate with `task lint` and `task dev:validate` (or `task dev:validate:ci` without the age key).
+After reconciliation, verify the frontend `/healthz`, API `/api/health`, session login, worker
+metrics, and initial provider-sync dispatch. Exercise the frontend Service's `/api/health` proxy
+as well; the public HTTPRoute sends `/api` traffic directly to `camply-backend`.
 
 ## Ingress and Access
 
