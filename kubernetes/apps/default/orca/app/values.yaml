@@ -1,0 +1,127 @@
+controllers:
+  orca:
+    strategy: Recreate
+    annotations:
+      reloader.stakater.com/auto: "true"
+    initContainers:
+      install-agents:
+        image: &image
+          repository: ghcr.io/juftin/home-ops-orca
+          tag: 1.4.229
+        env: &runtimeEnv
+          HOME: /home/orca
+          PATH: /home/orca/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+        command: [/bin/bash, /opt/agent-tools/install-agents.sh]
+        securityContext: &containerSecurity
+          readOnlyRootFilesystem: false
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+    containers:
+      app:
+        image: *image
+        env: *runtimeEnv
+        args:
+          - serve
+          - --port
+          - "6768"
+          - --pairing-address
+          - wss://orca.${SECRET_DOMAIN}:443
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /web-index.html
+                port: &port 6768
+              periodSeconds: 5
+              timeoutSeconds: 5
+              failureThreshold: 60
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /web-index.html
+                port: *port
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 3
+          readiness: *probes
+        securityContext: *containerSecurity
+        resources:
+          requests:
+            cpu: 100m
+            memory: 1Gi
+          limits:
+            memory: 4Gi
+defaultPodOptions:
+  automountServiceAccountToken: false
+  enableServiceLinks: false
+  terminationGracePeriodSeconds: 60
+  nodeSelector:
+    kubernetes.io/arch: amd64
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+    fsGroupChangePolicy: OnRootMismatch
+service:
+  app:
+    ports:
+      http:
+        port: *port
+persistence:
+  agent-tools:
+    type: configMap
+    name: agent-tools
+    advancedMounts:
+      orca:
+        install-agents:
+          - path: /opt/agent-tools
+            readOnly: true
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp
+  shm:
+    type: emptyDir
+    medium: Memory
+    sizeLimit: 256Mi
+    globalMounts:
+      - path: /dev/shm
+  home:
+    storageClass: node-local
+    accessMode: ReadWriteOnce
+    size: 5Gi
+    globalMounts:
+      - path: /home/orca
+  workspace:
+    storageClass: node-local
+    accessMode: ReadWriteOnce
+    size: 20Gi
+    globalMounts:
+      - path: /workspace
+route:
+  app:
+    hostnames:
+      - orca.${SECRET_DOMAIN}
+    parentRefs:
+      - name: envoy-oauth-admin
+        namespace: network
+        sectionName: https
+ingress:
+  tailscale:
+    suffix: tailscale
+    className: tailscale
+    defaultBackend:
+      service:
+        name: orca
+        port:
+          number: *port
+    tls:
+      - hosts:
+          - orca
