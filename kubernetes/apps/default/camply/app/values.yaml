@@ -4,12 +4,25 @@ controllers:
     strategy: RollingUpdate
     annotations:
       reloader.stakater.com/auto: "true"
+    pod: &appPodOptions
+      terminationGracePeriodSeconds: 60
     containers:
       app:
-        image:
-          repository: ghcr.io/juftin/camply-frontend
+        image: &camplyImage
+          repository: ghcr.io/juftin/camply
           tag: latest
           pullPolicy: Always
+        args:
+          - camply
+          - serve
+          - frontend
+        lifecycle:
+          preStop:
+            exec:
+              command:
+                - sh
+                - -c
+                - 'kill -QUIT 1; while kill -0 1 2>/dev/null; do sleep 1; done'
         probes:
           startup:
             enabled: true
@@ -46,12 +59,10 @@ controllers:
     strategy: RollingUpdate
     annotations:
       reloader.stakater.com/auto: "true"
+    pod: *appPodOptions
     initContainers:
       wait-for-db:
-        image: &backendImage
-          repository: ghcr.io/juftin/camply-backend
-          tag: latest
-          pullPolicy: Always
+        image: *camplyImage
         command:
           - python
           - -c
@@ -72,7 +83,11 @@ controllers:
           capabilities: {drop: ["ALL"]}
     containers:
       app:
-        image: *backendImage
+        image: *camplyImage
+        args:
+          - camply
+          - serve
+          - backend
         env:
           CAMPLY_DB_DRIVERNAME: postgresql+psycopg
           CAMPLY_DB_HOST: camply-db
@@ -146,9 +161,10 @@ controllers:
     strategy: RollingUpdate
     annotations:
       reloader.stakater.com/auto: "true"
+    pod: *appPodOptions
     initContainers:
       wait-for-services:
-        image: *backendImage
+        image: *camplyImage
         command:
           - python
           - -c
@@ -168,17 +184,11 @@ controllers:
           capabilities: {drop: ["ALL"]}
     containers:
       app:
-        image: *backendImage
+        image: *camplyImage
         args:
-          - celery
-          - -A
-          - camply.worker.celery_app
+          - camply
+          - serve
           - worker
-          - -l
-          - info
-          - -Q
-          - celery
-          - --concurrency=4
         env:
           CAMPLY_DB_DRIVERNAME: postgresql+psycopg
           CAMPLY_DB_HOST: camply-db
@@ -210,9 +220,10 @@ controllers:
     strategy: Recreate
     annotations:
       reloader.stakater.com/auto: "true"
+    pod: *appPodOptions
     initContainers:
       wait-for-services:
-        image: *backendImage
+        image: *camplyImage
         command:
           - python
           - -c
@@ -232,11 +243,11 @@ controllers:
           capabilities: {drop: ["ALL"]}
     containers:
       app:
-        image: *backendImage
+        image: *camplyImage
         args:
           - sh
           - -c
-          - "celery -A camply.worker.celery_app call camply.catalog.sync_all_providers --expires=600 && celery -A camply.worker.celery_app beat -l info"
+          - "celery -A camply.worker.celery_app call camply.catalog.sync_all_providers --expires=600 && exec camply serve beat"
         env:
           CAMPLY_DB_DRIVERNAME: postgresql+psycopg
           CAMPLY_DB_HOST: camply-db
@@ -434,6 +445,12 @@ controllers:
 defaultPodOptions:
   automountServiceAccountToken: false
 service:
+  backend-proxy:
+    forceRename: backend
+    controller: backend
+    ports:
+      http:
+        port: *backendPort
   frontend:
     controller: frontend
     ports:
@@ -465,61 +482,6 @@ service:
       http:
         port: *prometheusPort
 configMaps:
-  nginx:
-    data:
-      default.conf: |-
-        server {
-            listen 8080;
-            server_name _;
-
-            root /usr/share/nginx/html;
-            index index.html;
-
-            client_body_temp_path /tmp/client_body_temp;
-            proxy_temp_path /tmp/proxy_temp;
-            fastcgi_temp_path /tmp/fastcgi_temp;
-            uwsgi_temp_path /tmp/uwsgi_temp;
-            scgi_temp_path /tmp/scgi_temp;
-
-            # Gzip compression for text, script, and style assets
-            gzip on;
-            gzip_vary on;
-            gzip_proxied any;
-            gzip_comp_level 6;
-            gzip_types text/plain text/css text/xml application/json application/javascript application/rss+xml application/atom+xml image/svg+xml;
-
-            location = /healthz {
-                access_log off;
-                add_header Content-Type text/plain;
-                return 200 'OK';
-            }
-
-            # Content-hashed static assets (safe to cache forever)
-            location /assets/ {
-                expires 1y;
-                add_header Cache-Control "public, max-age=31536000, immutable";
-                access_log off;
-            }
-
-            # Ensure index.html is always revalidated for new deployments
-            location = /index.html {
-                add_header Cache-Control "no-cache";
-            }
-
-            location /api/ {
-                proxy_pass http://camply-backend:8000;
-                proxy_http_version 1.1;
-                proxy_set_header Connection "";
-                proxy_set_header Host $host;
-                proxy_set_header X-Real-IP $remote_addr;
-                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                proxy_set_header X-Forwarded-Proto $scheme;
-            }
-
-            location / {
-                try_files $uri $uri/ /index.html;
-            }
-        }
   prometheus:
     data:
       prometheus.yml: |-
@@ -578,15 +540,6 @@ persistence:
         app:
           - path: /etc/prometheus/prometheus.yml
             subPath: prometheus.yml
-            readOnly: true
-  nginx-config:
-    type: configMap
-    identifier: nginx
-    advancedMounts:
-      frontend:
-        app:
-          - path: /etc/nginx/conf.d/default.conf
-            subPath: default.conf
             readOnly: true
 route:
   app:
