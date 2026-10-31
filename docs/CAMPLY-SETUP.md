@@ -22,7 +22,7 @@ Reloader automatically restarts the deployments when secrets change in 1Password
 ## Architecture and Components
 
 Camply is deployed using the `app-template` chart with dedicated controllers. Frontend, API,
-worker, beat, and their wait init containers share `ghcr.io/juftin/camply:latest`:
+worker, beat, and their wait init containers share `ghcr.io/juftin/camply-web:latest`:
 
 - **Frontend** (`camply-frontend`): React + Vite single-page application served via Nginx on port `8080`
   with gzip compression and immutable asset caching. `camply serve frontend` locates the bundled UI
@@ -103,7 +103,7 @@ There is no application-specific Nginx ConfigMap or asset-path override to maint
 
 This deployment requires the unified image and CLI entrypoints introduced by
 [camply-web#261](https://github.com/juftin/camply-web/pull/261). Before deploying, confirm that it
-has merged and `ghcr.io/juftin/camply:latest` has been published with all four serving roles,
+has merged and `ghcr.io/juftin/camply-web:latest` has been published with all four serving roles,
 the role-specific health commands, heartbeat scheduler, `CAMPLY_BACKEND_URL`, and
 `--sync-providers`. The health interface is reviewed against upstream commit
 [`b18b991`](https://github.com/juftin/camply-web/commit/b18b99180251a853c4113946d40ab56b8560563d).

@@ -9,7 +9,7 @@ controllers:
     containers:
       app:
         image: &camplyImage
-          repository: ghcr.io/juftin/camply
+          repository: ghcr.io/juftin/camply-web
           tag: latest
           pullPolicy: Always
         args:
