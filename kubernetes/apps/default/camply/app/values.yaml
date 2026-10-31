@@ -30,21 +30,24 @@ controllers:
             enabled: true
             custom: true
             spec:
-              httpGet:
-                path: /healthz
-                port: &frontendPort 8080
+              exec: &frontendHealthcheck
+                command:
+                  - camply
+                  - serve
+                  - healthcheck
+                  - frontend
+                  - --timeout
+                  - "5"
               periodSeconds: 5
-              timeoutSeconds: 3
+              timeoutSeconds: 10
               failureThreshold: 30
           liveness: &frontendProbes
             enabled: true
             custom: true
             spec:
-              httpGet:
-                path: /healthz
-                port: *frontendPort
+              exec: *frontendHealthcheck
               periodSeconds: 10
-              timeoutSeconds: 3
+              timeoutSeconds: 10
               failureThreshold: 3
           readiness: *frontendProbes
         securityContext:
@@ -133,21 +136,24 @@ controllers:
             enabled: true
             custom: true
             spec:
-              httpGet:
-                path: /api/health
-                port: &backendPort 8000
+              exec: &backendHealthcheck
+                command:
+                  - camply
+                  - serve
+                  - healthcheck
+                  - backend
+                  - --timeout
+                  - "5"
               periodSeconds: 5
-              timeoutSeconds: 3
+              timeoutSeconds: 10
               failureThreshold: 30
           liveness: &backendProbes
             enabled: true
             custom: true
             spec:
-              httpGet:
-                path: /api/health
-                port: *backendPort
+              exec: *backendHealthcheck
               periodSeconds: 10
-              timeoutSeconds: 3
+              timeoutSeconds: 10
               failureThreshold: 3
           readiness: *backendProbes
         securityContext:
@@ -166,15 +172,14 @@ controllers:
       argocd.argoproj.io/sync-wave: "1"
       reloader.stakater.com/auto: "true"
     pod: *appPodOptions
-    initContainers:
-      wait-for-services: &waitForServices
+    initContainers: &backgroundInitContainers
+      wait-for-services:
         image: *camplyImage
         command:
           - python
           - -c
           - |
             import socket, time
-            from urllib.request import urlopen
             for host, port in [("camply-db", 5432), ("camply-valkey", 6379)]:
                 for _ in range(60):
                     try:
@@ -184,14 +189,23 @@ controllers:
                         time.sleep(2)
                 else:
                     exit(1)
-            for _ in range(60):
-                try:
-                    with urlopen("http://camply-backend:8000/api/health", timeout=2):
-                        break
-                except OSError:
-                    time.sleep(2)
-            else:
-                exit(1)
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+      wait-for-api:
+        image: *camplyImage
+        command:
+          - sh
+          - -c
+          - |
+            attempt=0
+            until camply serve healthcheck backend --url http://camply-backend:8000/api/health --timeout 2; do
+              attempt=$((attempt + 1))
+              if [ "$attempt" -ge 60 ]; then
+                exit 1
+              fi
+              sleep 2
+            done
         securityContext:
           allowPrivilegeEscalation: false
           capabilities: {drop: ["ALL"]}
@@ -218,6 +232,38 @@ controllers:
           PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus_multiproc
           CAMPLY_PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus_multiproc
           CAMPLY_PROMETHEUS_URL: http://camply-prometheus:9090
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              exec: &workerHealthcheck
+                command:
+                  - camply
+                  - serve
+                  - healthcheck
+                  - worker
+                  - --timeout
+                  - "5"
+              periodSeconds: 10
+              timeoutSeconds: 10
+              failureThreshold: 30
+          liveness:
+            enabled: true
+            custom: true
+            spec:
+              exec: *workerHealthcheck
+              periodSeconds: 30
+              timeoutSeconds: 10
+              failureThreshold: 6
+          readiness:
+            enabled: true
+            custom: true
+            spec:
+              exec: *workerHealthcheck
+              periodSeconds: 30
+              timeoutSeconds: 10
+              failureThreshold: 3
         securityContext:
           allowPrivilegeEscalation: false
           capabilities: {drop: ["ALL"]}
@@ -234,8 +280,7 @@ controllers:
       argocd.argoproj.io/sync-wave: "1"
       reloader.stakater.com/auto: "true"
     pod: *appPodOptions
-    initContainers:
-      wait-for-services: *waitForServices
+    initContainers: *backgroundInitContainers
     containers:
       app:
         image: *camplyImage
@@ -257,9 +302,33 @@ controllers:
           CAMPLY_DB_DATABASE: camply
           CAMPLY_VALKEY_URL: redis://camply-valkey:6379/0
           CAMPLY_METRICS_PORT: 8001
+          CAMPLY_BEAT_HEALTH_FILE: /tmp/camply-beat-health.json
           PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus_multiproc
           CAMPLY_PROMETHEUS_MULTIPROC_DIR: /tmp/prometheus_multiproc
           CAMPLY_PROMETHEUS_URL: http://camply-prometheus:9090
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              exec: &beatHealthcheck
+                command:
+                  - camply
+                  - serve
+                  - healthcheck
+                  - beat
+              periodSeconds: 10
+              timeoutSeconds: 10
+              failureThreshold: 30
+          liveness: &beatProbes
+            enabled: true
+            custom: true
+            spec:
+              exec: *beatHealthcheck
+              periodSeconds: 30
+              timeoutSeconds: 10
+              failureThreshold: 3
+          readiness: *beatProbes
         securityContext:
           allowPrivilegeEscalation: false
           capabilities: {drop: ["ALL"]}
@@ -444,12 +513,12 @@ service:
     controller: frontend
     ports:
       http:
-        port: *frontendPort
+        port: &frontendPort 8080
   backend:
     controller: backend
     ports:
       http:
-        port: *backendPort
+        port: &backendPort 8000
   worker:
     controller: worker
     ports:
