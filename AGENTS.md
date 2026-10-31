@@ -114,8 +114,9 @@ apps using other charts.
    `*.${SECRET_DOMAIN}` rule. Route by group:
    - admins: `https://envoy-oauth-admin.<namespace>.svc.cluster.local:443` with `originServerName: oauth.${SECRET_DOMAIN}`
    - users: `https://envoy-oauth-users.<namespace>.svc.cluster.local:443` with `originServerName: oauth-users.${SECRET_DOMAIN}`
-2. Shared `oauth-pages` uses `*.${SECRET_DOMAIN}` to cover app hosts; no per-app
-   hostname entry is needed for `/denied` or `/logged-out`.
+2. Add the protected app hostname explicitly to `oauth-pages` chart values and register
+   `https://<app-host>/oauth2/callback` in Google. OAuth cookies are host-scoped. See
+   [Authentication](docs/AUTHENTICATION.md) for rollout prerequisites and validation.
 3. Keep `/oauth2/callback` route handling on `oauth-pages` and do not broaden
    `oauth-pages-public` to allow callback.
 

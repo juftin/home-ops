@@ -39,13 +39,15 @@ Files:
 
 - [ ] `SecurityPolicy.spec.targetRefs` points to new Gateway
 
-- [ ] `oidc.redirectURL` and `logoutRedirectURL` match new hostname
+- [ ] Public hardening patch and audience replacements cover the new policy
+
+- [ ] Callback uses the request host over HTTPS; cookies have no `cookieDomain`
 
 - [ ] `jwt.providers` configured for Google issuer/JWKS
 
 - [ ] `authorization.defaultAction: Deny`
 
-- [ ] `email_verified=true` claim present
+- [ ] Verified-email extension covers this Gateway and requires boolean `true`
 
 - [ ] allowlist emails are lowercase
 
@@ -60,7 +62,7 @@ ______________________________________________________________________
 File: `kubernetes/apps/default/oauth-pages/app/values.yaml`
 
 - [ ] Add new Gateway to `route.app.parentRefs`
-- [ ] Keep `route.app.hostnames: ['*.${SECRET_DOMAIN}']` for shared utility-page coverage
+- [ ] Add each protected app hostname explicitly to `route.app.hostnames`
 - [ ] Verify `/denied` and `/logged-out` route to `oauth-pages`
 - [ ] Verify `/denied` -> `/denied.html` and `/logged-out` -> `/logged-out.html` rewrites exist
 - [ ] Keep `/oauth2/callback` as its own route rule (no public allow override)
@@ -73,7 +75,7 @@ ______________________________________________________________________
 
 ## 5. Google OAuth Console
 
-- [ ] Add redirect URI: `https://<oauth-host>/oauth2/callback`
+- [ ] Add redirect URI: `https://<app-host>/oauth2/callback`
 - [ ] Confirm client ID/secret are current
 
 ______________________________________________________________________
@@ -81,12 +83,14 @@ ______________________________________________________________________
 ## 6. Validation and Branch Test
 
 - [ ] `task lint`
+- [ ] `task dev:auth:test`
 - [ ] `task dev:validate`
+- [ ] Update authentication invariant checks for any new Gateway/group
 - [ ] `task dev:start`
 - [ ] `kubectl get gateway -n network <gateway-name>`
 - [ ] Browser test:
   - [ ] unauthenticated user gets Google redirect
   - [ ] allowlisted user gets access
-  - [ ] non-allowlisted user lands on `/denied`
+  - [ ] non-allowlisted user receives HTTP 403; `/denied` remains a public utility page
   - [ ] logout lands on `/logged-out`
 - [ ] `task dev:stop` (required)
