@@ -3,7 +3,7 @@ kind: Kustomization
 helmCharts:
   - name: camply-web
     repo: oci://ghcr.io/juftin/charts
-    version: 2.5.0
+    version: v2.6.0
     releaseName: camply
     namespace: default
     includeCRDs: true
