@@ -159,7 +159,7 @@ spec:
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: BackendTrafficPolicy
 metadata:
-  name: oauth-denied-override
+  name: envoy-oauth
   namespace: network
 spec:
   compressor:
@@ -183,17 +183,6 @@ spec:
       kind: Gateway
       matchLabels:
         home-ops.io/oauth-gateway: "true"
-  responseOverride:
-    - match:
-        statusCodes:
-          - type: Value
-            value: 403
-      redirect:
-        scheme: https
-        statusCode: 302
-        path:
-          type: ReplaceFullPath
-          replaceFullPath: /denied
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway

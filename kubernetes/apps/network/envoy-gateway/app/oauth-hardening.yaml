@@ -1,0 +1,65 @@
+# Public settings applied after SOPS decryption. Email allowlists remain encrypted.
+- op: add
+  path: /spec/authorization/defaultAction
+  value: Deny
+- op: add
+  path: /spec/authorization/rules/0/action
+  value: Allow
+- op: add
+  path: /spec/authorization/rules/0/principal/jwt/provider
+  value: google
+- op: add
+  path: /spec/authorization/rules/0/principal/jwt/claims/0/name
+  value: email
+- op: add
+  path: /spec/oidc/provider
+  value:
+    issuer: https://accounts.google.com
+- op: add
+  path: /spec/oidc/clientSecret
+  value:
+    name: google-oauth-client-secret
+    namespace: network
+- op: add
+  path: /spec/oidc/redirectURL
+  value: https://%REQ(:authority)%/oauth2/callback
+- op: add
+  path: /spec/oidc/logoutPath
+  value: /logout
+- op: remove
+  path: /spec/oidc/cookieDomain
+- op: add
+  path: /spec/oidc/cookieConfig
+  value:
+    sameSite: Lax
+- op: add
+  path: /spec/oidc/scopes
+  value: [openid, email, profile]
+- op: add
+  path: /spec/oidc/forwardAccessToken
+  value: false
+- op: add
+  path: /spec/oidc/disableTokenEncryption
+  # EG v1.8.2 cannot forward a decrypted ID token into the JWT filter.
+  # Use a signed JWT cookie, host-scoped and stripped before upstream forwarding.
+  value: true
+- op: add
+  path: /spec/oidc/passThroughAuthHeader
+  value: false
+- op: add
+  path: /spec/oidc/cookieNames
+  value:
+    accessToken: HomeOpsAccessToken
+    idToken: HomeOpsIdToken
+- op: add
+  path: /spec/jwt
+  value:
+    providers:
+      - name: google
+        issuer: https://accounts.google.com
+        # Kustomize copies this policy's decrypted OIDC client ID below.
+        audiences: [REPLACED_BY_OIDC_CLIENT_ID]
+        remoteJWKS:
+          uri: https://www.googleapis.com/oauth2/v3/certs
+        extractFrom:
+          cookies: [HomeOpsIdToken]

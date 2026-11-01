@@ -49,6 +49,12 @@ jobs:
         run: task dev:validate:test
       - name: Test shared agent installer
         run: task dev:agents:test
+      - name: Install nginx for authentication proxy regression tests
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends nginx
+      - name: Test authentication boundaries
+        run: task dev:auth:test
       - name: Validate ArgoCD rendering and Kubernetes schemas
         run: task dev:validate:ci
   argocd-validate-status:

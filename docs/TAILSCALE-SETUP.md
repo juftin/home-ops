@@ -16,10 +16,15 @@ Enable MagicDNS and HTTPS certificates in the Tailscale admin console's DNS sett
 the DNS suffix displayed there, such as `tail123abc.ts.net`, without a scheme, hostname, or
 trailing dot.
 
-Merge these entries into the existing tailnet policy for a trusted personal tailnet. The grant
-allows all tailnet devices to connect to one another and approved subnet routes on every port
-and protocol, including future devices and services. Operator-managed proxies use the shared
-`tag:k8s` by default, so new apps do not need their own tag definitions or grants.
+Replace broad all-device grants with narrowly scoped access. This example permits tailnet
+admins to reach operator-managed HTTPS proxies only. Operator-managed proxies use the shared
+`tag:k8s` by default. Review existing grants and ACLs too: access rules are additive, so leaving
+an older allow-all rule in place defeats this restriction. Add explicit user groups when needed;
+use app-specific proxy tags/grants when different apps need different membership.
+
+Tailnet policy is managed in the Tailscale console and is not applied by this repository.
+Tailscale membership does not replace app authentication: Paseo requires its password and
+Lunch Money requires `X-API-Key` for data endpoints, including MCP.
 
 ```json
 {
@@ -34,13 +39,13 @@ and protocol, including future devices and services. Operator-managed proxies us
   "grants": [
     {
       "src": [
-        "*"
+        "autogroup:admin"
       ],
       "dst": [
-        "*"
+        "tag:k8s"
       ],
       "ip": [
-        "*"
+        "tcp:443"
       ]
     }
   ]

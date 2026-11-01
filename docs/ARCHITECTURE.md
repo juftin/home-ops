@@ -61,7 +61,7 @@ ______________________________________________________________________
   Placeholder rendering cannot verify decryption or the contents of encrypted policies.
   ArgoCD continues to decrypt with the real age key.
 - Render validation also runs strict Kubeconform checks on built-in Kubernetes resources against
-  `talos/talenv.yaml`'s Kubernetes version. Custom resources and CRD definitions are excluded;
+  `talos/talenv.yaml`'s Kubernetes version. Gateway/Envoy custom resources are also validated against the rendered chart CRDs; other custom resources and CRD definitions are excluded;
   missing schemas for other built-in resources fail validation.
 
 ______________________________________________________________________
@@ -71,6 +71,11 @@ ______________________________________________________________________
 - Secrets in Git are SOPS-encrypted with age.
 - ArgoCD repo-server mounts `sops-age` and decrypts during render.
 - New app secrets should prefer External Secrets Operator + 1Password over new committed SOPS files.
+
+OAuth public settings are enforced by a readable Kustomize hardening patch after decryption.
+JWT audiences are copied from each OIDC client ID. A Lua filter enforces Google's boolean
+verified-email claim against verified JWT metadata. Cookies are host-scoped and stripped before upstream forwarding;
+Google must register callbacks for each protected app. See [Authentication](AUTHENTICATION.md).
 
 ## Coding Agents
 
@@ -140,7 +145,7 @@ Envoy gateway on each app's service ports; Paseo also permits its specific Tails
 Egress permits CoreDNS on TCP/UDP 53 and public HTTP/HTTPS/SSH on TCP 80/443/22. Other cluster
 services (including the other agents), Kubernetes API, nodes, LAN, tailnet, and metadata addresses
 are blocked, with explicit exceptions for DNS and OpenClaw accessing only the Lunch Money
-application on TCP 8000 (`http://lunchmoney-app.default.svc.cluster.local:8000`). Its PostgreSQL,
+authentication proxy on TCP 8080 (Service URL `http://lunchmoney-app.default.svc.cluster.local:8000`). Its PostgreSQL,
 Valkey, and scheduler pods remain inaccessible to OpenClaw. Paseo, Hermes, and Herdr have no Lunch Money
 exception. Existing stateful connections can
 receive replies; the ingress exception does not authorize agent-initiated connections to proxies.
@@ -172,8 +177,11 @@ The Tailscale operator exposes Paseo through a private `Ingress` at
 It also exposes Lunch Money through a private `Ingress` at `https://lunchmoney.<tailnet-DNS-suffix>`,
 forwarding to the `lunchmoney:8000` service. Internally on the LAN, Lunch Money is served at
 `lunchmoney.${SECRET_DOMAIN}` via the `envoy-internal` Gateway.
-Proxies use the shared `tag:k8s`; the documented tailnet policy allows all ports and protocols
-between tailnet devices, and the daemon still requires its password.
+Proxies use the shared `tag:k8s`; the documented tailnet grant permits admins to reach their
+HTTPS port only. Existing broad console grants must be removed separately. Paseo still requires
+its password; Lunch Money requires `X-API-Key` for data endpoints, including MCP and dashboard.
+The Lunch Money Service port 8000 targets an nginx authentication proxy on port 8080; ingress
+policy blocks direct access to the raw app port and restricts database/Valkey access.
 This route avoids browser OAuth redirects for native clients; the public hostname retains admin
 Google SSO. The Ingress uses a userspace proxy without additional pod privileges. Operator OAuth
 credentials and the DNS suffix come from the `tailscale` 1Password item through External Secrets.
@@ -189,6 +197,8 @@ Workloads configure HTTPRoutes and Tailscale Ingresses in their own
 Grafana chart's `grafana.route.main` settings, and ArgoCD uses `server.httproute`
 in its Helmfile bootstrap values. Public apps use
 `envoy-external`; OAuth apps choose the admin or users Gateway and have an explicit
-Cloudflare Tunnel rule. Shared OAuth utility pages cover app hosts through a
-wildcard while public-policy exceptions stay scoped to denied/logout sections.
+Cloudflare Tunnel rule. Shared OAuth utility pages cover app hosts through
+explicit hostname entries while public-policy exceptions stay scoped to denied/logout sections.
+CI checks route/tunnel group agreement and utility hostname coverage. App 403 responses remain
+403 rather than being rewritten into browser redirects.
 See [App access](APP-ACCESS.md).
