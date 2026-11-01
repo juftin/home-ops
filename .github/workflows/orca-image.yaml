@@ -1,0 +1,51 @@
+name: Orca Image
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - containers/orca/**
+      - scripts/tests/test-orca.sh
+      - .github/workflows/orca-image.yaml
+  pull_request:
+    branches: [main]
+    paths:
+      - containers/orca/**
+      - scripts/tests/test-orca.sh
+      - .github/workflows/orca-image.yaml
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Build
+        id: image
+        env:
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          version=$(sed -n 's/^ARG ORCA_VERSION=//p' containers/orca/Dockerfile)
+          image="ghcr.io/${OWNER,,}/home-ops-orca:${version}"
+          docker build --platform linux/amd64 --tag "$image" containers/orca
+          echo "name=$image" >> "$GITHUB_OUTPUT"
+      - name: Test headless runtime and browser bundle
+        env:
+          IMAGE: ${{ steps.image.outputs.name }}
+        run: bash scripts/tests/test-orca.sh "$IMAGE"
+      - name: Publish
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
+          IMAGE: ${{ steps.image.outputs.name }}
+        run: |
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$OWNER" --password-stdin
+          docker push "$IMAGE"
