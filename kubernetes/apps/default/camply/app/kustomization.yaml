@@ -13,3 +13,29 @@ helmCharts:
 resources:
   - ./externalsecret.yaml
   - ./pvc.yaml
+patches:
+  # Match Gateway API defaults so chart backend references stay in sync.
+  - target:
+      group: gateway.networking.k8s.io
+      version: v1
+      kind: HTTPRoute
+      name: camply-app
+    patch: |-
+      - op: add
+        path: /spec/rules/0/backendRefs/0/group
+        value: ""
+      - op: add
+        path: /spec/rules/0/backendRefs/0/kind
+        value: Service
+      - op: add
+        path: /spec/rules/0/backendRefs/0/weight
+        value: 1
+      - op: add
+        path: /spec/rules/1/backendRefs/0/group
+        value: ""
+      - op: add
+        path: /spec/rules/1/backendRefs/0/kind
+        value: Service
+      - op: add
+        path: /spec/rules/1/backendRefs/0/weight
+        value: 1
