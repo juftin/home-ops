@@ -1,4 +1,6 @@
 fullnameOverride: camply
+image:
+  tag: latest
 annotations:
   reloader.stakater.com/auto: "true"
 database:
