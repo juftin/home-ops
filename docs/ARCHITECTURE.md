@@ -184,8 +184,8 @@ No Funnel or Kubernetes API proxy is enabled. See [Tailscale setup](TAILSCALE-SE
 
 ## App Access
 
-App-template workloads configure HTTPRoutes and Tailscale Ingresses in their own
-`values.yaml`, using the chart's built-in resources. Grafana uses the bundled
+Workloads configure HTTPRoutes and Tailscale Ingresses in their own
+`values.yaml`, using chart-native resources (such as `camply-web` or `app-template`). Grafana uses the bundled
 Grafana chart's `grafana.route.main` settings, and ArgoCD uses `server.httproute`
 in its Helmfile bootstrap values. Public apps use
 `envoy-external`; OAuth apps choose the admin or users Gateway and have an explicit
