@@ -182,6 +182,21 @@ consumer namespaces; OAuth credentials stay in `tailscale`. Paseo owns only its 
 the environment reference to the shared configuration.
 No Funnel or Kubernetes API proxy is enabled. See [Tailscale setup](TAILSCALE-SETUP.md).
 
+## Notifications
+
+| Namespace | App    | Role                                                    |
+| --------- | ------ | ------------------------------------------------------- |
+| `default` | `ntfy` | Self-hosted pub-sub push notifications (web, apps, API) |
+
+ntfy is served at `ntfy.${SECRET_DOMAIN}` through Cloudflare Tunnel and the public `envoy-external`
+Gateway rather than Google SSO, because mobile apps and HTTP publishers cannot complete an OIDC
+browser flow. ntfy's own access control enforces `deny-all` for anonymous clients and requires a
+web login; users and access tokens are provisioned declaratively from the `ntfy` 1Password item via
+External Secrets. A single non-root replica uses `Recreate` with a node-local PVC at `/var/lib/ntfy`
+for the SQLite message cache, auth database, and attachments. Poll requests (message IDs only) are
+forwarded to `ntfy.sh` for iOS instant notifications. Prometheus scrapes metrics from a dedicated
+port that the HTTPRoute does not expose. See [ntfy setup](NTFY-SETUP.md).
+
 ## App Access
 
 Workloads configure HTTPRoutes and Tailscale Ingresses in their own

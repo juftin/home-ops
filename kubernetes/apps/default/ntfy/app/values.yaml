@@ -1,0 +1,105 @@
+controllers:
+  ntfy:
+    replicas: 1
+    # SQLite cache/auth databases on a ReadWriteOnce volume; never run two pods at once.
+    strategy: Recreate
+    annotations:
+      reloader.stakater.com/auto: "true"
+    containers:
+      app:
+        image:
+          repository: docker.io/binwiederhier/ntfy
+          tag: v2.37.1
+        args:
+          - serve
+        env:
+          TZ: America/Denver
+          NTFY_BASE_URL: https://ntfy.${SECRET_DOMAIN}
+          NTFY_LISTEN_HTTP: :8080
+          NTFY_METRICS_LISTEN_HTTP: :9090
+          NTFY_LOG_FORMAT: json
+          # Envoy and cloudflared run in the pod network; strip them from X-Forwarded-For
+          # so per-visitor rate limiting sees the real client IP.
+          NTFY_BEHIND_PROXY: "true"
+          NTFY_PROXY_TRUSTED_HOSTS: 10.42.0.0/16
+          NTFY_CACHE_FILE: /var/lib/ntfy/cache.db
+          NTFY_CACHE_DURATION: 24h
+          NTFY_ATTACHMENT_CACHE_DIR: /var/lib/ntfy/attachments
+          NTFY_ATTACHMENT_TOTAL_SIZE_LIMIT: 2G
+          NTFY_ATTACHMENT_FILE_SIZE_LIMIT: 15M
+          NTFY_ATTACHMENT_EXPIRY_DURATION: 24h
+          # Private instance: anonymous access is denied; users and tokens are
+          # provisioned declaratively from 1Password (NTFY_AUTH_USERS / NTFY_AUTH_TOKENS).
+          NTFY_AUTH_FILE: /var/lib/ntfy/user.db
+          NTFY_AUTH_DEFAULT_ACCESS: deny-all
+          NTFY_ENABLE_LOGIN: "true"
+          NTFY_REQUIRE_LOGIN: "true"
+          NTFY_ENABLE_SIGNUP: "false"
+          # Forward poll requests (message IDs only) to ntfy.sh for iOS instant notifications.
+          NTFY_UPSTREAM_BASE_URL: https://ntfy.sh
+        envFrom:
+          - secretRef:
+              name: ntfy-secret
+        probes:
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /v1/health
+                port: &port 8080
+              initialDelaySeconds: 0
+              periodSeconds: 10
+              timeoutSeconds: 1
+              failureThreshold: 3
+          readiness: *probes
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: {drop: ["ALL"]}
+        resources:
+          requests:
+            cpu: 10m
+            memory: 64Mi
+          limits:
+            memory: 256Mi
+defaultPodOptions:
+  automountServiceAccountToken: false
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile: {type: RuntimeDefault}
+service:
+  app:
+    ports:
+      http:
+        primary: true
+        port: *port
+      metrics:
+        port: 9090
+serviceMonitor:
+  app:
+    endpoints:
+      - port: metrics
+persistence:
+  data:
+    storageClass: node-local
+    accessMode: ReadWriteOnce
+    size: 5Gi
+    globalMounts:
+      - path: /var/lib/ntfy
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp
+route:
+  app:
+    hostnames:
+      - ntfy.${SECRET_DOMAIN}
+    parentRefs:
+      - name: envoy-external
+        namespace: network
+        sectionName: https
