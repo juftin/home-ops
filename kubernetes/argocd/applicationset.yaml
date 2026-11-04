@@ -26,7 +26,7 @@ spec:
                   wave: '4'
           - git:
               repoURL: https://github.com/juftin/home-ops.git
-              revision: refs/heads/plain-scorpion
+              revision: refs/heads/main
               directories:
                 - path: 'kubernetes/workloads/{{ .folder }}/*'
   template:
@@ -40,7 +40,7 @@ spec:
       project: '{{ if eq .folder "kube-system" }}kube-system{{ else }}home-ops{{ end }}'
       source:
         repoURL: https://github.com/juftin/home-ops.git
-        targetRevision: refs/heads/plain-scorpion
+        targetRevision: refs/heads/main
         path: '{{ .path.path }}/app'
         plugin:
           name: kustomize-substitute-secret-domain
