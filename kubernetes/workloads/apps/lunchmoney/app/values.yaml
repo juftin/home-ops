@@ -1,6 +1,6 @@
 controllers:
   app:
-    replicas: 0
+    replicas: 1
     strategy: RollingUpdate
     annotations:
       reloader.stakater.com/auto: "true"
@@ -88,7 +88,7 @@ controllers:
           limits:
             memory: 512Mi
   scheduler:
-    replicas: 0
+    replicas: 1
     strategy: Recreate
     annotations:
       reloader.stakater.com/auto: "true"
@@ -146,7 +146,7 @@ controllers:
           limits:
             memory: 512Mi
   db:
-    replicas: 0
+    replicas: 1
     strategy: Recreate
     annotations:
       reloader.stakater.com/auto: "true"
@@ -215,7 +215,7 @@ controllers:
           limits:
             memory: 512Mi
   valkey:
-    replicas: 0
+    replicas: 1
     strategy: Recreate
     annotations:
       reloader.stakater.com/auto: "true"
