@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+umask 077
 
 ROOT_DIR="$(git rev-parse --show-toplevel)"
 RENDER_SCRIPT="${ROOT_DIR}/scripts/render-argocd-app.sh"
 CLUSTER_SECRETS_FILE="${ROOT_DIR}/kubernetes/components/sops/cluster-secrets.sops.yaml"
+WORKDIR="$(mktemp -d)"
+trap 'rm -rf "${WORKDIR}"' EXIT
+AUTH_ARGS=()
 
 if (( $# > 1 )); then
     echo "Usage: $0 [--offline]" >&2
@@ -27,8 +31,6 @@ case "${1:-}" in
     --offline)
         # PRs (including forks) render with placeholders, without access to cluster secrets.
         # Only this validator uses the shim; ArgoCD still requires real SOPS decryption.
-        WORKDIR="$(mktemp -d)"
-        trap 'rm -rf "${WORKDIR}"' EXIT
         cat >"${WORKDIR}/sops" <<'EOF'
 #!/usr/bin/env bash
 set -Eeuo pipefail
@@ -43,6 +45,7 @@ EOF
         chmod +x "${WORKDIR}/sops"
         export SOPS_BIN="${WORKDIR}/sops"
         SECRET_DOMAIN="example.com"
+        AUTH_ARGS+=(--offline)
         echo "Offline validation: encrypted values use placeholders; decryption and secret semantics are not checked"
         ;;
     *)
@@ -60,7 +63,21 @@ kustomize build "${ROOT_DIR}/kubernetes/argocd" | bash "${ROOT_DIR}/scripts/vali
 
 while IFS= read -r app_dir; do
     echo "Validating ${app_dir#"${ROOT_DIR}/"}"
-    SECRET_DOMAIN="${SECRET_DOMAIN}" "${RENDER_SCRIPT}" "${app_dir}" | bash "${ROOT_DIR}/scripts/validate-kubernetes-schema.sh"
+    SECRET_DOMAIN="${SECRET_DOMAIN}" "${RENDER_SCRIPT}" "${app_dir}" >"${WORKDIR}/app.yaml"
+    bash "${ROOT_DIR}/scripts/validate-kubernetes-schema.sh" <"${WORKDIR}/app.yaml"
+    cat "${WORKDIR}/app.yaml" >>"${WORKDIR}/all.yaml"
+    printf '\n---\n' >>"${WORKDIR}/all.yaml"
 done < <(find "${ROOT_DIR}/kubernetes/apps" -mindepth 3 -maxdepth 3 -type d -name app | sort)
 
+if [[ -f "${ROOT_DIR}/bootstrap/helmfile.d/01-apps.yaml" ]]; then
+    # Include the bootstrap-owned ArgoCD routes in cross-app authentication checks.
+    ARGOCD_SECRET_DOMAIN="${SECRET_DOMAIN}" ARGOCD_OIDC_CLIENT_ID=ci-placeholder \
+        ARGOCD_RBAC_ADMINS='' ARGOCD_TARGET_REVISION=refs/heads/main \
+        helmfile --file "${ROOT_DIR}/bootstrap/helmfile.d/01-apps.yaml" \
+        --selector name=argocd template --skip-deps >"${WORKDIR}/bootstrap.yaml"
+    bash "${ROOT_DIR}/scripts/validate-kubernetes-schema.sh" <"${WORKDIR}/bootstrap.yaml"
+    cat "${WORKDIR}/bootstrap.yaml" >>"${WORKDIR}/all.yaml"
+fi
+
+python3 "${ROOT_DIR}/scripts/validate-auth.py" "${WORKDIR}/all.yaml" "${AUTH_ARGS[@]}"
 echo "ArgoCD render validation passed"

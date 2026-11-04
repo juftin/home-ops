@@ -1,0 +1,45 @@
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyExtensionPolicy
+metadata:
+  name: oauth-verified-email
+  namespace: network
+spec:
+  targetSelectors:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      matchLabels:
+        home-ops.io/oauth-gateway: "true"
+  lua:
+    - type: Inline
+      inline: |
+        function envoy_on_request(handle)
+          -- The JWT filter has already verified the signed ID-token cookie.
+          -- Keep OAuth credentials out of application requests and app logs.
+          local cookies = handle:headers():get("cookie")
+          if cookies then
+            local retained = {}
+            for cookie in string.gmatch(cookies, "[^;]+") do
+              local name = string.match(cookie, "^%s*([^= ]+)%s*=") or ""
+              local oauth = name == "HomeOpsAccessToken" or name == "HomeOpsIdToken"
+                or string.match(name, "^OauthHMAC%-") or string.match(name, "^OauthExpires%-")
+                or string.match(name, "^RefreshToken%-") or string.match(name, "^OauthNonce%-")
+                or string.match(name, "^CodeVerifier%-")
+              if not oauth then table.insert(retained, cookie) end
+            end
+            handle:headers():remove("cookie")
+            if #retained > 0 then
+              handle:headers():add("cookie", table.concat(retained, ";"))
+            end
+          end
+          local path = string.match(handle:headers():get(":path") or "", "^[^?]*")
+          if path == "/denied" or path == "/logged-out" then
+            return
+          end
+          -- EG's JWT authorization supports String/StringArray, not Boolean.
+          -- Read the verified JWT metadata so client headers cannot spoof this.
+          local metadata = handle:streamInfo():dynamicMetadata():get("envoy.filters.http.jwt_authn")
+          local claims = metadata and metadata["google"]
+          if type(claims) ~= "table" or claims["email_verified"] ~= true then
+            handle:respond({[":status"] = "403", ["content-type"] = "text/plain"}, "Verified email required\n")
+          end
+        end

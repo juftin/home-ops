@@ -1,127 +1,65 @@
 # Google OAuth Setup
 
-This guide explains how to create Google OAuth credentials for Envoy Gateway OIDC and exactly where
-to store each value in this repository.
+Envoy Gateway authenticates browser requests with Google OIDC. See
+[Authentication](AUTHENTICATION.md) for migration prerequisites, trust boundaries, and tests.
 
-______________________________________________________________________
+## Google client
 
-## What Google values you need
+Create a **Web application** OAuth client in
+<https://console.cloud.google.com/apis/credentials>. Register an exact callback URI
+for every protected app hostname **before deploying host-scoped sessions**:
 
-From Google Cloud Console, you need:
+- `https://paseo.<YOUR_DOMAIN>/oauth2/callback`
+- `https://herdr.<YOUR_DOMAIN>/oauth2/callback`
+- `https://hermes.<YOUR_DOMAIN>/oauth2/callback`
+- `https://openclaw.<YOUR_DOMAIN>/oauth2/callback`
+- `https://grafana.<YOUR_DOMAIN>/oauth2/callback`
+- `https://argocd.<YOUR_DOMAIN>/oauth2/callback`
 
-- OAuth Client ID
-- OAuth Client Secret
-- Authorized redirect URI per OAuth Gateway hostname
+Retain the existing `oauth`, `oauth-users`, and `oauth-internal` callback registrations
+while migrating. ArgoCD's own OIDC login also needs its existing `/auth/callback`
+registration; the gateway callback does not replace it.
 
-______________________________________________________________________
+Use strong Google account authentication, preferably passkeys or security keys.
+Google account settings and OAuth console changes are external to GitOps.
 
-## 1) Create the OAuth client in Google Cloud
+## Credential storage
 
-1. Open <https://console.cloud.google.com/apis/credentials>
-2. Click **Create Credentials** -> **OAuth client ID**
-3. Choose **Web application**
-4. Add authorized redirect URIs for each OAuth Gateway:
-   - `https://oauth.<YOUR_DOMAIN>/oauth2/callback`
-   - `https://oauth-users.<YOUR_DOMAIN>/oauth2/callback` (users group gateway)
-   - `https://oauth-internal.<YOUR_DOMAIN>/oauth2/callback` (if using internal gateway)
-5. Save and copy the Client ID + Client Secret
+- Client secret: `kubernetes/apps/network/envoy-gateway/app/oauth-client-secret.sops.yaml`,
+  `stringData.client-secret`.
+- Client IDs and email allowlists: `oauth-policy.sops.yaml` (admins/users) and
+  `oauth-policy-internal.sops.yaml`, in the same directory.
+- Include admin emails in the users list when admins should also have users access.
 
-______________________________________________________________________
+Use `sops edit <file>` with the age key available. Keep all secret files encrypted.
+Follow [the policy playbook](SECURITYPOLICY-CHANGE-PLAYBOOK.md) for allowlist changes.
 
-## 2) Where to put each value in this repo
+## Public security settings
 
-## Client Secret (sensitive)
+`oauth-hardening.yaml` is a Kustomize JSON patch applied after decryption. It enforces
+Google issuer/JWKS, default deny, host-scoped signed token cookies, HTTPS callbacks on the
+request host, and JWT extraction from the ID-token cookie. Kustomize replacements copy each policy's
+OIDC client ID into its JWT audience list. Editing these settings in the encrypted base
+will not override the public hardening patch.
 
-Store in:
+Google's `email_verified` is a boolean. The pinned Envoy Gateway's native JWT
+claim authorization supports strings and string arrays only. `oauth-verified-email.yaml`
+checks the boolean in verified JWT metadata after JWT verification and before authorization.
+Missing, false, string, and numeric values are rejected. OAuth cookies are removed before upstream forwarding while app session cookies are retained.
+The pinned controller cannot forward decrypted ID tokens into JWT verification, even though
+its API exposes a forwarding field. Token encryption is explicitly disabled for its supported
+JWT-cookie path; ID tokens remain signed by Google. Cookies are Secure, HttpOnly, SameSite=Lax,
+and host-scoped. Do not re-enable encryption without testing JWT verification against the
+exact controller version.
 
-- `kubernetes/apps/network/envoy-gateway/app/oauth-client-secret.sops.yaml`
-
-Field:
-
-- `stringData.client-secret`
-
-This file must stay SOPS-encrypted in Git.
-
-## Client ID (not secret, but still kept in encrypted policy spec here)
-
-Store in:
-
-- `kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml`
-- `kubernetes/apps/network/envoy-gateway/app/oauth-policy-internal.sops.yaml` (if used)
-
-`oauth-policy.sops.yaml` contains both external group policies:
-
-- `envoy-oauth-admin-policy` (admins)
-- `envoy-oauth-users-policy` (users; include admin emails in this list too)
-
-There are only two external email lists to maintain: admins and users.
-
-Field:
-
-- `spec.oidc.clientID`
-
-## Redirect/logout URLs
-
-Store in each policy file above:
-
-- `spec.oidc.redirectURL`
-- `spec.oidc.logoutRedirectURL`
-
-These must match the Google OAuth redirect URI hostnames exactly.
-
-______________________________________________________________________
-
-## 3) Update files safely (SOPS workflow)
-
-```bash
-# decrypt
-sops --decrypt kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml > /tmp/oauth-policy.yaml
-
-# edit /tmp/oauth-policy.yaml
-
-# re-encrypt
-sops --encrypt /tmp/oauth-policy.yaml > kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml
-rm /tmp/oauth-policy.yaml
-```
-
-Use the same flow for `oauth-policy.sops.yaml`, `oauth-policy-internal.sops.yaml`, and
-`oauth-client-secret.sops.yaml`.
-
-______________________________________________________________________
-
-## 4) Required related manifests
-
-After updating credentials/policies, verify these references are present:
-
-- `kubernetes/apps/network/envoy-gateway/app/kustomization.yaml`
-  - includes `oauth-client-secret.sops.yaml`
-  - includes policy files (`oauth-policy.sops.yaml`, `oauth-policy-internal.sops.yaml`)
-- `kubernetes/apps/network/envoy-gateway/app/envoy.yaml`
-  - OAuth Gateways have correct hostnames
-  - OAuth Gateways include `home-ops.io/cloudflare-dns: "true"` label
-
-______________________________________________________________________
-
-## 5) Validate before/after push
+## Validation
 
 ```bash
 task lint
+task dev:auth:test
 task dev:validate
 ```
 
-For branch testing:
-
-```bash
-task dev:start
-kubectl get gateway -n network envoy-oauth-admin envoy-oauth-users envoy-oauth-internal --show-labels
-kubectl get securitypolicy -n network envoy-oauth-admin-policy envoy-oauth-users-policy envoy-oauth-internal-policy
-task dev:stop
-```
-
-______________________________________________________________________
-
-## Related docs
-
-- [OIDC Troubleshooting](./OIDC-TROUBLESHOOTING.md)
-- [SecurityPolicy Change Playbook](./SECURITYPOLICY-CHANGE-PLAYBOOK.md)
-- [Gateway Onboarding Checklist](./GATEWAY-ONBOARDING-CHECKLIST.md)
+Use `task dev:validate:ci` without the age key. Placeholder validation checks public
+security settings and schemas, but cannot verify real email values or SOPS integrity.
+Branch testing requires `kubeconfig`; always run `task dev:stop` if testing was started.

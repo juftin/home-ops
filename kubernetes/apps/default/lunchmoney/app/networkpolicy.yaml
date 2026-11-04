@@ -1,0 +1,42 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: lunchmoney-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: lunchmoney
+  policyTypes: [Ingress]
+  ingress:
+    # All callers, including private clients, enter through the key-checking proxy.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: network
+          podSelector:
+            matchLabels:
+              gateway.envoyproxy.io/owning-gateway-name: envoy-internal
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: tailscale
+          podSelector:
+            matchLabels:
+              tailscale.com/parent-resource: lunchmoney-tailscale
+              tailscale.com/parent-resource-ns: default
+              tailscale.com/parent-resource-type: ingress
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: openclaw
+      ports:
+        - port: 8080
+          protocol: TCP
+    # Only this release's workloads can reach its database and lock store.
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: lunchmoney
+      ports:
+        - port: 5432
+          protocol: TCP
+        - port: 6379
+          protocol: TCP

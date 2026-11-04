@@ -25,12 +25,21 @@ ______________________________________________________________________
 kubectl get gateway -n network envoy-oauth-admin envoy-oauth-users envoy-oauth-internal --show-labels
 kubectl get securitypolicy -n network envoy-oauth-admin-policy envoy-oauth-users-policy envoy-oauth-internal-policy
 kubectl get httproute -n default oauth-pages
+kubectl get envoyextensionpolicy -n network oauth-verified-email
 ```
 
 Expected:
 
 - DNS label `home-ops.io/cloudflare-dns=true` remains on OAuth gateways.
-- `/denied` and `/logged-out` routes are reachable and rewritten correctly.
+- Gateway and all policy conditions are accepted/programmed, including the verified-email extension.
+- `/denied` and `/logged-out` routes are reachable on each app host and rewritten correctly.
+- App-host callbacks succeed; OAuth cookies have no Domain attribute.
+- Allowed users succeed; denied users and application errors retain HTTP 403.
+- Lunch Money REST/MCP reject missing/wrong keys and accept the configured key; direct raw
+  pod port 8000 is blocked from other workloads. Health/readiness remain public.
+- Existing sessions obey allowlist removals after policy propagation; check open streams separately.
+
+Complete the [authentication rollout checks](AUTHENTICATION.md) after changes to this boundary.
 
 ______________________________________________________________________
 

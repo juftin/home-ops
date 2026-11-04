@@ -51,7 +51,8 @@ ______________________________________________________________________
 - **[Tailscale](https://tailscale.com/)**: Kubernetes operator for private access to cluster applications.
   See [setup](docs/TAILSCALE-SETUP.md).
 
-See [App access](docs/APP-ACCESS.md) for app-local OAuth, public Cloudflare,
+See [Authentication](docs/AUTHENTICATION.md) for security boundaries, rollout prerequisites,
+and authentication tests. See [App access](docs/APP-ACCESS.md) for app-local OAuth, public Cloudflare,
 and Tailscale examples using the existing chart values.
 
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f3a1/512.gif" alt="🎡" width="20" height="20"> Apps

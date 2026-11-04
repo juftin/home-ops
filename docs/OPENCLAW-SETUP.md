@@ -88,9 +88,11 @@ Installing these CLIs makes them available to agent tools; configure OpenClaw's 
 
 OpenClaw can reach the in-cluster Lunch Money app at
 `http://lunchmoney-app.default.svc.cluster.local:8000`, including its MCP and API endpoints.
-The network exception is limited to the application pods on TCP 8000; it does not grant access
+The Service port remains 8000 and targets the authentication proxy on TCP 8080.
+The network exception is limited to the application pods on TCP 8080; it does not grant access
 to PostgreSQL, Valkey, the scheduler, or other cluster services. Application authentication still
-applies; configure any required credentials in OpenClaw without copying them into Git.
+requires `X-API-Key` on both REST and MCP requests. Configure the shared Lunch Money API
+key as a client header in OpenClaw without copying it into Git. Requests with no key are rejected.
 
 ## Validation and Branch Testing
 

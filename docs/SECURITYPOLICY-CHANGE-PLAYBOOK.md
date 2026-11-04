@@ -1,90 +1,60 @@
 # SecurityPolicy Change Playbook
 
-Use this playbook for safe updates to OAuth allowlists and policy settings.
+## Policy changes
 
-______________________________________________________________________
+The encrypted policy files in `kubernetes/apps/network/envoy-gateway/app/` hold the
+OIDC client IDs and email allowlists. `oauth-policy.sops.yaml` contains the admin/users
+lists; `oauth-policy-internal.sops.yaml` contains the internal list.
 
-## Scope
+1. With the age key available, run `sops edit <policy-file>`.
+2. Change only the intended lowercase email values under
+   `spec.authorization.rules[0].principal.jwt.claims[0].values`.
+3. Include admin emails in the users list when required.
+4. Keep the file encrypted. Do not redirect decrypted policies into persistent files.
+5. Run `task lint`, `task dev:auth:test`, and `task dev:validate`.
+6. Use the branch testing workflow, including `task dev:stop` when finished.
 
-Primary files:
+Public settings in `oauth-hardening.yaml`, the Kustomize audience replacements, and
+`oauth-verified-email.yaml` enforce authentication independently of encrypted scalar
+values. Default deny, the email allowlist, and verified-email enforcement are all required.
+Do not add a string `email_verified` claim matcher: Google emits a boolean, which the
+pinned Gateway cannot match with native string claim authorization.
 
-- `kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml`
-  - contains `envoy-oauth-admin-policy` (admins) and `envoy-oauth-users-policy` (users)
-- `kubernetes/apps/network/envoy-gateway/app/oauth-policy-internal.sops.yaml`
+Route-level SecurityPolicies can replace Gateway-level authentication. Review any new
+policy or exception carefully. The only public exceptions are the exact `denied` and
+`logged-out` rules on `oauth-pages`; callback and logout remain protected.
 
-Related secret:
+## Revocation
 
-- `kubernetes/apps/network/envoy-gateway/app/oauth-client-secret.sops.yaml`
-
-______________________________________________________________________
-
-## Standard Change Procedure
-
-## 1) Decrypt
-
-```bash
-sops --decrypt kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml > /tmp/oauth-policy.yaml
-```
-
-## 2) Edit
-
-- Keep `authorization.defaultAction: Deny`
-- Keep `email_verified=true` check
-- Add/remove only lowercase emails in `email` claim values
-- Keep two external lists only: admins (`envoy-oauth-admin-policy`) and users (`envoy-oauth-users-policy`)
-- Include admin emails in the users list when admins should also have users access
-
-## 3) Re-encrypt and clean up
+1. Remove the affected email from **every applicable list**, commit, push, and wait for
+   the Envoy application to sync.
+2. Verify SecurityPolicy status has `Accepted=True` and check the next request using an
+   existing session. Authorization runs on requests; an existing session must not retain
+   access after the updated policy reaches the data plane.
+3. Check active WebSockets/streams separately. They were authorized when opened and can
+   survive policy updates. Restart the affected **data-plane** Deployment to close them:
 
 ```bash
-sops --encrypt /tmp/oauth-policy.yaml > kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml
-rm /tmp/oauth-policy.yaml
+kubectl get deployment -n network -l gateway.envoyproxy.io/owning-gateway-name=envoy-oauth-admin
+kubectl rollout restart deployment -n network -l gateway.envoyproxy.io/owning-gateway-name=envoy-oauth-admin
 ```
 
-## 4) Validate and apply via GitOps
+Use the users/internal owning-Gateway label when those groups are affected. Restarts use
+normal draining (`180s` is configured), so do not promise instantaneous stream termination.
+Verify the removed user's old connection has actually closed.
 
-```bash
-task lint
-task dev:validate
-git add kubernetes/apps/network/envoy-gateway/app/oauth-policy.sops.yaml
-git commit -m "🔐 update oauth allowlist"
-git push
-```
+Restarting the `envoy-gateway` controller does **not** invalidate browser cookies. Envoy
+stores sessions in cookies, signed with the persisted `envoy-oidc-hmac` Secret. Global
+cookie invalidation requires a planned rotation of that Secret, understanding chart
+ownership and the impact on every OAuth group, followed by verification with an existing
+test session. Neither controller nor data-plane restarts alone rotate that key.
+Google and application credentials, native app sessions, and Tailscale grants must also
+be revoked when relevant; removing a Google allowlist entry does not revoke those paths.
 
-______________________________________________________________________
+## Rollback
 
-## Rollback Procedure
+Revert the policy commit, push, and verify reconciliation and access behavior. A rollback
+can restore revoked access, so review allowlist changes before reverting.
 
-If behavior regresses after a policy change:
-
-1. Revert the commit that touched the policy file
-2. Push the revert
-3. Confirm reconciliation and access behavior
-
-```bash
-git revert <bad-commit-sha>
-git push
-```
-
-______________________________________________________________________
-
-## Emergency Revoke Procedure
-
-When immediate access revocation is required:
-
-1. Remove affected email(s) from allowlist and push
-2. Restart Envoy Gateway pods to invalidate active sessions quickly
-
-```bash
-kubectl rollout restart deployment -n network -l app.kubernetes.io/name=envoy-gateway
-```
-
-______________________________________________________________________
-
-## Safety Checks Before Merge
-
-- [ ] No plaintext secrets or emails committed outside encrypted fields
-- [ ] Policy file still SOPS-encrypted (`ENC[AES256` present)
-- [ ] `targetRefs` still point at intended Gateway
-- [ ] Redirect URLs still match gateway hostname
-- [ ] Branch test completed and `task dev:stop` run
+For the host-cookie migration, keep Google's old callback registrations until validation
+is complete. See [Authentication](AUTHENTICATION.md) for the rollout checklist.
