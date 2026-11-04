@@ -1,6 +1,6 @@
 controllers:
   openclaw:
-    replicas: 1
+    replicas: 0
     strategy: Recreate
     annotations:
       reloader.stakater.com/auto: "true"
@@ -142,6 +142,7 @@ persistence:
     storageClass: node-local
     accessMode: ReadWriteOnce
     size: 10Gi
+    volumeName: pvc-5817a5f7-9325-4d67-81b3-ffd30fbdea7c
     globalMounts:
       - path: /home/node
   config:

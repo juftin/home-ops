@@ -1,5 +1,6 @@
 controllers:
   hermes-agent:
+    replicas: 0
     strategy: Recreate
     annotations:
       reloader.stakater.com/auto: "true"
@@ -114,6 +115,7 @@ persistence:
     storageClass: node-local
     accessMode: ReadWriteOnce
     size: 10Gi
+    volumeName: pvc-6f19218c-db5b-44a1-89f2-68171470ca2c
     globalMounts:
       - path: /opt/data
 route:

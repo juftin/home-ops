@@ -13,3 +13,28 @@ helmCharts:
 resources:
   - ./externalsecret.yaml
   - ./pvc.yaml
+replicas:
+  - name: camply-frontend
+    count: 0
+  - name: camply-backend
+    count: 0
+  - name: camply-worker
+    count: 0
+  - name: camply-beat
+    count: 0
+  - name: camply-postgresql
+    count: 0
+  - name: camply-valkey
+    count: 0
+  - name: camply-prometheus
+    count: 0
+patches:
+  - target:
+      group: batch
+      version: v1
+      kind: Job
+      name: camply-migrate-.*
+    patch: |-
+      - op: add
+        path: /spec/suspend
+        value: true

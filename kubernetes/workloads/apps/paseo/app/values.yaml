@@ -1,5 +1,6 @@
 controllers:
   paseo:
+    replicas: 0
     strategy: Recreate
     annotations:
       reloader.stakater.com/auto: "true"
@@ -90,12 +91,14 @@ persistence:
     storageClass: node-local
     accessMode: ReadWriteOnce
     size: 5Gi
+    volumeName: pvc-b38b0f04-dc73-4858-8306-c0d398f10efc
     globalMounts:
       - path: /home/paseo
   workspace:
     storageClass: node-local
     accessMode: ReadWriteOnce
     size: 20Gi
+    volumeName: pvc-122372b4-da2c-44ac-b492-af500523ac8e
     globalMounts:
       - path: /workspace
 route:

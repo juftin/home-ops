@@ -1,5 +1,6 @@
 controllers:
   herdr:
+    replicas: 0
     strategy: Recreate
     annotations:
       reloader.stakater.com/auto: "true"
@@ -123,12 +124,14 @@ persistence:
     storageClass: node-local
     accessMode: ReadWriteOnce
     size: 5Gi
+    volumeName: pvc-a306671c-8d3e-47ae-9bd4-7a22e03c51c4
     globalMounts:
       - path: /home/herdr
   workspace:
     storageClass: node-local
     accessMode: ReadWriteOnce
     size: 20Gi
+    volumeName: pvc-f0f6ec8f-708a-4cc1-ae99-138192db74e4
     globalMounts:
       - path: /workspace
 route:
