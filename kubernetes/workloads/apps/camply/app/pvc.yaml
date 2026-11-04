@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: camply-db-data
+  namespace: camply
+  annotations:
+    helm.sh/resource-policy: keep
+    argocd.argoproj.io/sync-options: Prune=false
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: node-local
+  volumeName: pvc-14945e27-a7db-41c4-8818-74a489721c72
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: camply-valkey-data
+  namespace: camply
+  annotations:
+    helm.sh/resource-policy: keep
+    argocd.argoproj.io/sync-options: Prune=false
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: node-local
+  volumeName: pvc-38a1d5d2-63ae-4af2-9d6e-c40c153f78c0
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: camply-prometheus-data
+  namespace: camply
+  annotations:
+    helm.sh/resource-policy: keep
+    argocd.argoproj.io/sync-options: Prune=false
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: node-local
+  volumeName: pvc-adb63eed-8b22-4cce-adb4-387978731346
+  resources:
+    requests:
+      storage: 5Gi

@@ -21,7 +21,7 @@ and External Secrets has synchronized it. No token is stored in Git or in the se
 After ArgoCD deploys the app, configure your model provider and optional messaging channels:
 
 ```bash
-kubectl exec -it -n default deployment/openclaw -c app -- openclaw configure
+kubectl exec -it -n openclaw deployment/openclaw -c app -- openclaw configure
 ```
 
 Keep gateway mode `local`, bind `lan`, token authentication, and the configured HTTPS origin.
@@ -31,8 +31,8 @@ Open the public URL, complete Google SSO, and enter the 1Password gateway token 
 connection settings. If the browser requests pairing, inspect and approve its specific request:
 
 ```bash
-kubectl exec -n default deployment/openclaw -c app -- openclaw devices list
-kubectl exec -n default deployment/openclaw -c app -- openclaw devices approve <request-id>
+kubectl exec -n openclaw deployment/openclaw -c app -- openclaw devices list
+kubectl exec -n openclaw deployment/openclaw -c app -- openclaw devices approve <request-id>
 ```
 
 Do not disable device authentication to bypass pairing. See the official
@@ -42,7 +42,7 @@ Do not disable device authentication to bypass pairing. See the official
 ## Coding Agents and GitHub CLI
 
 The `install-agents` init container runs the same
-[shared installer](../kubernetes/apps/default/agent-tools/app/install-agents.sh) as Paseo. It installs
+[shared installer](../kubernetes/workloads/apps/agent-tools/app/install-agents.sh) as Paseo. It installs
 or upgrades Codex, Claude Code, Antigravity (`agy`), and the GitHub CLI (`gh`) on each pod start.
 Tools live in `/home/node/.local` on the existing home PVC; `/home/node/.local/bin` is in the gateway's
 `PATH`. A failed upgrade reuses a working installed version; a failed first installation blocks startup.
@@ -51,18 +51,18 @@ The script is supplied by the `agent-tools` ConfigMap, whose changes trigger a r
 Check installation and tool availability:
 
 ```bash
-kubectl logs -n default deployment/openclaw -c install-agents
-kubectl exec -n default deployment/openclaw -c app -- codex --version
-kubectl exec -n default deployment/openclaw -c app -- claude --version
-kubectl exec -n default deployment/openclaw -c app -- agy --version
-kubectl exec -n default deployment/openclaw -c app -- gh --version
+kubectl logs -n openclaw deployment/openclaw -c install-agents
+kubectl exec -n openclaw deployment/openclaw -c app -- codex --version
+kubectl exec -n openclaw deployment/openclaw -c app -- claude --version
+kubectl exec -n openclaw deployment/openclaw -c app -- agy --version
+kubectl exec -n openclaw deployment/openclaw -c app -- gh --version
 ```
 
 Authenticate tools inside the OpenClaw pod before using them. For example:
 
 ```bash
-kubectl exec -it -n default deployment/openclaw -c app -- codex login --device-auth
-kubectl exec -it -n default deployment/openclaw -c app -- gh auth login
+kubectl exec -it -n openclaw deployment/openclaw -c app -- codex login --device-auth
+kubectl exec -it -n openclaw deployment/openclaw -c app -- gh auth login
 ```
 
 Each app keeps its own provider and GitHub credentials; Paseo's credentials are not shared.
@@ -87,7 +87,7 @@ Installing these CLIs makes them available to agent tools; configure OpenClaw's 
 ## Lunch Money Access
 
 OpenClaw can reach the in-cluster Lunch Money app at
-`http://lunchmoney-app.default.svc.cluster.local:8000`, including its MCP and API endpoints.
+`http://lunchmoney-app.lunchmoney.svc.cluster.local:8000`, including its MCP and API endpoints.
 The network exception is limited to the application pods on TCP 8000; it does not grant access
 to PostgreSQL, Valkey, the scheduler, or other cluster services. Application authentication still
 applies; configure any required credentials in OpenClaw without copying them into Git.
@@ -98,9 +98,9 @@ applies; configure any required credentials in OpenClaw without copying them int
 task lint
 task dev:validate
 task dev:start
-kubectl get externalsecret -n default openclaw
-kubectl rollout status -n default deployment/openclaw
-kubectl get httproute -n default openclaw
+kubectl get externalsecret -n openclaw openclaw
+kubectl rollout status -n openclaw deployment/openclaw
+kubectl get httproute -n openclaw openclaw
 # Verify SSO, token authentication, pairing, and a provider-backed chat in the browser.
 task dev:stop
 ```
