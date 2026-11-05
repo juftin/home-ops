@@ -205,12 +205,12 @@ metadata:
     home-ops.io/oauth-gateway: "true"
   annotations:
     external-dns.kubernetes.io/target: external.${SECRET_DOMAIN}
-    lbipam.cilium.io/ips: "192.168.1.149"
 spec:
   gatewayClassName: envoy
   infrastructure:
     annotations:
       external-dns.alpha.kubernetes.io/hostname: oauth.${SECRET_DOMAIN}
+      lbipam.cilium.io/ips: "192.168.1.149"
   listeners:
     - name: http
       protocol: HTTP
@@ -239,12 +239,12 @@ metadata:
     home-ops.io/oauth-gateway: "true"
   annotations:
     external-dns.kubernetes.io/target: external.${SECRET_DOMAIN}
-    lbipam.cilium.io/ips: "192.168.1.151"
 spec:
   gatewayClassName: envoy
   infrastructure:
     annotations:
       external-dns.alpha.kubernetes.io/hostname: oauth-users.${SECRET_DOMAIN}
+      lbipam.cilium.io/ips: "192.168.1.151"
   listeners:
     - name: http
       protocol: HTTP
@@ -273,12 +273,12 @@ metadata:
     home-ops.io/oauth-gateway: "true"
   annotations:
     external-dns.kubernetes.io/target: internal.${SECRET_DOMAIN}
-    lbipam.cilium.io/ips: "192.168.1.150"
 spec:
   gatewayClassName: envoy
   infrastructure:
     annotations:
       external-dns.alpha.kubernetes.io/hostname: oauth-internal.${SECRET_DOMAIN}
+      lbipam.cilium.io/ips: "192.168.1.150"
   listeners:
     - name: http
       protocol: HTTP
