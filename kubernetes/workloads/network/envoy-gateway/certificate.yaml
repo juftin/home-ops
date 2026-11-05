@@ -15,3 +15,20 @@ spec:
   secretName: "${SECRET_DOMAIN/./-}-production-tls"
   usages:
     - digital signature
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: camply-rocks-production
+spec:
+  dnsNames:
+    - camply.rocks
+  duration: 160h
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  privateKey:
+    algorithm: ECDSA
+  secretName: camply-rocks-production-tls
+  usages:
+    - digital signature
