@@ -48,6 +48,8 @@ ______________________________________________________________________
   for Codex, Claude Code, Antigravity, and the GitHub CLI in Paseo, OpenClaw, and Herdr.
 - **[local-path-provisioner](https://github.com/rancher/local-path-provisioner)**: Dynamic
   node-local persistent volume provisioning.
+- **[snapshot-controller](https://github.com/kubernetes-csi/external-snapshotter)**: CSI VolumeSnapshot
+  CRDs and snapshot controller for volume data protection.
 - **[VolSync](https://volsync.readthedocs.io/)**: Asynchronous data replication and backup operator
   for PersistentVolumeClaims.
 - **[Tailscale](https://tailscale.com/)**: Kubernetes operator for private access to cluster applications.
