@@ -3,7 +3,7 @@
 set -Eeuo pipefail
 
 ROOT_DIR="$(git rev-parse --show-toplevel)"
-INSTALLER="${ROOT_DIR}/kubernetes/workloads/apps/agent-tools/app/install-agents.sh"
+INSTALLER="${ROOT_DIR}/kubernetes/workloads/apps/agent-tools/install-agents.sh"
 TEST_DIR="$(mktemp -d)"
 trap 'rm -rf "${TEST_DIR}"' EXIT
 export MOCK_BIN="${TEST_DIR}/bin" MOCK_LOG="${TEST_DIR}/commands.log"

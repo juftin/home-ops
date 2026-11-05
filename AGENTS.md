@@ -86,19 +86,16 @@ Application structure:
 
 ```
 kubernetes/workloads/apps/<app-name>/
-├── kustomization.yaml      # namespace-level metadata
-├── namespace.yaml          # Namespace manifest (if new namespace)
-└── app/
-    ├── kustomization.yaml  # app resources + helmCharts
-    ├── values.yaml         # Helm values for helmCharts entry
-    ├── externalsecret.yaml # ExternalSecret from 1Password (if needed, see below)
-    └── *.sops.yaml         # SOPS-encrypted secrets (if needed)
+├── kustomization.yaml  # app resources + helmCharts
+├── values.yaml         # Helm values for helmCharts entry
+├── externalsecret.yaml # ExternalSecret from 1Password (if needed, see below)
+└── *.sops.yaml         # SOPS-encrypted secrets (if needed)
 ```
 
 Use `kubernetes/workloads/apps/echo/` as a working reference. After adding files:
 
-1. Add or update the app directory under `kubernetes/workloads/apps/<app-name>/app`
-   (or `kubernetes/workloads/<namespace>/<app-name>/app` for infrastructure)
+1. Add or update the app directory under `kubernetes/workloads/apps/<app-name>/`
+   (or `kubernetes/workloads/<namespace>/<app-name>/` for infrastructure)
 2. Run `task lint` then `task dev:validate`
 3. Use `task dev:start` / `task dev:sync` to test on the live cluster; run `task dev:stop` when
    done — **always**, even if something goes wrong
@@ -112,7 +109,7 @@ Prefer the app-template chart's `route` and `ingress` settings in the app's
 apps using other charts.
 
 1. Add an explicit hostname entry in
-   `kubernetes/workloads/network/cloudflare-tunnel/app/values.yaml` **before** the wildcard
+   `kubernetes/workloads/network/cloudflare-tunnel/values.yaml` **before** the wildcard
    `*.${SECRET_DOMAIN}` rule. Route by group:
    - admins: `https://envoy-oauth-admin.<namespace>.svc.cluster.local:443` with `originServerName: oauth.${SECRET_DOMAIN}`
    - users: `https://envoy-oauth-users.<namespace>.svc.cluster.local:443` with `originServerName: oauth-users.${SECRET_DOMAIN}`
@@ -159,8 +156,8 @@ with the real age key for full decryption.
   from a Gateway, its DNS records will not be created/updated in Cloudflare.
 - **`oauth-pages` requires URL rewrites for friendly paths** — `/denied` and `/logged-out` must be
   rewritten to `/denied.html` and `/logged-out.html` in
-  `kubernetes/workloads/apps/oauth-pages/app/values.yaml`; otherwise nginx serves 404.
-- **Keep oauth utility pages publicly reachable** — `kubernetes/workloads/apps/oauth-pages/app/securitypolicy.yaml`
+  `kubernetes/workloads/apps/oauth-pages/values.yaml`; otherwise nginx serves 404.
+- **Keep oauth utility pages publicly reachable** — `kubernetes/workloads/apps/oauth-pages/securitypolicy.yaml`
   intentionally sets `authorization.defaultAction: Allow` on the `oauth-pages` HTTPRoute so denied/logout
   pages do not get trapped behind the gateway-level OIDC challenge.
 - **Default auth UX is immediate provider redirect** — do not add or keep a public `/login` route unless

@@ -42,7 +42,7 @@ Do not disable device authentication to bypass pairing. See the official
 ## Coding Agents and GitHub CLI
 
 The `install-agents` init container runs the same
-[shared installer](../kubernetes/workloads/apps/agent-tools/app/install-agents.sh) as Paseo. It installs
+[shared installer](../kubernetes/workloads/apps/agent-tools/install-agents.sh) as Paseo. It installs
 or upgrades Codex, Claude Code, Antigravity (`agy`), and the GitHub CLI (`gh`) on each pod start.
 Tools live in `/home/node/.local` on the existing home PVC; `/home/node/.local/bin` is in the gateway's
 `PATH`. A failed upgrade reuses a working installed version; a failed first installation blocks startup.

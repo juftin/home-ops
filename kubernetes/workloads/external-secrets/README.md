@@ -14,14 +14,14 @@ Before deploying, the `onepassword-secret` bootstrap secret must be populated wi
 1. Obtain 1Password Connect credentials from [1Password Developer Portal](https://developer.1password.com/docs/connect/get-started/)
 2. Decrypt the placeholder secret:
    ```bash
-   SOPS_AGE_KEY_FILE=age.key sops --decrypt --in-place kubernetes/workloads/external-secrets/onepassword/app/secret.sops.yaml
+   SOPS_AGE_KEY_FILE=age.key sops --decrypt --in-place kubernetes/workloads/external-secrets/onepassword/secret.sops.yaml
    ```
 3. Replace the placeholder values:
    - `1password-credentials.json`: base64-encoded credentials JSON from 1Password Connect setup
    - `token`: Connect API token
 4. Re-encrypt:
    ```bash
-   SOPS_AGE_KEY_FILE=age.key sops --encrypt --in-place kubernetes/workloads/external-secrets/onepassword/app/secret.sops.yaml
+   SOPS_AGE_KEY_FILE=age.key sops --encrypt --in-place kubernetes/workloads/external-secrets/onepassword/secret.sops.yaml
    ```
 
 ## Adding a New Secret

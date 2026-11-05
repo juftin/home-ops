@@ -41,7 +41,7 @@ spec:
       source:
         repoURL: https://github.com/juftin/home-ops.git
         targetRevision: refs/heads/main
-        path: '{{ .path.path }}/app'
+        path: '{{ .path.path }}'
         plugin:
           name: kustomize-substitute-secret-domain
       destination:

@@ -29,24 +29,24 @@ ______________________________________________________________________
 ```text
 kubernetes/workloads/
 ├── apps/
-│   ├── camply/app/
-│   ├── echo/app/
-│   ├── agent-tools/app/
-│   ├── herdr/app/
-│   ├── hermes-agent/app/
-│   ├── lunchmoney/app/
-│   ├── oauth-pages/app/
-│   ├── openclaw/app/
-│   └── paseo/app/
-├── cert-manager/cert-manager/app/
-├── external-secrets/<app>/app/
-├── kube-system/<app>/app/
-├── network/<app>/app/
-├── observability/<app>/app/
-└── tailscale/tailscale/app/
+│   ├── camply/
+│   ├── echo/
+│   ├── agent-tools/
+│   ├── herdr/
+│   ├── hermes-agent/
+│   ├── lunchmoney/
+│   ├── oauth-pages/
+│   ├── openclaw/
+│   └── paseo/
+├── cert-manager/cert-manager/
+├── external-secrets/<app>/
+├── kube-system/<app>/
+├── network/<app>/
+├── observability/<app>/
+└── tailscale/tailscale/
 ```
 
-Each `app/` directory contains:
+Each app directory contains:
 
 ```text
 ├── kustomization.yaml   # static resources + helmCharts entries

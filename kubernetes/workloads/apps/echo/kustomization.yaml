@@ -1,7 +1,12 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: echo
-components:
-  - ../../../components/sops
-resources:
-  - ./namespace.yaml
+helmCharts:
+  - name: app-template
+    repo: oci://ghcr.io/bjw-s-labs/helm
+    version: 5.3.0
+    releaseName: echo
+    namespace: echo
+    includeCRDs: true
+    valuesFile: ./values.yaml
+    apiVersions:
+      - gateway.networking.k8s.io/v1/HTTPRoute
