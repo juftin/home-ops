@@ -1,7 +1,7 @@
 # Camply Setup
 
 [Camply](https://github.com/juftin/camply), the campsite finder ⛺️, runs in Kubernetes at
-`https://camply.${SECRET_DOMAIN}` as a public web application with automated campsite search
+`https://camply.rocks` as a public web application with automated campsite search
 and notification scheduling.
 
 ## Credentials (1Password)
@@ -72,7 +72,7 @@ allowing graceful connection draining before Kubernetes sends SIGTERM.
 
 ## Ingress and Access
 
-- **Public Route**: Exposes `camply.${SECRET_DOMAIN}` through Cloudflare Tunnel and the `envoy-external`
+- **Public Route**: Exposes `camply.rocks` through Cloudflare Tunnel and the `envoy-external`
   Gateway. Public traffic reaches the application directly, using Camply's application-level
   authentication (session login or open access). The Cloudflare Tunnel routes traffic matching
   `*.${SECRET_DOMAIN}` directly to `envoy-external`.
