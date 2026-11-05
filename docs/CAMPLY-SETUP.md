@@ -77,3 +77,14 @@ allowing graceful connection draining before Kubernetes sends SIGTERM.
   authentication (session login or open access). The Cloudflare Tunnel routes traffic matching
   `*.${SECRET_DOMAIN}` directly to `envoy-external`.
 - The HTTPRoute directs `/api` traffic to `camply-backend:8000` and all other traffic (`/`) to `camply-frontend:8080`.
+
+The `camply-rocks-production` Certificate uses the `letsencrypt-production` ClusterIssuer.
+Its Cloudflare API token (`cert-manager-secret`, key `api-token`, in `cert-manager`) needs
+`Zone:DNS:Edit` and `Zone:Zone:Read` permissions for the `camply.rocks` zone. A pending DNS
+challenge reporting `Found no Zones for domain _acme-challenge.camply.rocks` means the zone
+or the token's access to it needs checking.
+
+Gateway and HTTPRoute defaults are declared in manifests rather than ignored in the
+ApplicationSet. With `RespectIgnoreDifferences=true`, ignoring fields inside a custom
+resource's arrays can also prevent listener, parent-reference, and routing updates from
+being applied, leaving an application OutOfSync after a successful sync.

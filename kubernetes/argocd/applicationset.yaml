@@ -48,18 +48,6 @@ spec:
         server: https://kubernetes.default.svc
         namespace: '{{ if eq .folder "apps" }}{{ .path.basename }}{{ else }}{{ .folder }}{{ end }}'
       ignoreDifferences:
-        - group: gateway.networking.k8s.io
-          kind: Gateway
-          jqPathExpressions:
-            - .spec.listeners[].tls.mode
-            - .spec.listeners[].tls.certificateRefs[].group
-        - group: gateway.networking.k8s.io
-          kind: HTTPRoute
-          jqPathExpressions:
-            - .spec.parentRefs[].group
-            - .spec.parentRefs[].kind
-            # Ignore only the API's default catch-all, so path edits still trigger sync.
-            - '.spec.rules[] | select(.matches == [{"path":{"type":"PathPrefix","value":"/"}}]) | .matches'
         - group: gateway.envoyproxy.io
           kind: SecurityPolicy
           jqPathExpressions:
