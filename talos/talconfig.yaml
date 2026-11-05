@@ -19,13 +19,10 @@ nodes:
       secureboot: false
     talosImageURL: factory.talos.dev/installer/376567988ad370138ad8b2698212367b8edcb69b5fd68c80be1f2ec7d603b4ba
     controlPlane: true
-    patches:
-      - |-
-        machine:
-          disks:
-            - device: /dev/disk/by-id/nvme-CT1000P3PSSD8_24434BBC90F3
-              partitions:
-                - mountpoint: /var/mnt/storage
+    machineDisks:
+      - device: /dev/disk/by-id/nvme-CT1000P3PSSD8_24434BBC90F3
+        partitions:
+          - mountpoint: /var/mnt/storage
     networkInterfaces:
       - deviceSelector:
           hardwareAddr: "50:81:40:85:1c:7c"
