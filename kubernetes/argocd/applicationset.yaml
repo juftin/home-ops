@@ -26,7 +26,7 @@ spec:
                   wave: '4'
           - git:
               repoURL: https://github.com/juftin/home-ops.git
-              revision: refs/heads/flatten-workloads
+              revision: refs/heads/main
               directories:
                 - path: 'kubernetes/workloads/{{ .folder }}/*'
   template:
@@ -40,7 +40,7 @@ spec:
       project: '{{ if eq .folder "kube-system" }}kube-system{{ else }}home-ops{{ end }}'
       source:
         repoURL: https://github.com/juftin/home-ops.git
-        targetRevision: refs/heads/flatten-workloads
+        targetRevision: refs/heads/main
         path: '{{ .path.path }}'
         plugin:
           name: kustomize-substitute-secret-domain
