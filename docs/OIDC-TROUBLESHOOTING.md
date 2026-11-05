@@ -42,7 +42,7 @@ kubectl get deployment -n network cloudflare-dns -o yaml | rg gateway-label-filt
 ### Fix
 
 - Add missing label(s) to Gateway metadata in
-  `kubernetes/workloads/network/envoy-gateway/app/envoy.yaml`
+  `kubernetes/workloads/network/envoy-gateway/envoy.yaml`
 - Run `task lint && task dev:validate`, push, and reconcile
 
 ______________________________________________________________________
@@ -61,9 +61,9 @@ ______________________________________________________________________
 
 Policy files:
 
-- `kubernetes/workloads/network/envoy-gateway/app/oauth-policy.sops.yaml`
+- `kubernetes/workloads/network/envoy-gateway/oauth-policy.sops.yaml`
   (contains both `envoy-oauth-admin-policy` for admins and `envoy-oauth-users-policy` for users)
-- `kubernetes/workloads/network/envoy-gateway/app/oauth-policy-internal.sops.yaml` (internal)
+- `kubernetes/workloads/network/envoy-gateway/oauth-policy-internal.sops.yaml` (internal)
 
 ### Fix
 
@@ -86,7 +86,7 @@ ______________________________________________________________________
 - `email_verified` claim requirement is present and true
 
 ```bash
-sops --decrypt kubernetes/workloads/network/envoy-gateway/app/oauth-policy.sops.yaml | less
+sops --decrypt kubernetes/workloads/network/envoy-gateway/oauth-policy.sops.yaml | less
 ```
 
 ### Fix
@@ -115,8 +115,8 @@ kubectl get httproute -n oauth-pages oauth-pages -o yaml
 
 ### Fix
 
-- Update `kubernetes/workloads/apps/oauth-pages/app/values.yaml`
-- Confirm `kubernetes/workloads/apps/oauth-pages/app/securitypolicy.yaml` is section-scoped
+- Update `kubernetes/workloads/apps/oauth-pages/values.yaml`
+- Confirm `kubernetes/workloads/apps/oauth-pages/securitypolicy.yaml` is section-scoped
 - Validate and reconcile
 
 ______________________________________________________________________

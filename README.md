@@ -44,7 +44,7 @@ ______________________________________________________________________
   DNS records to a DNS provider.
 - **[reloader](https://github.com/stakater/Reloader)**: Automatic reloading of Kubernetes resources
   when ConfigMaps or Secrets change.
-- **[Agent tools](kubernetes/workloads/apps/agent-tools/app/install-agents.sh)**: Shared init installer
+- **[Agent tools](kubernetes/workloads/apps/agent-tools/install-agents.sh)**: Shared init installer
   for Codex, Claude Code, Antigravity, and the GitHub CLI in Paseo, OpenClaw, and Herdr.
 - **[local-path-provisioner](https://github.com/rancher/local-path-provisioner)**: Dynamic
   node-local persistent volume provisioning.
@@ -83,7 +83,7 @@ and Tailscale examples using the existing chart values.
 - **[oauth-pages](https://nginx.org/)**: Static access-denied and logout confirmation pages for
   Envoy Gateway OIDC, including route rewrites from friendly paths to static HTML files.
 
-Application manifests live in `kubernetes/workloads/apps/<app>/app/`, with a namespace matching
+Application manifests live in `kubernetes/workloads/apps/<app>/`, with a namespace matching
 each app name: `camply`, `echo`, `herdr`, `hermes-agent`, `lunchmoney`, `oauth-pages`, `openclaw`, and `paseo`.
 The `agent-tools` Application distributes installer ConfigMaps to agent namespaces.
 Infrastructure lives alongside `apps/` under `kubernetes/workloads/`, grouped by namespace.

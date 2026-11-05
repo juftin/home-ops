@@ -1,6 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: oauth-pages
-  annotations:
-    kustomize.toolkit.fluxcd.io/prune: disabled

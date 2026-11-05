@@ -104,7 +104,7 @@ contain credentials and need protected backup storage.
    ```
 
    For Camply, set `spec.volumeName: <recorded-pv-name>` on each of the three
-   PVC documents in `kubernetes/workloads/apps/camply/app/pvc.yaml`, and confirm each
+   PVC documents in `kubernetes/workloads/apps/camply/pvc.yaml`, and confirm each
    has `metadata.namespace: camply`. Keep the chart's `existingClaim` values and
    the PVCs' `Prune=false`/`keep` annotations; Camply does not use app-template
    persistence keys.
