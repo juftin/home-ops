@@ -86,6 +86,10 @@ spec:
             - .spec.updateStrategy.rollingUpdate.maxUnavailable
             - .spec.volumeClaimTemplates[].spec.volumeMode
             - .spec.volumeClaimTemplates[].status
+        - group: ""
+          kind: PersistentVolumeClaim
+          jsonPointers:
+            - /spec/volumeName
       syncPolicy:
         automated:
           prune: true
@@ -93,3 +97,4 @@ spec:
         syncOptions:
           - ServerSideApply=true
           - CreateNamespace=true
+          - RespectIgnoreDifferences=true

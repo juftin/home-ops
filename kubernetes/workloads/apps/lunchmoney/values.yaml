@@ -293,7 +293,6 @@ persistence:
     storageClass: node-local
     accessMode: ReadWriteOnce
     size: 5Gi
-    volumeName: pvc-f20176e8-bae3-467c-bf8d-f17e6a963408
     advancedMounts:
       db:
         app:
@@ -302,7 +301,6 @@ persistence:
     storageClass: node-local
     accessMode: ReadWriteOnce
     size: 1Gi
-    volumeName: pvc-d936f251-65ff-4efc-8f1d-a9a702bba1fa
     advancedMounts:
       valkey:
         app:
