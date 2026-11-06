@@ -64,6 +64,7 @@ and Tailscale examples using the existing chart values.
   testing.
 - **[Camply](https://github.com/juftin/camply)**: The campsite finder ⛺️, finder of available campsites
   at recreation.gov and beyond, with frontend, API backend, Celery worker/beat, and Postgres database. See [setup](docs/CAMPLY-SETUP.md).
+- **[AgentsView](https://github.com/kenn-io/agentsview)**: Central coding-agent session archive, search, and cost dashboard, with collectors for local devices and cluster agents. See [setup](docs/AGENTSVIEW-SETUP.md).
 - **[Paseo](https://github.com/getpaseo/paseo)**: Self-hosted coding-agent daemon and web UI behind
   admin Google SSO, with private Tailscale access and persistent workspaces. See [setup](docs/PASEO-SETUP.md).
 - **[Herdr](https://github.com/herdrdev/herdr)**: Persistent coding-agent terminals with
@@ -88,7 +89,7 @@ and Tailscale examples using the existing chart values.
   Envoy Gateway OIDC, including route rewrites from friendly paths to static HTML files.
 
 Application manifests live in `kubernetes/workloads/apps/<app>/`, with a namespace matching
-each app name: `camply`, `echo`, `herdr`, `hermes-agent`, `lunchmoney`, `oauth-pages`, `openclaw`, and `paseo`.
+each app name: `agentsview`, `camply`, `echo`, `herdr`, `hermes-agent`, `lunchmoney`, `oauth-pages`, `openclaw`, and `paseo`.
 The `agent-tools` Application distributes installer ConfigMaps to agent namespaces.
 Infrastructure lives alongside `apps/` under `kubernetes/workloads/`, grouped by namespace.
 Existing installations must follow the

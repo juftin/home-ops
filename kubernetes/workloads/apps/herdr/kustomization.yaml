@@ -12,6 +12,7 @@ helmCharts:
     apiVersions:
       - gateway.networking.k8s.io/v1/HTTPRoute
 resources:
+  - ./agentsview-externalsecret.yaml
   - ./externalsecret.yaml
   - ./networkpolicy.yaml
 configMapGenerator:

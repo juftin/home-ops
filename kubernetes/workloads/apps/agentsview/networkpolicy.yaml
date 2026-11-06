@@ -1,0 +1,55 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: agentsview-ingress
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: agentsview
+      app.kubernetes.io/controller: app
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: network
+            gateway.envoyproxy.io/owning-gateway-name: envoy-oauth-admin
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: agentsview-db-ingress
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: agentsview
+      app.kubernetes.io/controller: db
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: agentsview
+            app.kubernetes.io/instance: agentsview
+            app.kubernetes.io/controller: app
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: paseo
+            app.kubernetes.io/instance: paseo
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: herdr
+            app.kubernetes.io/instance: herdr
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: openclaw
+            app.kubernetes.io/instance: openclaw
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: hermes-agent
+            app.kubernetes.io/instance: hermes-agent
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: tailscale
+            tailscale.com/parent-resource: agentsview-db
+            tailscale.com/parent-resource-ns: agentsview
+            tailscale.com/parent-resource-type: svc
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP

@@ -4,6 +4,17 @@ controllers:
     annotations:
       reloader.stakater.com/auto: "true"
     initContainers:
+      agentsview-config:
+        image:
+          repository: ghcr.io/kenn-io/agentsview
+          tag: 0.46.1
+        command: [/bin/sh, -ec]
+        args:
+          - 'if [ ! -f /data/config.toml ]; then cp /config/config.toml /data/config.toml; chmod 600 /data/config.toml; fi'
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
       copy-bun:
         image:
           repository: docker.io/oven/bun
@@ -30,6 +41,34 @@ controllers:
         command: [/bin/bash, /opt/agent-tools/install-agents.sh]
         securityContext: *containerSecurity
     containers:
+      agentsview:
+        image:
+          repository: ghcr.io/kenn-io/agentsview
+          tag: 0.46.1
+        args: ["pg", "push", "--watch", "--interval", "5m"]
+        env:
+          HOME: /nonexistent
+          AGENTSVIEW_DATA_DIR: /data
+          AGENTSVIEW_NO_DAEMON: "1"
+          AGENTSVIEW_PG_URL: postgres://agentsview@agentsview-db.agentsview.svc.cluster.local:5432/agentsview?sslmode=disable
+          PGPASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: agentsview-secret
+                key: POSTGRES_PASSWORD
+          CLAUDE_PROJECTS_DIR: /sources/.claude/projects
+          CODEX_SESSIONS_DIR: /sources/.codex/sessions
+          GEMINI_DIR: /sources/.gemini
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+        resources:
+          requests:
+            cpu: 25m
+            memory: 128Mi
+          limits:
+            memory: 1Gi
       app:
         image: *image
         env:
@@ -99,14 +138,33 @@ service:
 persistence:
   runtime:
     type: emptyDir
-    globalMounts:
-      - path: /opt/herdr
+    advancedMounts:
+      herdr:
+        app:
+          - path: /opt/herdr
+        copy-bun:
+          - path: /opt/herdr
+        install-runtime:
+          - path: /opt/herdr
+        install-agents:
+          - path: /opt/herdr
   scripts:
     type: configMap
     name: herdr-scripts
-    globalMounts:
-      - path: /opt/herdr-scripts
-        readOnly: true
+    advancedMounts:
+      herdr:
+        app:
+          - path: /opt/herdr-scripts
+            readOnly: true
+        copy-bun:
+          - path: /opt/herdr-scripts
+            readOnly: true
+        install-runtime:
+          - path: /opt/herdr-scripts
+            readOnly: true
+        install-agents:
+          - path: /opt/herdr-scripts
+            readOnly: true
   agent-tools:
     type: configMap
     name: agent-tools
@@ -123,14 +181,51 @@ persistence:
     storageClass: node-local
     accessMode: ReadWriteOnce
     size: 5Gi
-    globalMounts:
-      - path: /home/herdr
+    advancedMounts:
+      herdr:
+        copy-bun:
+          - path: /home/herdr
+        app:
+          - path: /home/herdr
+        install-runtime:
+          - path: /home/herdr
+        install-agents:
+          - path: /home/herdr
+        agentsview:
+          - path: /sources
+            readOnly: true
   workspace:
     storageClass: node-local
     accessMode: ReadWriteOnce
     size: 20Gi
-    globalMounts:
-      - path: /workspace
+    advancedMounts:
+      herdr:
+        app:
+          - path: /workspace
+        copy-bun:
+          - path: /workspace
+        install-runtime:
+          - path: /workspace
+        install-agents:
+          - path: /workspace
+  agentsview-data:
+    storageClass: node-local
+    accessMode: ReadWriteOnce
+    size: 2Gi
+    advancedMounts:
+      herdr:
+        agentsview-config:
+          - path: /data
+        agentsview:
+          - path: /data
+  agentsview-config:
+    type: configMap
+    identifier: agentsview
+    advancedMounts:
+      herdr:
+        agentsview-config:
+          - path: /config
+            readOnly: true
 route:
   app:
     hostnames:
@@ -139,3 +234,10 @@ route:
       - name: envoy-oauth-admin
         namespace: network
         sectionName: https
+configMaps:
+  agentsview:
+    data:
+      config.toml: |-
+        local_machine_name = "herdr"
+        [pg]
+        allow_insecure = true

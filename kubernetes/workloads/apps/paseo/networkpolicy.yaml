@@ -26,7 +26,16 @@ spec:
             - port: "6767"
               protocol: TCP
   egress:
-    # DNS is the only permitted connection to another cluster service.
+    # Collectors can publish only to the AgentsView database in the cluster.
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: agentsview
+            app.kubernetes.io/instance: agentsview
+            app.kubernetes.io/controller: db
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
     - toEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: kube-system
