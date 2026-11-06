@@ -1,7 +1,7 @@
 controllers:
   ntfy:
     replicas: 1
-    # SQLite cache/auth databases on a ReadWriteOnce volume; never run two pods at once.
+    # SQLite message cache on a ReadWriteOnce volume; never run two pods at once.
     strategy: Recreate
     annotations:
       reloader.stakater.com/auto: "true"
@@ -28,18 +28,14 @@ controllers:
           NTFY_ATTACHMENT_TOTAL_SIZE_LIMIT: 2G
           NTFY_ATTACHMENT_FILE_SIZE_LIMIT: 15M
           NTFY_ATTACHMENT_EXPIRY_DURATION: 24h
-          # Private instance: anonymous access is denied; users and tokens are
-          # provisioned declaratively from 1Password (NTFY_AUTH_USERS / NTFY_AUTH_TOKENS).
-          NTFY_AUTH_FILE: /var/lib/ntfy/user.db
-          NTFY_AUTH_DEFAULT_ACCESS: deny-all
-          NTFY_ENABLE_LOGIN: "true"
-          NTFY_REQUIRE_LOGIN: "true"
+          # No app authentication: public reads are allowlisted by the HTTPRoute.
+          # Writes are available only over the cluster Service or private Tailscale ingress.
+          NTFY_AUTH_DEFAULT_ACCESS: read-write
+          NTFY_ENABLE_LOGIN: "false"
+          NTFY_REQUIRE_LOGIN: "false"
           NTFY_ENABLE_SIGNUP: "false"
           # Forward poll requests (message IDs only) to ntfy.sh for iOS instant notifications.
           NTFY_UPSTREAM_BASE_URL: https://ntfy.sh
-        envFrom:
-          - secretRef:
-              name: ntfy-secret
         probes:
           liveness: &probes
             enabled: true
@@ -103,3 +99,39 @@ route:
       - name: envoy-external
         namespace: network
         sectionName: https
+    # GET alone is insufficient: ntfy also publishes, clears, and deletes via GET.
+    # Keep this read allowlist in sync with server/server.go on ntfy upgrades.
+    rules:
+      - matches:
+          - method: GET
+            path:
+              type: RegularExpression
+              value: '^/([-_A-Za-z0-9]{1,64}(,[-_A-Za-z0-9]{1,64})*/(json|sse|raw|ws|auth)|[-_A-Za-z0-9]{1,64})?$'
+          - method: GET
+            path:
+              type: RegularExpression
+              value: '^/(config\.js|manifest\.webmanifest|app\.html|sw\.js(\.map)?|static/.+|v1/(health|config|account))$'
+          - method: GET
+            path:
+              type: RegularExpression
+              value: '^/file/[-_A-Za-z0-9]{1,64}(\.[A-Za-z0-9]{1,16})?$'
+          - method: HEAD
+            path:
+              type: RegularExpression
+              value: '^/file/[-_A-Za-z0-9]{1,64}(\.[A-Za-z0-9]{1,16})?$'
+        backendRefs:
+          - identifier: app
+            port: http
+# Full API access, including publishing, only over the private tailnet.
+ingress:
+  tailscale:
+    suffix: tailscale
+    className: tailscale
+    defaultBackend:
+      service:
+        name: ntfy
+        port:
+          number: *port
+    tls:
+      - hosts:
+          - ntfy

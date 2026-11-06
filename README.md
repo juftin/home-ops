@@ -73,7 +73,7 @@ and Tailscale examples using the existing chart values.
   dashboard for Lunch Money with web API, PostgreSQL database, Valkey distributed locking, and
   scheduled synchronization, accessible internally and via Tailscale. See [setup](docs/LUNCHMONEY-SETUP.md).
 - **[ntfy](https://github.com/binwiederhier/ntfy)**: Self-hosted pub-sub push notifications to phones
-  and desktops, with users and access tokens provisioned from 1Password and anonymous access denied.
+  and desktops, with public subscriptions and publishing restricted to cluster and Tailscale traffic.
   See [setup](docs/NTFY-SETUP.md).
 - **[Grafana](https://grafana.com/)**: Cluster dashboards and Explore UI.
 - **[Prometheus](https://prometheus.io/)**: Scrapes and stores Kubernetes metrics with 30-day

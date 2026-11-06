@@ -1,99 +1,103 @@
 # ntfy Setup
 
-[ntfy](https://ntfy.sh) is a self-hosted pub-sub push notification service. It runs in Kubernetes at
-`https://ntfy.${SECRET_DOMAIN}` behind the public `envoy-external` Gateway, so phone apps, scripts, and
-external services can publish and subscribe from anywhere. Google SSO is intentionally **not** used:
-the ntfy Android/iOS apps and HTTP publishers cannot complete a browser OIDC flow. Instead, ntfy's
-own access control denies all anonymous access.
+[ntfy](https://ntfy.sh) provides pub-sub notifications with no application authentication:
 
-## Credentials (1Password)
+| Address                                              | Subscribe               | Publish                                 |
+| ---------------------------------------------------- | ----------------------- | --------------------------------------- |
+| `https://ntfy.${SECRET_DOMAIN}` through public Envoy | Anyone, no credentials  | Blocked                                 |
+| `http://ntfy.default.svc.cluster.local:8080`         | Cluster callers         | Cluster callers, no credentials         |
+| `https://ntfy.<tailnet-DNS-suffix>`                  | Allowed tailnet clients | Allowed tailnet clients, no credentials |
 
-Users and access tokens are provisioned declaratively from 1Password through the ntfy
-[`auth-users`](https://docs.ntfy.sh/config/#users-via-the-config) and
-[`auth-tokens`](https://docs.ntfy.sh/config/#tokens-via-the-config) options. Generate the values
-with the ntfy CLI (any machine with Docker works, no server required):
+The public hostname uses Cloudflare Tunnel and `envoy-external`, without Google SSO. In the mobile
+app, set this as the default server and subscribe to topics without adding a user. All topics and
+cached messages are publicly readable; topic names are not an authorization boundary.
 
-```bash
-# bcrypt hash for a user's password (prompts for the password)
-docker run --rm -it docker.io/binwiederhier/ntfy user hash
+## Network boundary
 
-# random access token (tk_ prefix, 32 characters)
-docker run --rm docker.io/binwiederhier/ntfy token generate
-```
+The public HTTPRoute allowlists GET requests for topic pages, subscription endpoints (`json`,
+`sse`, `raw`, `ws`, `auth`), web assets, health/config/account reads, and attachment downloads
+(GET/HEAD). Everything else has no matching route and returns 404. There is no catch-all backend
+rule. Blocking only POST/PUT is insufficient because ntfy supports
+[GET publishing](https://docs.ntfy.sh/publish/#webhooks-publish-via-get) at `/topic/publish`,
+`/topic/send`, and `/topic/trigger`, plus GET message clear/delete endpoints. These are excluded.
+Review the allowlist against `server/server.go` whenever upgrading ntfy.
 
-Create a **Login** item named `ntfy` in the 1Password **homelab** vault:
+The ClusterIP Service exposes the full API. The Tailscale operator's private Ingress forwards
+straight to that Service, allowing publishing from clients permitted by the existing tailnet ACLs.
+No Funnel is enabled. Do not expose this Service through another public route, tunnel, NodePort,
+or LoadBalancer: it intentionally has no authentication.
 
-- **Title**: `ntfy`
-- **Website / URL**: `https://ntfy.${SECRET_DOMAIN}`
-- **Username** / **Password**: Your ntfy login (for autofill; the server only reads the fields below)
-- **NTFY_AUTH_USERS**: Comma-separated `<username>:<bcrypt-hash>:<role>` entries, e.g.
-  `admin:$2a$10$...:admin`. Roles are `admin` (all topics) or `user` (no access unless granted).
-- **NTFY_AUTH_TOKENS**: Comma-separated `<username>:<token>[:<label>]` entries, e.g.
-  `admin:tk_...:automation`. Each username must exist in `NTFY_AUTH_USERS`.
+An ingress NetworkPolicy permits port 8080 only from cluster pods, including Envoy and the private
+Tailscale proxy, and port 9090 only from the observability namespace. Cluster publishers must also
+have egress permission to ntfy; existing isolated agent policies do not automatically grant this.
+The public route controls which operations Envoy forwards; the NetworkPolicy controls direct
+backend reachability. Forwarded client IP headers do not grant publishing access.
 
-External Secrets synchronizes both fields into `ntfy-secret` in the `default` namespace, which the
-container loads as environment variables. Reloader restarts the pod when either field changes.
-Provisioned users and tokens are recreated on every start; removing an entry from 1Password
-deletes it from ntfy on the next restart.
-
-To grant a `user`-role account access to specific topics, add an `NTFY_AUTH_ACCESS` field
-(`<username>:<topic-pattern>:<rw|ro|wo|deny>` entries) to the 1Password item and to
-[externalsecret.yaml](../kubernetes/apps/default/ntfy/app/externalsecret.yaml).
+There is no ntfy ExternalSecret, user database configuration, password, or access token. Any old
+`user.db` on the PVC is unused. Public web publishing, browser push registration, and UnifiedPush
+publishing are excluded by the read allowlist; native mobile subscriptions and WebSockets remain
+available.
 
 ## Configuration
 
-ntfy is configured entirely through `NTFY_*` environment variables in
-[values.yaml](../kubernetes/apps/default/ntfy/app/values.yaml):
+Settings live in [values.yaml](../kubernetes/apps/default/ntfy/app/values.yaml):
 
-| Setting               | Value                       | Purpose                                                                    |
-| --------------------- | --------------------------- | -------------------------------------------------------------------------- |
-| `auth-default-access` | `deny-all`                  | Anonymous clients cannot publish or subscribe                              |
-| `require-login`       | `true`                      | The web app requires a login                                               |
-| `enable-signup`       | `false`                     | No self-service account creation                                           |
-| `behind-proxy`        | `true`                      | Rate limiting uses `X-Forwarded-For`, ignoring pod-network proxy hops      |
-| `cache-duration`      | `24h`                       | Messages are kept for clients that reconnect with `since=` / `poll=1`      |
-| `attachment-*`        | 2G total, 15M per file, 24h | Attachments stored on the persistent volume                                |
-| `upstream-base-url`   | `https://ntfy.sh`           | Forwards poll requests (message IDs only) for iOS instant notifications    |
-| `metrics-listen-http` | `:9090`                     | Prometheus metrics on a dedicated, unrouted port scraped by ServiceMonitor |
+| Setting                                            | Value                       | Purpose                                                   |
+| -------------------------------------------------- | --------------------------- | --------------------------------------------------------- |
+| `auth-default-access`                              | `read-write`                | No application authentication; networking controls writes |
+| `enable-login` / `require-login` / `enable-signup` | `false`                     | No account login or registration                          |
+| `behind-proxy`                                     | `true`                      | Rate limiting uses forwarded client IPs                   |
+| `proxy-trusted-hosts`                              | `10.42.0.0/16`              | Trust pod-network proxy hops                              |
+| `cache-duration`                                   | `24h`                       | Retain messages for reconnecting subscribers              |
+| `attachment-*`                                     | 2G total, 15M per file, 24h | Persistent attachment limits                              |
+| `upstream-base-url`                                | `https://ntfy.sh`           | Forward message IDs for iOS instant notifications         |
+| `metrics-listen-http`                              | `:9090`                     | Dedicated metrics port scraped by ServiceMonitor          |
 
-## Architecture and Volumes
-
-- **Image**: `docker.io/binwiederhier/ntfy` running `ntfy serve` on port `8080` as non-root UID/GID `1000`
-  with a read-only root filesystem and all capabilities dropped.
-- **Persistent Data**: A 5Gi `node-local` PVC mounted at `/var/lib/ntfy` holds `cache.db` (message cache),
-  `user.db` (users, ACLs, tokens), and `attachments/`.
-- **Concurrency**: A single replica uses `strategy: Recreate` because the SQLite databases live on a
-  ReadWriteOnce volume.
-- **Health Probes**: Liveness and readiness use `GET /v1/health`.
-- **Streaming**: Subscriptions use long-lived HTTP streams and WebSockets; the shared Envoy
-  `BackendTrafficPolicy` disables the request timeout, so connections are not cut off.
+One non-root replica runs `ntfy serve` on port 8080 with a read-only root filesystem and dropped
+capabilities. A 5Gi `node-local` PVC at `/var/lib/ntfy` stores `cache.db` and attachments. The
+`Recreate` strategy prevents concurrent SQLite writers. Health probes use `GET /v1/health`.
+The shared Envoy BackendTrafficPolicy disables request timeouts for streaming subscriptions.
 
 ## Usage
 
 ```bash
-# Publish with an access token
-curl -H "Authorization: Bearer tk_..." -d "Backup finished" https://ntfy.${SECRET_DOMAIN}/homelab
+# Subscribe from anywhere, without credentials
+curl -N https://ntfy.${SECRET_DOMAIN}/homelab/json
 
-# Publish with basic auth
-curl -u admin:password -d "Backup finished" https://ntfy.${SECRET_DOMAIN}/homelab
+# Publish from a cluster workload, without credentials
+curl -d "Backup finished" http://ntfy.default.svc.cluster.local:8080/homelab
+
+# Publish from a permitted tailnet device, without credentials
+curl -d "Backup finished" https://ntfy.<tailnet-DNS-suffix>/homelab
 ```
-
-In-cluster publishers can skip the Gateway and use `http://ntfy.default.svc.cluster.local:8080`.
-
-In the ntfy mobile app, add `https://ntfy.${SECRET_DOMAIN}` as the default server (**Settings → Default
-server**) and add your user under **Settings → Manage users** before subscribing to topics.
 
 ## Verification
 
-After deployment:
+Run the route regression checks with `python3.15 scripts/tests/test-ntfy-public-route.py`.
+After branch deployment, check the HTTPRoute's `Accepted` and `ResolvedRefs` conditions, verify the
+Tailscale Ingress has an address, and exercise the actual network paths:
 
 ```bash
-# Anonymous access is denied (expect 403)
+# Public publishing must have no route (expect 404)
 curl -s -o /dev/null -w '%{http_code}\n' -d test https://ntfy.${SECRET_DOMAIN}/test
+curl -s -o /dev/null -w '%{http_code}\n' -X PUT -d test https://ntfy.${SECRET_DOMAIN}/test
+curl -s -o /dev/null -w '%{http_code}\n' -H 'Content-Type: application/json' \
+  -d '{"topic":"test","message":"test"}' https://ntfy.${SECRET_DOMAIN}/
+for alias in publish send trigger; do
+  curl -s -o /dev/null -w '%{http_code}\n' "https://ntfy.${SECRET_DOMAIN}/test/$alias?message=test"
+done
 
-# Authenticated publish succeeds (expect 200)
-curl -s -o /dev/null -w '%{http_code}\n' -H "Authorization: Bearer tk_..." -d test https://ntfy.${SECRET_DOMAIN}/test
+# From a cluster publisher pod: expect 200 without credentials
+curl -s -o /dev/null -w '%{http_code}\n' -d test http://ntfy.default.svc.cluster.local:8080/test
 
-# Health endpoint
+# From a permitted tailnet device: expect 200 without credentials
+curl -s -o /dev/null -w '%{http_code}\n' -d test https://ntfy.<tailnet-DNS-suffix>/test
+
+# Public subscription retrieves the published message (expect 200)
+curl -s -w '\n%{http_code}\n' 'https://ntfy.'"${SECRET_DOMAIN}"'/test/json?poll=1&since=all'
 curl -s https://ntfy.${SECRET_DOMAIN}/v1/health
 ```
+
+Also verify SSE, WebSocket subscriptions, web assets, and attachment downloads work publicly;
+GET clear/delete endpoints remain blocked; and direct access from outside the cluster/tailnet
+cannot reach the backend. Finish live branch testing with `task dev:stop`.

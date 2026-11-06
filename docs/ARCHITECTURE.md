@@ -189,13 +189,17 @@ No Funnel or Kubernetes API proxy is enabled. See [Tailscale setup](TAILSCALE-SE
 | `default` | `ntfy` | Self-hosted pub-sub push notifications (web, apps, API) |
 
 ntfy is served at `ntfy.${SECRET_DOMAIN}` through Cloudflare Tunnel and the public `envoy-external`
-Gateway rather than Google SSO, because mobile apps and HTTP publishers cannot complete an OIDC
-browser flow. ntfy's own access control enforces `deny-all` for anonymous clients and requires a
-web login; users and access tokens are provisioned declaratively from the `ntfy` 1Password item via
-External Secrets. A single non-root replica uses `Recreate` with a node-local PVC at `/var/lib/ntfy`
-for the SQLite message cache, auth database, and attachments. Poll requests (message IDs only) are
-forwarded to `ntfy.sh` for iOS instant notifications. Prometheus scrapes metrics from a dedicated
-port that the HTTPRoute does not expose. See [ntfy setup](NTFY-SETUP.md).
+Gateway. No application authentication is configured. The public HTTPRoute allowlists subscription,
+web UI, and attachment reads; all write endpoints are excluded, including GET publish/clear/delete
+aliases. Publishing is available without credentials over the ClusterIP Service
+`ntfy.default.svc.cluster.local:8080` and the private Tailscale Ingress at
+`https://ntfy.<tailnet-DNS-suffix>`. Tailnet access follows the existing Tailscale ACLs; Funnel is
+not enabled. An ingress NetworkPolicy limits backend access to cluster pods (including Envoy and
+Tailscale proxies), with metrics restricted to observability pods.
+A single non-root replica uses `Recreate` with a node-local PVC at `/var/lib/ntfy` for the SQLite
+message cache and attachments. Poll requests (message IDs only) are forwarded to `ntfy.sh` for
+iOS instant notifications. Prometheus scrapes metrics from a dedicated port that the HTTPRoute
+does not expose. See [ntfy setup](NTFY-SETUP.md).
 
 ## App Access
 

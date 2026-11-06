@@ -11,4 +11,4 @@ helmCharts:
     apiVersions:
       - gateway.networking.k8s.io/v1/HTTPRoute
 resources:
-  - ./externalsecret.yaml
+  - ./networkpolicy.yaml
