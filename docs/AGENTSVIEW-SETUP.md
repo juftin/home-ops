@@ -47,7 +47,7 @@ Paseo, Herdr, OpenClaw, and Hermes each run an `agentsview` sidecar executing
 archive PVC and a stable machine display label. Session changes are debounced
 for 30 seconds; the five-minute sweep catches missed filesystem notifications.
 The source home/data volume is mounted at `/sources` read-only.
-An init container seeds `/data/config.toml` once from the app's ConfigMap; it stays
+A short-lived root init container makes `/data` private (owned by the collector user, mode 0700), as AgentsView requires, and seeds `/data/config.toml` once from the app's ConfigMap; it stays
 writable so AgentsView can retain generated settings. To change cluster project
 filters after enrollment, edit the persisted config and restart the pod, or remove
 only `/data/config.toml` to reseed it from updated chart values. Preserve the rest

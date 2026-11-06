@@ -10,11 +10,16 @@ controllers:
           tag: 0.46.1
         command: [/bin/sh, -ec]
         args:
-          - 'if [ ! -f /data/config.toml ]; then cp /config/config.toml /data/config.toml; chmod 600 /data/config.toml; fi'
+          - 'chown 10000:10000 /data; chmod 700 /data; if [ ! -f /data/config.toml ]; then cp /config/config.toml /data/config.toml; fi; chown 10000:10000 /data/config.toml; chmod 600 /data/config.toml'
         securityContext:
+          runAsNonRoot: false
+          runAsUser: 0
+          runAsGroup: 0
           readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
-          capabilities: {drop: ["ALL"]}
+          capabilities:
+            drop: ["ALL"]
+            add: [CHOWN, DAC_OVERRIDE, FOWNER]
     containers:
       agentsview:
         image:
