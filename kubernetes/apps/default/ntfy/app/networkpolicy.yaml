@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ntfy-ingress
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: ntfy
+  policyTypes:
+    - Ingress
+  ingress:
+    # Cluster pods include Envoy and the private Tailscale ingress proxy.
+    # Envoy's public HTTPRoute separately limits requests to read endpoints.
+    - from:
+        - namespaceSelector: {}
+      ports:
+        - port: 8080
+          protocol: TCP
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: observability
+      ports:
+        - port: 9090
+          protocol: TCP
