@@ -44,7 +44,9 @@ grafana:
       hostnames:
         - grafana.${SECRET_DOMAIN}
       parentRefs:
-        - name: envoy-oauth-users
+        - group: gateway.networking.k8s.io
+          kind: Gateway
+          name: envoy-oauth-users
           namespace: network
           sectionName: https
 alertmanager:

@@ -61,6 +61,19 @@ spec:
       allowedRoutes:
         namespaces:
           from: Same
+    - name: camply-https
+      hostname: camply.rocks
+      protocol: HTTPS
+      port: 443
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - group: ""
+            kind: Secret
+            name: camply-rocks-production-tls
     - name: https
       protocol: HTTPS
       port: 443

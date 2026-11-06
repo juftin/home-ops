@@ -1,7 +1,7 @@
 # Camply Setup
 
 [Camply](https://github.com/juftin/camply), the campsite finder ⛺️, runs in Kubernetes at
-`https://camply.${SECRET_DOMAIN}` as a public web application with automated campsite search
+`https://camply.rocks` as a public web application with automated campsite search
 and notification scheduling.
 
 ## Credentials (1Password)
@@ -72,8 +72,19 @@ allowing graceful connection draining before Kubernetes sends SIGTERM.
 
 ## Ingress and Access
 
-- **Public Route**: Exposes `camply.${SECRET_DOMAIN}` through Cloudflare Tunnel and the `envoy-external`
+- **Public Route**: Exposes `camply.rocks` through Cloudflare Tunnel and the `envoy-external`
   Gateway. Public traffic reaches the application directly, using Camply's application-level
   authentication (session login or open access). The Cloudflare Tunnel routes traffic matching
   `*.${SECRET_DOMAIN}` directly to `envoy-external`.
 - The HTTPRoute directs `/api` traffic to `camply-backend:8000` and all other traffic (`/`) to `camply-frontend:8080`.
+
+The `camply-rocks-production` Certificate uses the `letsencrypt-production` ClusterIssuer.
+Its Cloudflare API token (`cert-manager-secret`, key `api-token`, in `cert-manager`) needs
+`Zone:DNS:Edit` and `Zone:Zone:Read` permissions for the `camply.rocks` zone. A pending DNS
+challenge reporting `Found no Zones for domain _acme-challenge.camply.rocks` means the zone
+or the token's access to it needs checking.
+
+Gateway TLS and HTTPRoute parent-reference defaults are declared in manifests rather than
+ignored in the ApplicationSet. With `RespectIgnoreDifferences=true`, ignoring fields inside
+a custom resource's arrays can also prevent listener and parent-reference updates from
+being applied, leaving an application OutOfSync after a successful sync.
