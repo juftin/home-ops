@@ -73,7 +73,7 @@ controllers:
       app:
         image:
           repository: docker.io/library/postgres
-          tag: 17-alpine
+          tag: 18-alpine
         env:
           POSTGRES_USER: agentsview
           POSTGRES_DB: agentsview
