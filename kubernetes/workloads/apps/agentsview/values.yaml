@@ -8,23 +8,6 @@ controllers:
         fsGroupChangePolicy: OnRootMismatch
     annotations:
       reloader.stakater.com/auto: "true"
-    initContainers:
-      data-permissions:
-        image:
-          repository: ghcr.io/kenn-io/agentsview
-          tag: 0.46.1
-        command: [/bin/sh, -ec]
-        args:
-          - 'chown -R 1000:1000 /data; chmod 700 /data'
-        securityContext:
-          runAsNonRoot: false
-          runAsUser: 0
-          runAsGroup: 0
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop: ["ALL"]
-            add: [CHOWN, DAC_OVERRIDE, FOWNER]
     containers:
       app:
         image:
@@ -33,7 +16,7 @@ controllers:
         args: ["--public-url", "https://agentsview.${SECRET_DOMAIN}"]
         env:
           AGENTSVIEW_MODE: pg-serve
-          AGENTSVIEW_DATA_DIR: /data
+          AGENTSVIEW_DATA_DIR: /data/agentsview
           AGENTSVIEW_HOST: 0.0.0.0
           AGENTSVIEW_REQUIRE_AUTH: "true"
           AGENTSVIEW_NO_BROWSER: "true"
@@ -173,8 +156,6 @@ persistence:
     size: 1Gi
     advancedMounts:
       app:
-        data-permissions:
-          - path: /data
         app:
           - path: /data
   db-data:

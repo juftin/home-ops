@@ -11,16 +11,11 @@ controllers:
           tag: 0.46.1
         command: [/bin/sh, -ec]
         args:
-          - 'chown 1000:1000 /data; chmod 700 /data; if [ ! -f /data/config.toml ]; then cp /config/config.toml /data/config.toml; fi; chown 1000:1000 /data/config.toml; chmod 600 /data/config.toml'
+          - 'mkdir -p -m 700 /data/agentsview; if [ ! -f /data/agentsview/config.toml ]; then cp /config/config.toml /data/agentsview/config.toml; chmod 600 /data/agentsview/config.toml; fi'
         securityContext:
-          runAsNonRoot: false
-          runAsUser: 0
-          runAsGroup: 0
           readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
-          capabilities:
-            drop: ["ALL"]
-            add: [CHOWN, DAC_OVERRIDE, FOWNER]
+          capabilities: {drop: ["ALL"]}
       config:
         image: &image
           repository: ghcr.io/openclaw/openclaw
@@ -58,7 +53,7 @@ controllers:
         args: ["pg", "push", "--watch", "--interval", "5m"]
         env:
           HOME: /nonexistent
-          AGENTSVIEW_DATA_DIR: /data
+          AGENTSVIEW_DATA_DIR: /data/agentsview
           AGENTSVIEW_NO_DAEMON: "1"
           AGENTSVIEW_PG_URL: postgres://agentsview@agentsview-db.agentsview.svc.cluster.local:5432/agentsview?sslmode=disable
           PGPASSWORD:

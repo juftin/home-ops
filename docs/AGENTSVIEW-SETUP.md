@@ -47,11 +47,13 @@ Paseo, Herdr, OpenClaw, and Hermes each run an `agentsview` sidecar executing
 archive PVC and a stable machine display label. Session changes are debounced
 for 30 seconds; the five-minute sweep catches missed filesystem notifications.
 The source home/data volume is mounted at `/sources` read-only.
-A short-lived root init container makes `/data` private (owned by the collector user, mode 0700), as AgentsView requires, and seeds `/data/config.toml` once from the app's ConfigMap; it stays
+An init container creates the private `/data/agentsview` state directory as the
+collector user (AgentsView requires its data directory to be user-owned, and the PVC
+root is not) and seeds `config.toml` there once from the app's ConfigMap; it stays
 writable so AgentsView can retain generated settings. To change cluster project
 filters after enrollment, edit the persisted config and restart the pod, or remove
-only `/data/config.toml` to reseed it from updated chart values. Preserve the rest
-of `/data`, especially the installation ID and archive. The collector
+only `/data/agentsview/config.toml` to reseed it from updated chart values. Preserve the rest
+of `/data/agentsview`, especially the installation ID and archive. The collector
 has no Kubernetes API token, and no service exposes its local archive.
 
 | Source        | Session roots under `/sources`                    |
@@ -140,7 +142,7 @@ machine labels appear after a push. Edit another session and verify incremental
 updates, then restart its collector and verify its installation identity persists.
 Check other cluster collectors the same way. TCP probes verify the listener only;
 verify database freshness through `pg status`, watcher logs at
-`/data/pg-watch.log`, and the dashboard. Confirm unauthenticated API access is
+`/data/agentsview/pg-watch.log`, and the dashboard. Confirm unauthenticated API access is
 rejected and unapproved tailnet devices cannot connect to PostgreSQL.
 
 If sessions are missing, check the source path and watcher logs. For database
