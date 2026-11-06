@@ -84,7 +84,7 @@ Its Cloudflare API token (`cert-manager-secret`, key `api-token`, in `cert-manag
 challenge reporting `Found no Zones for domain _acme-challenge.camply.rocks` means the zone
 or the token's access to it needs checking.
 
-Gateway and HTTPRoute defaults are declared in manifests rather than ignored in the
-ApplicationSet. With `RespectIgnoreDifferences=true`, ignoring fields inside a custom
-resource's arrays can also prevent listener, parent-reference, and routing updates from
+Gateway TLS and HTTPRoute parent-reference defaults are declared in manifests rather than
+ignored in the ApplicationSet. With `RespectIgnoreDifferences=true`, ignoring fields inside
+a custom resource's arrays can also prevent listener and parent-reference updates from
 being applied, leaving an application OutOfSync after a successful sync.

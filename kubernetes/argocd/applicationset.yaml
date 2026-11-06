@@ -48,6 +48,11 @@ spec:
         server: https://kubernetes.default.svc
         namespace: '{{ if eq .folder "apps" }}{{ .path.basename }}{{ else }}{{ .folder }}{{ end }}'
       ignoreDifferences:
+        - group: gateway.networking.k8s.io
+          kind: HTTPRoute
+          jqPathExpressions:
+            # Charts omit the default catch-all match; keep it out of comparisons.
+            - '.spec.rules[] | select(.matches == [{"path":{"type":"PathPrefix","value":"/"}}]) | .matches'
         - group: gateway.envoyproxy.io
           kind: SecurityPolicy
           jqPathExpressions:
