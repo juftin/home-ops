@@ -4,6 +4,17 @@ controllers:
     annotations:
       reloader.stakater.com/auto: "true"
     initContainers:
+      agentsview-config:
+        image:
+          repository: ghcr.io/kenn-io/agentsview
+          tag: 0.46.1
+        command: [/bin/sh, -ec]
+        args:
+          - 'if [ ! -f /data/config.toml ]; then cp /config/config.toml /data/config.toml; chmod 600 /data/config.toml; fi'
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
       install-agents:
         image: &image
           repository: ghcr.io/getpaseo/paseo
@@ -17,6 +28,34 @@ controllers:
           allowPrivilegeEscalation: false
           capabilities: {drop: ["ALL"]}
     containers:
+      agentsview:
+        image:
+          repository: ghcr.io/kenn-io/agentsview
+          tag: 0.46.1
+        args: ["pg", "push", "--watch", "--interval", "5m"]
+        env:
+          HOME: /nonexistent
+          AGENTSVIEW_DATA_DIR: /data
+          AGENTSVIEW_NO_DAEMON: "1"
+          AGENTSVIEW_PG_URL: postgres://agentsview@agentsview-db.agentsview.svc.cluster.local:5432/agentsview?sslmode=disable
+          PGPASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: agentsview-secret
+                key: POSTGRES_PASSWORD
+          CLAUDE_PROJECTS_DIR: /sources/.claude/projects
+          CODEX_SESSIONS_DIR: /sources/.codex/sessions
+          GEMINI_DIR: /sources/.gemini
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+        resources:
+          requests:
+            cpu: 25m
+            memory: 128Mi
+          limits:
+            memory: 1Gi
       app:
         image: *image
         env:
@@ -58,6 +97,7 @@ controllers:
           limits:
             memory: 4Gi
 defaultPodOptions:
+  terminationGracePeriodSeconds: 60
   automountServiceAccountToken: false
   enableServiceLinks: false
   securityContext:
@@ -90,14 +130,43 @@ persistence:
     storageClass: node-local
     accessMode: ReadWriteOnce
     size: 5Gi
-    globalMounts:
-      - path: /home/paseo
+    advancedMounts:
+      paseo:
+        app:
+          - path: /home/paseo
+        install-agents:
+          - path: /home/paseo
+        agentsview:
+          - path: /sources
+            readOnly: true
   workspace:
     storageClass: node-local
     accessMode: ReadWriteOnce
     size: 20Gi
-    globalMounts:
-      - path: /workspace
+    advancedMounts:
+      paseo:
+        app:
+          - path: /workspace
+        install-agents:
+          - path: /workspace
+  agentsview-data:
+    storageClass: node-local
+    accessMode: ReadWriteOnce
+    size: 2Gi
+    advancedMounts:
+      paseo:
+        agentsview-config:
+          - path: /data
+        agentsview:
+          - path: /data
+  agentsview-config:
+    type: configMap
+    identifier: agentsview
+    advancedMounts:
+      paseo:
+        agentsview-config:
+          - path: /config
+            readOnly: true
 route:
   app:
     hostnames:
@@ -118,3 +187,10 @@ ingress:
     tls:
       - hosts:
           - paseo
+configMaps:
+  agentsview:
+    data:
+      config.toml: |-
+        local_machine_name = "paseo"
+        [pg]
+        allow_insecure = true

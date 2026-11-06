@@ -5,6 +5,17 @@ controllers:
     annotations:
       reloader.stakater.com/auto: "true"
     initContainers:
+      agentsview-config:
+        image:
+          repository: ghcr.io/kenn-io/agentsview
+          tag: 0.46.1
+        command: [/bin/sh, -ec]
+        args:
+          - 'if [ ! -f /data/config.toml ]; then cp /config/config.toml /data/config.toml; chmod 600 /data/config.toml; fi'
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
       config:
         image: &image
           repository: ghcr.io/openclaw/openclaw
@@ -35,6 +46,35 @@ controllers:
           allowPrivilegeEscalation: false
           capabilities: {drop: ["ALL"]}
     containers:
+      agentsview:
+        image:
+          repository: ghcr.io/kenn-io/agentsview
+          tag: 0.46.1
+        args: ["pg", "push", "--watch", "--interval", "5m"]
+        env:
+          HOME: /nonexistent
+          AGENTSVIEW_DATA_DIR: /data
+          AGENTSVIEW_NO_DAEMON: "1"
+          AGENTSVIEW_PG_URL: postgres://agentsview@agentsview-db.agentsview.svc.cluster.local:5432/agentsview?sslmode=disable
+          PGPASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: agentsview-secret
+                key: POSTGRES_PASSWORD
+          CLAUDE_PROJECTS_DIR: /sources/.claude/projects
+          CODEX_SESSIONS_DIR: /sources/.codex/sessions
+          GEMINI_DIR: /sources/.gemini
+          OPENCLAW_DIR: /sources/.openclaw
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+        resources:
+          requests:
+            cpu: 25m
+            memory: 128Mi
+          limits:
+            memory: 1Gi
       app:
         image: *image
         args: [node, openclaw.mjs, gateway, --bind, lan, --port, "18789"]
@@ -93,6 +133,7 @@ controllers:
           limits:
             memory: 4Gi
 defaultPodOptions:
+  terminationGracePeriodSeconds: 60
   automountServiceAccountToken: false
   enableServiceLinks: false
   securityContext:
@@ -110,6 +151,12 @@ service:
       http:
         port: *port
 configMaps:
+  agentsview:
+    data:
+      config.toml: |-
+        local_machine_name = "openclaw"
+        [pg]
+        allow_insecure = true
   config:
     data:
       openclaw.json: |-
@@ -142,14 +189,41 @@ persistence:
     storageClass: node-local
     accessMode: ReadWriteOnce
     size: 10Gi
-    globalMounts:
-      - path: /home/node
+    advancedMounts:
+      openclaw:
+        app:
+          - path: /home/node
+        install-agents:
+          - path: /home/node
+        config:
+          - path: /home/node
+        agentsview:
+          - path: /sources
+            readOnly: true
   config:
     type: configMap
     identifier: config
     advancedMounts:
       openclaw:
         config:
+          - path: /config
+            readOnly: true
+  agentsview-data:
+    storageClass: node-local
+    accessMode: ReadWriteOnce
+    size: 2Gi
+    advancedMounts:
+      openclaw:
+        agentsview-config:
+          - path: /data
+        agentsview:
+          - path: /data
+  agentsview-config:
+    type: configMap
+    identifier: agentsview
+    advancedMounts:
+      openclaw:
+        agentsview-config:
           - path: /config
             readOnly: true
 route:

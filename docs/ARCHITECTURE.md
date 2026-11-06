@@ -29,6 +29,7 @@ ______________________________________________________________________
 ```text
 kubernetes/workloads/
 ├── apps/
+│   ├── agentsview/
 │   ├── camply/
 │   ├── echo/
 │   ├── agent-tools/
@@ -65,6 +66,7 @@ Each application formerly in `default` has a namespace matching its app name:
 
 | Namespace      | App            |
 | -------------- | -------------- |
+| `agentsview`   | `agentsview`   |
 | `camply`       | `camply`       |
 | `echo`         | `echo`         |
 | `herdr`        | `herdr`        |
@@ -244,3 +246,16 @@ in its Helmfile bootstrap values. Public apps use
 Cloudflare Tunnel rule. Shared OAuth utility pages cover app hosts through a
 wildcard while public-policy exceptions stay scoped to denied/logout sections.
 See [App access](APP-ACCESS.md).
+
+## Agent Session Archive
+
+AgentsView runs in `agentsview` behind admin Google SSO and bearer authentication.
+Its dashboard reads shared PostgreSQL, persisted on a 10Gi node-local PVC.
+Paseo, Herdr, OpenClaw, and Hermes run read-only source collectors with their own
+persistent SQLite archives and push incremental updates to the database. Local
+computers and LAN devices run the same collector CLI and connect through the
+Tailscale-only PostgreSQL Service. The database has no public Gateway route.
+ExternalSecrets distribute credentials from the `agentsview` 1Password item.
+Collectors share a trusted personal database credential; source filtering occurs
+on each device. See [AgentsView setup](AGENTSVIEW-SETUP.md) for enrollment,
+source paths, storage, access controls, and verification.

@@ -1,0 +1,194 @@
+controllers:
+  app:
+    replicas: 1
+    strategy: Recreate
+    pod:
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+    annotations:
+      reloader.stakater.com/auto: "true"
+    containers:
+      app:
+        image:
+          repository: ghcr.io/kenn-io/agentsview
+          tag: 0.46.1
+        args: ["--public-url", "https://agentsview.${SECRET_DOMAIN}"]
+        env:
+          AGENTSVIEW_MODE: pg-serve
+          AGENTSVIEW_DATA_DIR: /data
+          AGENTSVIEW_HOST: 0.0.0.0
+          AGENTSVIEW_REQUIRE_AUTH: "true"
+          AGENTSVIEW_NO_BROWSER: "true"
+          AGENTSVIEW_PG_ALLOW_INSECURE: "true"
+          AGENTSVIEW_PG_URL: postgres://agentsview@agentsview-db:5432/agentsview?sslmode=disable
+          PGPASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: agentsview-secret
+                key: POSTGRES_PASSWORD
+          AGENTSVIEW_AUTH_TOKEN_FILE: /run/secrets/agentsview/AGENTSVIEW_AUTH_TOKEN
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket:
+                port: &port 8080
+              periodSeconds: 5
+              failureThreshold: 60
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              tcpSocket:
+                port: *port
+              periodSeconds: 10
+              timeoutSeconds: 3
+              failureThreshold: 3
+          readiness: *probes
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
+  db:
+    replicas: 1
+    strategy: Recreate
+    annotations:
+      reloader.stakater.com/auto: "true"
+    pod:
+      securityContext:
+        fsGroup: 999
+        fsGroupChangePolicy: OnRootMismatch
+    containers:
+      app:
+        image:
+          repository: docker.io/library/postgres
+          tag: 17-alpine
+        env:
+          POSTGRES_USER: agentsview
+          POSTGRES_DB: agentsview
+          POSTGRES_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: agentsview-secret
+                key: POSTGRES_PASSWORD
+          PGDATA: /var/lib/postgresql/data/pgdata
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              exec:
+                command:
+                  - pg_isready
+                  - -U
+                  - agentsview
+                  - -d
+                  - agentsview
+              periodSeconds: 5
+              timeoutSeconds: 3
+              failureThreshold: 30
+          liveness: &dbProbes
+            enabled: true
+            custom: true
+            spec:
+              exec:
+                command:
+                  - pg_isready
+                  - -U
+                  - agentsview
+                  - -d
+                  - agentsview
+              periodSeconds: 10
+              timeoutSeconds: 3
+              failureThreshold: 3
+          readiness: *dbProbes
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+            add:
+              - CHOWN
+              - DAC_OVERRIDE
+              - FOWNER
+              - SETGID
+              - SETUID
+        resources:
+          requests:
+            cpu: 10m
+            memory: 128Mi
+          limits:
+            memory: 512Mi
+defaultPodOptions:
+  automountServiceAccountToken: false
+  enableServiceLinks: false
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+service:
+  app:
+    controller: app
+    ports:
+      http:
+        port: *port
+  db:
+    controller: db
+    annotations:
+      tailscale.com/expose: "true"
+      tailscale.com/hostname: agentsview-db
+    ports:
+      postgres:
+        port: 5432
+persistence:
+  data:
+    storageClass: node-local
+    accessMode: ReadWriteOnce
+    size: 1Gi
+    advancedMounts:
+      app:
+        app:
+          - path: /data
+  db-data:
+    storageClass: node-local
+    accessMode: ReadWriteOnce
+    size: 10Gi
+    advancedMounts:
+      db:
+        app:
+          - path: /var/lib/postgresql/data
+  token:
+    type: secret
+    name: agentsview-secret
+    advancedMounts:
+      app:
+        app:
+          - path: /run/secrets/agentsview
+            readOnly: true
+  tmp:
+    type: emptyDir
+    advancedMounts:
+      app:
+        app:
+          - path: /tmp
+route:
+  app:
+    hostnames:
+      - agentsview.${SECRET_DOMAIN}
+    parentRefs:
+      - name: envoy-oauth-admin
+        namespace: network
+        sectionName: https
+    rules:
+      - backendRefs:
+          - name: agentsview-app
+            port: 8080

@@ -3,7 +3,45 @@ controllers:
     strategy: Recreate
     annotations:
       reloader.stakater.com/auto: "true"
+    initContainers:
+      agentsview-config:
+        image:
+          repository: ghcr.io/kenn-io/agentsview
+          tag: 0.46.1
+        command: [/bin/sh, -ec]
+        args:
+          - 'if [ ! -f /data/config.toml ]; then cp /config/config.toml /data/config.toml; chmod 600 /data/config.toml; fi'
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
     containers:
+      agentsview:
+        image:
+          repository: ghcr.io/kenn-io/agentsview
+          tag: 0.46.1
+        args: ["pg", "push", "--watch", "--interval", "5m"]
+        env:
+          HOME: /nonexistent
+          AGENTSVIEW_DATA_DIR: /data
+          AGENTSVIEW_NO_DAEMON: "1"
+          AGENTSVIEW_PG_URL: postgres://agentsview@agentsview-db.agentsview.svc.cluster.local:5432/agentsview?sslmode=disable
+          PGPASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: agentsview-secret
+                key: POSTGRES_PASSWORD
+          HERMES_SESSIONS_DIR: /sources/.hermes/sessions
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+        resources:
+          requests:
+            cpu: 25m
+            memory: 128Mi
+          limits:
+            memory: 1Gi
       app:
         image:
           repository: docker.io/nousresearch/hermes-agent
@@ -83,6 +121,7 @@ controllers:
           limits:
             memory: 4Gi
 defaultPodOptions:
+  terminationGracePeriodSeconds: 60
   automountServiceAccountToken: false
   enableServiceLinks: false
   securityContext:
@@ -104,8 +143,10 @@ service:
 persistence:
   run:
     type: emptyDir
-    globalMounts:
-      - path: /run
+    advancedMounts:
+      hermes-agent:
+        app:
+          - path: /run
   tmp:
     type: emptyDir
     globalMounts:
@@ -114,8 +155,31 @@ persistence:
     storageClass: node-local
     accessMode: ReadWriteOnce
     size: 10Gi
-    globalMounts:
-      - path: /opt/data
+    advancedMounts:
+      hermes-agent:
+        app:
+          - path: /opt/data
+        agentsview:
+          - path: /sources
+            readOnly: true
+  agentsview-data:
+    storageClass: node-local
+    accessMode: ReadWriteOnce
+    size: 2Gi
+    advancedMounts:
+      hermes-agent:
+        agentsview-config:
+          - path: /data
+        agentsview:
+          - path: /data
+  agentsview-config:
+    type: configMap
+    identifier: agentsview
+    advancedMounts:
+      hermes-agent:
+        agentsview-config:
+          - path: /config
+            readOnly: true
 route:
   app:
     hostnames:
@@ -133,3 +197,10 @@ route:
           - port: api
       - backendRefs:
           - port: http
+configMaps:
+  agentsview:
+    data:
+      config.toml: |-
+        local_machine_name = "hermes-agent"
+        [pg]
+        allow_insecure = true
