@@ -5,7 +5,7 @@ helmCharts:
     repo: oci://ghcr.io/bjw-s-labs/helm
     version: 5.3.0
     releaseName: ntfy
-    namespace: default
+    namespace: ntfy
     includeCRDs: true
     valuesFile: ./values.yaml
     apiVersions:

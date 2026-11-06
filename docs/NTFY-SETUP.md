@@ -5,12 +5,18 @@
 | Address                                              | Subscribe               | Publish                                 |
 | ---------------------------------------------------- | ----------------------- | --------------------------------------- |
 | `https://ntfy.${SECRET_DOMAIN}` through public Envoy | Anyone, no credentials  | Blocked                                 |
-| `http://ntfy.default.svc.cluster.local:8080`         | Cluster callers         | Cluster callers, no credentials         |
+| `http://ntfy.ntfy.svc.cluster.local:8080`            | Cluster callers         | Cluster callers, no credentials         |
 | `https://ntfy.<tailnet-DNS-suffix>`                  | Allowed tailnet clients | Allowed tailnet clients, no credentials |
 
 The public hostname uses Cloudflare Tunnel and `envoy-external`, without Google SSO. In the mobile
 app, set this as the default server and subscribe to topics without adding a user. All topics and
 cached messages are publicly readable; topic names are not an authorization boundary.
+
+The workload lives in `kubernetes/workloads/apps/ntfy/` and runs in namespace `ntfy`,
+matching ArgoCD's `kubernetes/workloads/apps/*` discovery rule. ArgoCD creates the namespace.
+If ntfy was previously deployed manually in `default`, its PVC data does not move automatically;
+follow the [namespace migration runbook](APP-NAMESPACE-MIGRATION.md) for the `ntfy` claim before
+activating this namespace change. Do not remove a populated source PVC without protecting its PV.
 
 ## Network boundary
 
@@ -40,7 +46,7 @@ available.
 
 ## Configuration
 
-Settings live in [values.yaml](../kubernetes/apps/default/ntfy/app/values.yaml):
+Settings live in [values.yaml](../kubernetes/workloads/apps/ntfy/values.yaml):
 
 | Setting                                            | Value                       | Purpose                                                   |
 | -------------------------------------------------- | --------------------------- | --------------------------------------------------------- |
@@ -65,7 +71,7 @@ The shared Envoy BackendTrafficPolicy disables request timeouts for streaming su
 curl -N https://ntfy.${SECRET_DOMAIN}/homelab/json
 
 # Publish from a cluster workload, without credentials
-curl -d "Backup finished" http://ntfy.default.svc.cluster.local:8080/homelab
+curl -d "Backup finished" http://ntfy.ntfy.svc.cluster.local:8080/homelab
 
 # Publish from a permitted tailnet device, without credentials
 curl -d "Backup finished" https://ntfy.<tailnet-DNS-suffix>/homelab
@@ -88,7 +94,7 @@ for alias in publish send trigger; do
 done
 
 # From a cluster publisher pod: expect 200 without credentials
-curl -s -o /dev/null -w '%{http_code}\n' -d test http://ntfy.default.svc.cluster.local:8080/test
+curl -s -o /dev/null -w '%{http_code}\n' -d test http://ntfy.ntfy.svc.cluster.local:8080/test
 
 # From a permitted tailnet device: expect 200 without credentials
 curl -s -o /dev/null -w '%{http_code}\n' -d test https://ntfy.<tailnet-DNS-suffix>/test
