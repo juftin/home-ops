@@ -79,6 +79,9 @@ Agent tools distributes installer ConfigMaps to the agent namespaces.
 
 Camply keeps its frontend, API, workers, database, cache, and Prometheus in `camply`.
 Shared Gateways stay in `network`; application HTTPRoutes reference them across namespaces.
+Cloudflare's public wildcard DNS record is declared by `cloudflare-dns/public-wildcard`.
+The shared `oauth-pages` HTTPRoute is excluded from ExternalDNS discovery because it
+attaches to both public and internal Gateways, whose DNS targets differ.
 Tailscale configuration is distributed to `paseo` and `lunchmoney`. The built-in `default` namespace has no
 repository-managed apps. For an existing cluster, follow the
 [namespace migration runbook](APP-NAMESPACE-MIGRATION.md) before activating these manifests.
