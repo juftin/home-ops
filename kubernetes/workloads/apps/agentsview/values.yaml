@@ -16,7 +16,7 @@ controllers:
         args: ["--public-url", "https://agentsview.${SECRET_DOMAIN}"]
         env:
           AGENTSVIEW_MODE: pg-serve
-          AGENTSVIEW_DATA_DIR: /data
+          AGENTSVIEW_DATA_DIR: /data/agentsview
           AGENTSVIEW_HOST: 0.0.0.0
           AGENTSVIEW_REQUIRE_AUTH: "true"
           AGENTSVIEW_NO_BROWSER: "true"
