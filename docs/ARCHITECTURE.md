@@ -8,8 +8,9 @@ ______________________________________________________________________
 
 - **ArgoCD** is the only GitOps reconciler.
 - `home-ops-root` (bootstrapped by Helmfile) points to `kubernetes/argocd`.
-- `kubernetes/argocd/applicationset.yaml` generates one ArgoCD `Application` per app directory under `kubernetes/apps/<namespace>/<app>/app`.
-- Generated apps use server-side apply so Kubernetes-assigned PVC bindings are preserved during sync.
+- `kubernetes/argocd/applicationset.yaml` generates one ArgoCD `Application` per workload under `kubernetes/workloads/<folder>/<app>/app`.
+- The `apps` folder gives each app its own namespace; infrastructure folders use the folder name as their shared namespace. Sync waves are assigned by folder.
+- Generated apps create their destination namespace automatically and use server-side apply so Kubernetes-assigned PVC bindings are preserved during sync.
 - GitHub push webhooks reach `webhooks.${SECRET_DOMAIN}/argocd/api/webhook` through the public
   `envoy-external` Gateway and refresh existing Applications. Only exact-path POST requests are
   routed to `argocd-server`, with the path rewritten to `/api/webhook`; the UI remains on the
@@ -26,7 +27,28 @@ ______________________________________________________________________
 ## App Layout
 
 ```text
-kubernetes/apps/<namespace>/<app>/app/
+kubernetes/workloads/
+├── apps/
+│   ├── camply/
+│   ├── echo/
+│   ├── agent-tools/
+│   ├── herdr/
+│   ├── hermes-agent/
+│   ├── lunchmoney/
+│   ├── oauth-pages/
+│   ├── openclaw/
+│   └── paseo/
+├── cert-manager/cert-manager/
+├── external-secrets/<app>/
+├── kube-system/<app>/
+├── network/<app>/
+├── observability/<app>/
+└── tailscale/tailscale/
+```
+
+Each app directory contains:
+
+```text
 ├── kustomization.yaml   # static resources + helmCharts entries
 ├── values.yaml          # chart values
 └── *.sops.yaml          # encrypted manifests/secrets (optional)
@@ -34,6 +56,36 @@ kubernetes/apps/<namespace>/<app>/app/
 
 `kustomization.yaml` uses `helmCharts`; ArgoCD’s CMP plugin decrypts SOPS files and substitutes
 `${SECRET_DOMAIN}` placeholders before apply.
+
+______________________________________________________________________
+
+## Application Namespaces
+
+Each application formerly in `default` has a namespace matching its app name:
+
+| Namespace      | App            |
+| -------------- | -------------- |
+| `camply`       | `camply`       |
+| `echo`         | `echo`         |
+| `herdr`        | `herdr`        |
+| `agent-tools`  | `agent-tools`  |
+| `hermes-agent` | `hermes-agent` |
+| `lunchmoney`   | `lunchmoney`   |
+| `oauth-pages`  | `oauth-pages`  |
+| `openclaw`     | `openclaw`     |
+| `orca`         | `orca`         |
+| `paseo`        | `paseo`        |
+
+Agent tools distributes installer ConfigMaps to the agent namespaces.
+
+Camply keeps its frontend, API, workers, database, cache, and Prometheus in `camply`.
+Shared Gateways stay in `network`; application HTTPRoutes reference them across namespaces.
+Cloudflare's public wildcard DNS record is declared by `cloudflare-dns/public-wildcard`.
+The shared `oauth-pages` HTTPRoute is excluded from ExternalDNS discovery because it
+attaches to both public and internal Gateways, whose DNS targets differ.
+Tailscale configuration is distributed to `paseo` and `lunchmoney`. The built-in `default` namespace has no
+repository-managed apps. For an existing cluster, follow the
+[namespace migration runbook](APP-NAMESPACE-MIGRATION.md) before activating these manifests.
 
 ______________________________________________________________________
 
@@ -74,16 +126,17 @@ ______________________________________________________________________
 
 ## Coding Agents
 
-| Namespace | App            | Role                                                            |
-| --------- | -------------- | --------------------------------------------------------------- |
-| `default` | `paseo`        | Coding-agent daemon and bundled web UI                          |
-| `default` | `openclaw`     | Personal AI assistant gateway and Control UI                    |
-| `default` | `hermes-agent` | Self-improving AI agent with Gateway API and Web Dashboard      |
-| `default` | `herdr`        | Persistent agent terminals and browser/phone web UI             |
-| `default` | `orca`         | Headless Orca runtime with browser and paired native clients    |
-| `default` | `agent-tools`  | Shared installer ConfigMap for Paseo, OpenClaw, Herdr, and Orca |
+| Namespace      | App            | Role                                                            |
+| -------------- | -------------- | --------------------------------------------------------------- |
+| `paseo`        | `paseo`        | Coding-agent daemon and bundled web UI                          |
+| `openclaw`     | `openclaw`     | Personal AI assistant gateway and Control UI                    |
+| `hermes-agent` | `hermes-agent` | Self-improving AI agent with Gateway API and Web Dashboard      |
+| `herdr`        | `herdr`        | Persistent agent terminals and browser/phone web UI             |
+| `orca`         | `orca`         | Headless Orca runtime with browser and paired native clients    |
+| `agent-tools`  | `agent-tools`  | Shared installer ConfigMap for Paseo, OpenClaw, Herdr, and Orca |
 
-The `agent-tools` app owns one ConfigMap generated from `install-agents.sh`. Paseo, OpenClaw, Herdr, and Orca mount
+The `agent-tools` app generates installer ConfigMaps from `install-agents.sh` in the
+`paseo`, `openclaw`, `herdr`, and `orca` namespaces. Each app mounts its ConfigMap
 it read-only in their `install-agents` init containers. The script installs or upgrades Codex,
 Claude Code, Antigravity, and the GitHub CLI under each app's persistent `$HOME/.local` and reuses
 working installed versions if upgrades fail. All four app containers include `$HOME/.local/bin` in
@@ -150,7 +203,7 @@ Envoy gateway on each app's service ports; Paseo and Orca also permit their spec
 Egress permits CoreDNS on TCP/UDP 53 and public HTTP/HTTPS/SSH on TCP 80/443/22. Other cluster
 services (including the other agents), Kubernetes API, nodes, LAN, tailnet, and metadata addresses
 are blocked, with explicit exceptions for DNS and OpenClaw accessing only the Lunch Money
-application on TCP 8000 (`http://lunchmoney-app.default.svc.cluster.local:8000`). Its PostgreSQL,
+application on TCP 8000 (`http://lunchmoney-app.lunchmoney.svc.cluster.local:8000`). Its PostgreSQL,
 Valkey, and scheduler pods remain inaccessible to OpenClaw. Paseo, Hermes, Herdr, and Orca have no Lunch Money
 exception. Existing stateful connections can
 receive replies; the ingress exception does not authorize agent-initiated connections to proxies.
@@ -172,10 +225,10 @@ finish branch testing with `task dev:stop`.
 
 ## Private Network Access
 
-| Namespace   | App          | Role                                                                      |
-| ----------- | ------------ | ------------------------------------------------------------------------- |
-| `tailscale` | `tailscale`  | Kubernetes operator and private HTTPS proxy pods                          |
-| `default`   | `lunchmoney` | Lunch Money MCP server, dashboard, PostgreSQL, Valkey, and sync scheduler |
+| Namespace    | App          | Role                                                                      |
+| ------------ | ------------ | ------------------------------------------------------------------------- |
+| `tailscale`  | `tailscale`  | Kubernetes operator and private HTTPS proxy pods                          |
+| `lunchmoney` | `lunchmoney` | Lunch Money MCP server, dashboard, PostgreSQL, Valkey, and sync scheduler |
 
 The Tailscale operator also exposes Orca through a private `Ingress` at
 `https://orca.<tailnet-DNS-suffix>`, forwarding to `orca:6768`. Native Orca clients use this
@@ -198,8 +251,8 @@ No Funnel or Kubernetes API proxy is enabled. See [Tailscale setup](TAILSCALE-SE
 
 ## App Access
 
-App-template workloads configure HTTPRoutes and Tailscale Ingresses in their own
-`values.yaml`, using the chart's built-in resources. Grafana uses the bundled
+Workloads configure HTTPRoutes and Tailscale Ingresses in their own
+`values.yaml`, using chart-native resources (such as `camply-web` or `app-template`). Grafana uses the bundled
 Grafana chart's `grafana.route.main` settings, and ArgoCD uses `server.httproute`
 in its Helmfile bootstrap values. Public apps use
 `envoy-external`; OAuth apps choose the admin or users Gateway and have an explicit

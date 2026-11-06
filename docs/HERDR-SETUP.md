@@ -53,21 +53,21 @@ attempts upgrades; failed upgrades reuse working installed versions, while faile
 installs prevent startup. Herdr has its own credentials, separate from the other apps.
 
 ```bash
-kubectl logs -n default deployment/herdr -c install-runtime
-kubectl logs -n default deployment/herdr -c install-agents
-kubectl exec -n default deployment/herdr -c app -- herdr --version
-kubectl exec -n default deployment/herdr -c app -- codex --version
-kubectl exec -it -n default deployment/herdr -c app -- codex login --device-auth
-kubectl exec -it -n default deployment/herdr -c app -- claude
-kubectl exec -it -n default deployment/herdr -c app -- agy
-kubectl exec -it -n default deployment/herdr -c app -- gh auth login
+kubectl logs -n herdr deployment/herdr -c install-runtime
+kubectl logs -n herdr deployment/herdr -c install-agents
+kubectl exec -n herdr deployment/herdr -c app -- herdr --version
+kubectl exec -n herdr deployment/herdr -c app -- codex --version
+kubectl exec -it -n herdr deployment/herdr -c app -- codex login --device-auth
+kubectl exec -it -n herdr deployment/herdr -c app -- claude
+kubectl exec -it -n herdr deployment/herdr -c app -- agy
+kubectl exec -it -n herdr deployment/herdr -c app -- gh auth login
 ```
 
 Authenticate the providers you use, clone repositories into `/workspace`, and create a workspace
 in the browser. The same terminal can be reached through the TUI:
 
 ```bash
-kubectl exec -it -n default deployment/herdr -c app -- herdr
+kubectl exec -it -n herdr deployment/herdr -c app -- herdr
 ```
 
 ## Validation and Branch Testing
@@ -76,9 +76,9 @@ kubectl exec -it -n default deployment/herdr -c app -- herdr
 task lint
 task dev:validate
 task dev:start
-kubectl get externalsecret -n default herdr
-kubectl rollout status -n default deployment/herdr --timeout=10m
-kubectl get httproute -n default herdr
+kubectl get externalsecret -n herdr herdr
+kubectl rollout status -n herdr deployment/herdr --timeout=10m
+kubectl get httproute -n herdr herdr
 # Check Google SSO, web UI token authentication, and a live agent terminal in the browser.
 # Verify /denied and /logged-out, and check that saved workspaces survive a pod restart.
 task dev:stop

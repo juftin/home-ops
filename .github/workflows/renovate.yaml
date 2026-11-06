@@ -24,12 +24,12 @@ jobs:
         with:
           ref: main
       - name: renovate
-        uses: renovatebot/github-action@f0f41e5f2e706165f6814b1d0f0d0e319de7d1d9 # v46.3.8
+        uses: renovatebot/github-action@2804199d260ad00c1fae0e9e842888369391c776 # v46.3.10
         with:
           token: ${{ secrets.RENOVATE_TOKEN }}
           configurationFile: .github/renovate-config.js
           # renovate: datasource=github-releases depName=renovatebot/renovate
-          renovate-version: 43.288.0
+          renovate-version: 44.186.4
         env:
           RENOVATE_REPOSITORY: ${{ github.repository }}
           RENOVATE_DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}

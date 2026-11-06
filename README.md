@@ -44,10 +44,14 @@ ______________________________________________________________________
   DNS records to a DNS provider.
 - **[reloader](https://github.com/stakater/Reloader)**: Automatic reloading of Kubernetes resources
   when ConfigMaps or Secrets change.
-- **[Agent tools](kubernetes/apps/default/agent-tools/app/install-agents.sh)**: Shared init installer
+- **[Agent tools](kubernetes/workloads/apps/agent-tools/install-agents.sh)**: Shared init installer
   for Codex, Claude Code, Antigravity, and the GitHub CLI in Paseo, OpenClaw, Herdr, and Orca.
 - **[local-path-provisioner](https://github.com/rancher/local-path-provisioner)**: Dynamic
   node-local persistent volume provisioning.
+- **[snapshot-controller](https://github.com/kubernetes-csi/external-snapshotter)**: CSI VolumeSnapshot
+  CRDs and snapshot controller for volume data protection.
+- **[VolSync](https://volsync.readthedocs.io/)**: Asynchronous data replication and backup operator
+  for PersistentVolumeClaims.
 - **[Tailscale](https://tailscale.com/)**: Kubernetes operator for private access to cluster applications.
   See [setup](docs/TAILSCALE-SETUP.md).
 
@@ -85,6 +89,13 @@ and Tailscale examples using the existing chart values.
   labels pod logs and forwards them to Loki.
 - **[oauth-pages](https://nginx.org/)**: Static access-denied and logout confirmation pages for
   Envoy Gateway OIDC, including route rewrites from friendly paths to static HTML files.
+
+Application manifests live in `kubernetes/workloads/apps/<app>/`, with a namespace matching
+each app name: `camply`, `echo`, `herdr`, `hermes-agent`, `lunchmoney`, `oauth-pages`, `openclaw`, and `paseo`.
+The `agent-tools` Application distributes installer ConfigMaps to agent namespaces.
+Infrastructure lives alongside `apps/` under `kubernetes/workloads/`, grouped by namespace.
+Existing installations must follow the
+[namespace migration runbook](docs/APP-NAMESPACE-MIGRATION.md) to preserve persistent data.
 
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f52e/512.gif" alt="🔮" width="20" height="20"> Hardware
 

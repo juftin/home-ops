@@ -1,0 +1,50 @@
+fullnameOverride: camply
+image:
+  tag: latest
+annotations:
+  reloader.stakater.com/auto: "true"
+database:
+  existingSecret: camply-home-ops
+env:
+  CAMPLY_AUTH_MODE: session
+  CAMPLY_APP_URL: https://camply.rocks
+  CAMPLY_CORS_ORIGINS: '["https://camply.rocks"]'
+  CAMPLY_SESSION_MAX_AGE: "43200"
+backend:
+  env:
+    CAMPLY_LOGIN_USERNAME:
+      valueFrom:
+        secretKeyRef:
+          name: camply-home-ops
+          key: CAMPLY_LOGIN_USERNAME
+    CAMPLY_LOGIN_PASSWORD:
+      valueFrom:
+        secretKeyRef:
+          name: camply-home-ops
+          key: CAMPLY_LOGIN_PASSWORD
+    CAMPLY_SESSION_SECRET:
+      valueFrom:
+        secretKeyRef:
+          name: camply-home-ops
+          key: CAMPLY_SESSION_SECRET
+postgresql:
+  persistence:
+    existingClaim: camply-db-data
+valkey:
+  persistence:
+    existingClaim: camply-valkey-data
+prometheus:
+  persistence:
+    existingClaim: camply-prometheus-data
+route:
+  enabled: true
+  hostnames:
+    - camply.rocks
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: envoy-external
+      namespace: network
+      sectionName: camply-https
+tests:
+  enabled: false

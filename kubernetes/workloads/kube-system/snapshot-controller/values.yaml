@@ -1,0 +1,4 @@
+fullnameOverride: snapshot-controller
+controller:
+  serviceMonitor:
+    create: false

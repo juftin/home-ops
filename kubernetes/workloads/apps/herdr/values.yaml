@@ -1,0 +1,141 @@
+controllers:
+  herdr:
+    strategy: Recreate
+    annotations:
+      reloader.stakater.com/auto: "true"
+    initContainers:
+      copy-bun:
+        image:
+          repository: docker.io/oven/bun
+          tag: 1.4.4-debian
+        command: [/bin/sh, -c]
+        args: ["mkdir -p /opt/herdr/bin && cp /usr/local/bin/bun /opt/herdr/bin/bun"]
+        securityContext: &containerSecurity
+          readOnlyRootFilesystem: false
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+      install-runtime:
+        image: &image
+          repository: docker.io/library/node
+          tag: 24.22.1-bookworm
+        env: &runtimeEnv
+          HOME: /home/herdr
+          XDG_CONFIG_HOME: /home/herdr/.config
+          PATH: &path /opt/herdr/bin:/home/herdr/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+        command: [/bin/bash, /opt/herdr-scripts/install-runtime.sh]
+        securityContext: *containerSecurity
+      install-agents:
+        image: *image
+        env: *runtimeEnv
+        command: [/bin/bash, /opt/agent-tools/install-agents.sh]
+        securityContext: *containerSecurity
+    containers:
+      app:
+        image: *image
+        env:
+          HOME: /home/herdr
+          XDG_CONFIG_HOME: /home/herdr/.config
+          PATH: *path
+          SHELL: /bin/bash
+          HOST: 0.0.0.0
+          PORT: &port 7317
+          HERDR_SOCKET: /home/herdr/.config/herdr/herdr.sock
+          HERDR_WEB_STATE_DIR: /home/herdr/.config/herdr-web-ui
+          HERDR_WEB_HERDR_BIN: /opt/herdr/bin/herdr
+          HERDR_WEB_AUTO_UPDATE: "0"
+          HERDR_WEB_TELEMETRY: "0"
+          HERDR_WEB_TOKEN:
+            valueFrom:
+              secretKeyRef:
+                name: herdr-secret
+                key: HERDR_WEB_TOKEN
+        command: [/bin/bash, /opt/herdr-scripts/start.sh]
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /api/health
+                port: *port
+              periodSeconds: 5
+              timeoutSeconds: 5
+              failureThreshold: 30
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /api/health
+                port: *port
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 3
+          readiness: *probes
+        securityContext: *containerSecurity
+        resources:
+          requests:
+            cpu: 100m
+            memory: 512Mi
+          limits:
+            memory: 4Gi
+defaultPodOptions:
+  automountServiceAccountToken: false
+  enableServiceLinks: false
+  terminationGracePeriodSeconds: 60
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+    fsGroupChangePolicy: OnRootMismatch
+service:
+  app:
+    ports:
+      http:
+        port: *port
+persistence:
+  runtime:
+    type: emptyDir
+    globalMounts:
+      - path: /opt/herdr
+  scripts:
+    type: configMap
+    name: herdr-scripts
+    globalMounts:
+      - path: /opt/herdr-scripts
+        readOnly: true
+  agent-tools:
+    type: configMap
+    name: agent-tools
+    advancedMounts:
+      herdr:
+        install-agents:
+          - path: /opt/agent-tools
+            readOnly: true
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp
+  home:
+    storageClass: node-local
+    accessMode: ReadWriteOnce
+    size: 5Gi
+    globalMounts:
+      - path: /home/herdr
+  workspace:
+    storageClass: node-local
+    accessMode: ReadWriteOnce
+    size: 20Gi
+    globalMounts:
+      - path: /workspace
+route:
+  app:
+    hostnames:
+      - herdr.${SECRET_DOMAIN}
+    parentRefs:
+      - name: envoy-oauth-admin
+        namespace: network
+        sectionName: https

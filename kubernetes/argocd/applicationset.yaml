@@ -10,55 +10,48 @@ spec:
         generators:
           - list:
               elements:
-                - namespace: kube-system
+                - folder: kube-system
                   wave: '0'
-                - namespace: cert-manager
+                - folder: cert-manager
                   wave: '1'
-                - namespace: external-secrets
+                - folder: external-secrets
                   wave: '1'
-                - namespace: network
+                - folder: network
                   wave: '2'
-                - namespace: tailscale
+                - folder: tailscale
                   wave: '2'
-                - namespace: default
+                - folder: apps
                   wave: '3'
-                - namespace: observability
+                - folder: observability
                   wave: '4'
           - git:
               repoURL: https://github.com/juftin/home-ops.git
               revision: refs/heads/main
               directories:
-                - path: 'kubernetes/apps/{{ .namespace }}/*'
+                - path: 'kubernetes/workloads/{{ .folder }}/*'
   template:
     metadata:
       name: '{{ .path.basename }}'
       labels:
-        home-ops.io/namespace: '{{ .namespace }}'
+        home-ops.io/namespace: '{{ if eq .folder "apps" }}{{ .path.basename }}{{ else }}{{ .folder }}{{ end }}'
       annotations:
         argocd.argoproj.io/sync-wave: '{{ .wave }}'
     spec:
-      project: '{{ if eq .namespace "kube-system" }}kube-system{{ else }}home-ops{{ end }}'
+      project: '{{ if eq .folder "kube-system" }}kube-system{{ else }}home-ops{{ end }}'
       source:
         repoURL: https://github.com/juftin/home-ops.git
         targetRevision: refs/heads/main
-        path: '{{ .path.path }}/app'
+        path: '{{ .path.path }}'
         plugin:
           name: kustomize-substitute-secret-domain
       destination:
         server: https://kubernetes.default.svc
-        namespace: '{{ .namespace }}'
+        namespace: '{{ if eq .folder "apps" }}{{ .path.basename }}{{ else }}{{ .folder }}{{ end }}'
       ignoreDifferences:
-        - group: gateway.networking.k8s.io
-          kind: Gateway
-          jqPathExpressions:
-            - .spec.listeners[].tls.mode
-            - .spec.listeners[].tls.certificateRefs[].group
         - group: gateway.networking.k8s.io
           kind: HTTPRoute
           jqPathExpressions:
-            - .spec.parentRefs[].group
-            - .spec.parentRefs[].kind
-            # Ignore only the API's default catch-all, so path edits still trigger sync.
+            # Charts omit the default catch-all match; keep it out of comparisons.
             - '.spec.rules[] | select(.matches == [{"path":{"type":"PathPrefix","value":"/"}}]) | .matches'
         - group: gateway.envoyproxy.io
           kind: SecurityPolicy
@@ -86,10 +79,15 @@ spec:
             - .spec.updateStrategy.rollingUpdate.maxUnavailable
             - .spec.volumeClaimTemplates[].spec.volumeMode
             - .spec.volumeClaimTemplates[].status
+        - group: ""
+          kind: PersistentVolumeClaim
+          jsonPointers:
+            - /spec/volumeName
       syncPolicy:
         automated:
           prune: true
           selfHeal: true
         syncOptions:
           - ServerSideApply=true
-          - 'CreateNamespace={{ eq .namespace "tailscale" }}'
+          - CreateNamespace=true
+          - RespectIgnoreDifferences=true

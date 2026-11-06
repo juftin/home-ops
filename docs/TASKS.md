@@ -44,6 +44,12 @@ task dev:worktree:remove NAME=home-ops-my-change
 
 `task dev:start` / `task dev:sync` / `task dev:stop` require cluster access (`kubeconfig`).
 
+If a branch changes `kubernetes/argocd/`, sync `home-ops-root` in ArgoCD after
+`task dev:start`; the root Application does not sync automatically. Then run
+`task dev:sync` again because applying the ApplicationSet restores its branch references
+to `main`. After testing, run `task dev:stop` and sync `home-ops-root` again to restore
+the root manifests from `main`.
+
 `task dev:validate` requires the real age key. For a fresh checkout or a fork PR without secrets,
 use `task dev:validate:ci`. This uses `example.com` and replaces encrypted values in temporary
 app copies; it validates rendering but does not check secret contents or SOPS decryption.

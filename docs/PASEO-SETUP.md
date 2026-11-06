@@ -22,7 +22,7 @@ the Secret exists. Reloader restarts the pod when the password changes.
 The [official image](https://paseo.sh/docs/docker) includes Paseo and Git, but no agent CLIs.
 An init container installs Codex (`@openai/codex`), Claude Code (`@anthropic-ai/claude-code`),
 Antigravity (`agy`), and the GitHub CLI (`gh`) into `/home/paseo/.local` before the daemon starts.
-It runs the [shared installer](../kubernetes/apps/default/agent-tools/app/install-agents.sh)
+It runs the [shared installer](../kubernetes/workloads/apps/agent-tools/install-agents.sh)
 from the `agent-tools` ConfigMap, also used by OpenClaw. Reloader restarts both deployments
 when this ConfigMap changes; each app retains its own tools and credentials on its own PVC.
 Every pod start attempts to upgrade all tools to their latest release. If an upgrade fails, a
@@ -33,20 +33,20 @@ keep the tools available across pod recreation.
 Check installation logs and versions:
 
 ```bash
-kubectl logs -n default deployment/paseo -c install-agents
-kubectl exec -n default deployment/paseo -c app -- codex --version
-kubectl exec -n default deployment/paseo -c app -- claude --version
-kubectl exec -n default deployment/paseo -c app -- agy --version
-kubectl exec -n default deployment/paseo -c app -- gh --version
+kubectl logs -n paseo deployment/paseo -c install-agents
+kubectl exec -n paseo deployment/paseo -c app -- codex --version
+kubectl exec -n paseo deployment/paseo -c app -- claude --version
+kubectl exec -n paseo deployment/paseo -c app -- agy --version
+kubectl exec -n paseo deployment/paseo -c app -- gh --version
 ```
 
 Authenticate each provider once inside the running pod as the non-root `paseo` user:
 
 ```bash
-kubectl exec -it -n default deployment/paseo -c app -- codex login --device-auth
-kubectl exec -it -n default deployment/paseo -c app -- claude
-kubectl exec -it -n default deployment/paseo -c app -- agy
-kubectl exec -it -n default deployment/paseo -c app -- gh auth login
+kubectl exec -it -n paseo deployment/paseo -c app -- codex login --device-auth
+kubectl exec -it -n paseo deployment/paseo -c app -- claude
+kubectl exec -it -n paseo deployment/paseo -c app -- agy
+kubectl exec -it -n paseo deployment/paseo -c app -- gh auth login
 ```
 
 For Codex, enable device-code login in your ChatGPT security settings if needed, then open the
@@ -86,10 +86,10 @@ the Paseo sync. The existing PVCs and their data are retained.
 task lint
 task dev:validate
 task dev:start
-kubectl get externalsecret paseo -n default
-kubectl get pvc -n default
-kubectl rollout status deployment/paseo -n default
-kubectl get httproute paseo -n default
+kubectl get externalsecret paseo -n paseo
+kubectl get pvc -n paseo
+kubectl rollout status deployment/paseo -n paseo
+kubectl get httproute paseo -n paseo
 ```
 
 Open the Paseo hostname, complete Google login, and supply the daemon password when prompted.

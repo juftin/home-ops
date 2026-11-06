@@ -37,8 +37,8 @@ First visit `https://orca.${SECRET_DOMAIN}` and complete Google SSO. Retrieve th
 locally after rollout:
 
 ```bash
-kubectl rollout status -n default deployment/orca --timeout=10m
-kubectl exec -n default deployment/orca -c app -- \
+kubectl rollout status -n orca deployment/orca --timeout=10m
+kubectl exec -n orca deployment/orca -c app -- \
   cat /home/orca/.config/Orca/serve-ready.jsonl
 ```
 
@@ -84,11 +84,11 @@ in [Tailscale setup](TAILSCALE-SETUP.md). Upstream describes the server and pair
   LAN, tailnet, and metadata addresses are blocked. Outbound SSH cannot reach private hosts.
 
 ```bash
-kubectl exec -it -n default deployment/orca -c app -- codex login --device-auth
-kubectl exec -it -n default deployment/orca -c app -- claude
-kubectl exec -it -n default deployment/orca -c app -- agy
-kubectl exec -it -n default deployment/orca -c app -- gh auth login
-kubectl exec -n default deployment/orca -c app -- orca status --json
+kubectl exec -it -n orca deployment/orca -c app -- codex login --device-auth
+kubectl exec -it -n orca deployment/orca -c app -- claude
+kubectl exec -it -n orca deployment/orca -c app -- agy
+kubectl exec -it -n orca deployment/orca -c app -- gh auth login
+kubectl exec -n orca deployment/orca -c app -- orca status --json
 ```
 
 ## Validation
