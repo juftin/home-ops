@@ -254,6 +254,8 @@ service:
         port: 80
 route:
   app:
+    annotations:
+      external-dns.kubernetes.io/controller: none
     parentRefs:
       - name: envoy-oauth-admin
         namespace: network
