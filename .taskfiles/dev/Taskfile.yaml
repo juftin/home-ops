@@ -1,5 +1,16 @@
 version: '3'
 tasks:
+  orca:build:
+    desc: Build the pinned Orca headless image
+    vars:
+      IMAGE: '{{.IMAGE | default "home-ops-orca:local"}}'
+      PLATFORM: '{{.PLATFORM | default "linux/amd64"}}'
+    cmd: docker build --platform {{.PLATFORM}} --tag {{.IMAGE}} {{.ROOT_DIR}}/containers/orca
+  orca:test:
+    desc: Test the Orca image runtime, browser bundle, and pairing output
+    vars:
+      IMAGE: '{{.IMAGE | default "home-ops-orca:local"}}'
+    cmd: bash {{.ROOT_DIR}}/scripts/tests/test-orca.sh {{.IMAGE}}
   agents:test:
     desc: Test shared agent installation and cached-version fallback without network access
     cmd: 'bash {{.ROOT_DIR}}/scripts/tests/test-install-agents.sh'

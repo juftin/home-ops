@@ -13,5 +13,9 @@ configMapGenerator:
     namespace: herdr
     files:
       - install-agents.sh
+  - name: agent-tools
+    namespace: orca
+    files:
+      - install-agents.sh
 generatorOptions:
   disableNameSuffixHash: true

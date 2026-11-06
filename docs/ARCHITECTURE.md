@@ -73,6 +73,7 @@ Each application formerly in `default` has a namespace matching its app name:
 | `lunchmoney`   | `lunchmoney`   |
 | `oauth-pages`  | `oauth-pages`  |
 | `openclaw`     | `openclaw`     |
+| `orca`         | `orca`         |
 | `paseo`        | `paseo`        |
 
 Agent tools distributes installer ConfigMaps to the agent namespaces.
@@ -125,19 +126,20 @@ ______________________________________________________________________
 
 ## Coding Agents
 
-| Namespace      | App            | Role                                                       |
-| -------------- | -------------- | ---------------------------------------------------------- |
-| `paseo`        | `paseo`        | Coding-agent daemon and bundled web UI                     |
-| `openclaw`     | `openclaw`     | Personal AI assistant gateway and Control UI               |
-| `hermes-agent` | `hermes-agent` | Self-improving AI agent with Gateway API and Web Dashboard |
-| `herdr`        | `herdr`        | Persistent agent terminals and browser/phone web UI        |
-| `agent-tools`  | `agent-tools`  | Shared installer ConfigMap for Paseo, OpenClaw, and Herdr  |
+| Namespace      | App            | Role                                                            |
+| -------------- | -------------- | --------------------------------------------------------------- |
+| `paseo`        | `paseo`        | Coding-agent daemon and bundled web UI                          |
+| `openclaw`     | `openclaw`     | Personal AI assistant gateway and Control UI                    |
+| `hermes-agent` | `hermes-agent` | Self-improving AI agent with Gateway API and Web Dashboard      |
+| `herdr`        | `herdr`        | Persistent agent terminals and browser/phone web UI             |
+| `orca`         | `orca`         | Headless Orca runtime with browser and paired native clients    |
+| `agent-tools`  | `agent-tools`  | Shared installer ConfigMap for Paseo, OpenClaw, Herdr, and Orca |
 
 The `agent-tools` app generates installer ConfigMaps from `install-agents.sh` in the
-`paseo`, `openclaw`, and `herdr` namespaces. Each app mounts its ConfigMap
+`paseo`, `openclaw`, `herdr`, and `orca` namespaces. Each app mounts its ConfigMap
 it read-only in their `install-agents` init containers. The script installs or upgrades Codex,
 Claude Code, Antigravity, and the GitHub CLI under each app's persistent `$HOME/.local` and reuses
-working installed versions if upgrades fail. All three app containers include `$HOME/.local/bin` in
+working installed versions if upgrades fail. All four app containers include `$HOME/.local/bin` in
 `PATH`. Reloader restarts consumers when the shared ConfigMap changes; the tools and credentials
 remain isolated on each app's own PVC.
 
@@ -176,6 +178,15 @@ device/push state) and `/workspace` (repositories and worktrees). A single non-r
 the `herdr` 1Password item. Its HTTP health probe checks the Herdr socket as well as the web
 server. See [Herdr setup](HERDR-SETUP.md).
 
+Orca is served at `orca.${SECRET_DOMAIN}` through Cloudflare Tunnel and the admin OAuth Gateway,
+and at `https://orca.<tailnet-DNS-suffix>` through a private Tailscale Ingress. Orca's E2EE client
+pairing remains required on both paths. The repository builds an image from the checksum-verified
+official v1.4.229 Debian package. Its Electron headless server provides the browser bundle and
+uses Xvfb with software rendering; the stable Node-only server does not serve the browser bundle.
+One non-root replica uses `Recreate`, with node-local PVCs for `/home/orca` (5 GiB) and
+`/workspace` (20 GiB). Shared coding tools install under its persistent home. Access links are
+written to an owner-only readiness file instead of pod logs. See [Orca setup](ORCA-SETUP.md).
+
 ### Agent isolation
 
 Each agent has its own pod and PVCs. All app and init containers run as non-root, drop all Linux
@@ -188,12 +199,12 @@ No Kubernetes token,
 host directories, container-runtime sockets, or host namespaces are exposed.
 
 App-local CiliumNetworkPolicies default-deny ingress and egress. Ingress permits only the admin
-Envoy gateway on each app's service ports; Paseo also permits its specific Tailscale ingress proxy.
+Envoy gateway on each app's service ports; Paseo and Orca also permit their specific Tailscale ingress proxies.
 Egress permits CoreDNS on TCP/UDP 53 and public HTTP/HTTPS/SSH on TCP 80/443/22. Other cluster
 services (including the other agents), Kubernetes API, nodes, LAN, tailnet, and metadata addresses
 are blocked, with explicit exceptions for DNS and OpenClaw accessing only the Lunch Money
 application on TCP 8000 (`http://lunchmoney-app.lunchmoney.svc.cluster.local:8000`). Its PostgreSQL,
-Valkey, and scheduler pods remain inaccessible to OpenClaw. Paseo, Hermes, and Herdr have no Lunch Money
+Valkey, and scheduler pods remain inaccessible to OpenClaw. Paseo, Hermes, Herdr, and Orca have no Lunch Money
 exception. Existing stateful connections can
 receive replies; the ingress exception does not authorize agent-initiated connections to proxies.
 See [Cilium policy semantics](https://docs.cilium.io/en/stable/security/policy/layer3/).
@@ -218,6 +229,10 @@ finish branch testing with `task dev:stop`.
 | ------------ | ------------ | ------------------------------------------------------------------------- |
 | `tailscale`  | `tailscale`  | Kubernetes operator and private HTTPS proxy pods                          |
 | `lunchmoney` | `lunchmoney` | Lunch Money MCP server, dashboard, PostgreSQL, Valkey, and sync scheduler |
+
+The Tailscale operator also exposes Orca through a private `Ingress` at
+`https://orca.<tailnet-DNS-suffix>`, forwarding to `orca:6768`. Native Orca clients use this
+hostname to avoid browser OAuth redirects and still require Orca client pairing.
 
 The Tailscale operator exposes Paseo through a private `Ingress` at
 `https://paseo.<tailnet-DNS-suffix>`, forwarding directly to the existing `paseo:6767` service.
