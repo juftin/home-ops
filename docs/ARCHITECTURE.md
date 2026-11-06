@@ -8,7 +8,7 @@ ______________________________________________________________________
 
 - **ArgoCD** is the only GitOps reconciler.
 - `home-ops-root` (bootstrapped by Helmfile) points to `kubernetes/argocd`.
-- `kubernetes/argocd/applicationset.yaml` generates one ArgoCD `Application` per workload under `kubernetes/workloads/<folder>/<app>/app`.
+- `kubernetes/argocd/applicationset.yaml` generates one ArgoCD `Application` per workload under `kubernetes/workloads/<folder>/<app>`.
 - The `apps` folder gives each app its own namespace; infrastructure folders use the folder name as their shared namespace. Sync waves are assigned by folder.
 - Generated apps create their destination namespace automatically and use server-side apply so Kubernetes-assigned PVC bindings are preserved during sync.
 - GitHub push webhooks reach `webhooks.${SECRET_DOMAIN}/argocd/api/webhook` through the public
@@ -36,6 +36,7 @@ kubernetes/workloads/
 │   ├── herdr/
 │   ├── hermes-agent/
 │   ├── lunchmoney/
+│   ├── ntfy/
 │   ├── oauth-pages/
 │   ├── openclaw/
 │   └── paseo/
@@ -73,6 +74,7 @@ Each application formerly in `default` has a namespace matching its app name:
 | `agent-tools`  | `agent-tools`  |
 | `hermes-agent` | `hermes-agent` |
 | `lunchmoney`   | `lunchmoney`   |
+| `ntfy`         | `ntfy`         |
 | `oauth-pages`  | `oauth-pages`  |
 | `openclaw`     | `openclaw`     |
 | `paseo`        | `paseo`        |
@@ -240,13 +242,13 @@ No Funnel or Kubernetes API proxy is enabled. See [Tailscale setup](TAILSCALE-SE
 
 | Namespace | App    | Role                                                    |
 | --------- | ------ | ------------------------------------------------------- |
-| `default` | `ntfy` | Self-hosted pub-sub push notifications (web, apps, API) |
+| `ntfy`    | `ntfy` | Self-hosted pub-sub push notifications (web, apps, API) |
 
 ntfy is served at `ntfy.${SECRET_DOMAIN}` through Cloudflare Tunnel and the public `envoy-external`
 Gateway. No application authentication is configured. The public HTTPRoute allowlists subscription,
 web UI, and attachment reads; all write endpoints are excluded, including GET publish/clear/delete
 aliases. Publishing is available without credentials over the ClusterIP Service
-`ntfy.default.svc.cluster.local:8080` and the private Tailscale Ingress at
+`ntfy.ntfy.svc.cluster.local:8080` and the private Tailscale Ingress at
 `https://ntfy.<tailnet-DNS-suffix>`. Tailnet access follows the existing Tailscale ACLs; Funnel is
 not enabled. An ingress NetworkPolicy limits backend access to cluster pods (including Envoy and
 Tailscale proxies), with metrics restricted to observability pods.

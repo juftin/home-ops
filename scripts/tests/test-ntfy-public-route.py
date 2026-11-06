@@ -9,7 +9,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[2]
 VALUES = json.loads(
     subprocess.check_output(
-        ["yq", "-o=json", ".", str(ROOT / "kubernetes/apps/default/ntfy/app/values.yaml")],
+        ["yq", "-o=json", ".", str(ROOT / "kubernetes/workloads/apps/ntfy/values.yaml")],
         text=True,
     )
 )
