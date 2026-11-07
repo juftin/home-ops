@@ -76,7 +76,10 @@ allowing graceful connection draining before Kubernetes sends SIGTERM.
   Gateway. Public traffic reaches the application directly, using Camply's application-level
   authentication (session login or open access). The Cloudflare Tunnel routes traffic matching
   `*.${SECRET_DOMAIN}` directly to `envoy-external`.
-- The HTTPRoute directs `/api` traffic to `camply-backend:8000` and all other traffic (`/`) to `camply-frontend:8080`.
+- **Notifications**: `/ntfy` is reserved for the separate ntfy read-only API and subscription
+  route. It strips the prefix before forwarding; publishing and web UI requests return 404.
+  See [ntfy setup](NTFY-SETUP.md).
+- The Camply HTTPRoute directs `/api` traffic to `camply-backend:8000` and all other traffic (`/`) to `camply-frontend:8080`.
 
 The `camply-rocks-production` Certificate uses the `letsencrypt-production` ClusterIssuer.
 Its Cloudflare API token (`cert-manager-secret`, key `api-token`, in `cert-manager`) needs
