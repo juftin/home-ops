@@ -78,7 +78,8 @@ and Tailscale examples using the existing chart values.
   dashboard for Lunch Money with web API, PostgreSQL database, Valkey distributed locking, and
   scheduled synchronization, accessible internally and via Tailscale. See [setup](docs/LUNCHMONEY-SETUP.md).
 - **[ntfy](https://github.com/binwiederhier/ntfy)**: Self-hosted pub-sub push notifications to phones
-  and desktops, with public subscriptions and publishing restricted to cluster and Tailscale traffic.
+  and desktops, with public subscriptions (also at `https://camply.rocks/ntfy`) and publishing
+  restricted to cluster and Tailscale traffic.
   See [setup](docs/NTFY-SETUP.md).
 - **[Grafana](https://grafana.com/)**: Cluster dashboards and Explore UI.
 - **[Prometheus](https://prometheus.io/)**: Scrapes and stores Kubernetes metrics with 30-day
@@ -92,7 +93,7 @@ and Tailscale examples using the existing chart values.
   Envoy Gateway OIDC, including route rewrites from friendly paths to static HTML files.
 
 Application manifests live in `kubernetes/workloads/apps/<app>/`, with a namespace matching
-each app name: `agentsview`, `camply`, `echo`, `herdr`, `hermes-agent`, `lunchmoney`, `oauth-pages`, `openclaw`, and `paseo`.
+each app name: `agentsview`, `camply`, `echo`, `herdr`, `hermes-agent`, `lunchmoney`, `ntfy`, `oauth-pages`, `openclaw`, and `paseo`.
 The `agent-tools` Application distributes installer ConfigMaps to agent namespaces.
 Infrastructure lives alongside `apps/` under `kubernetes/workloads/`, grouped by namespace.
 Existing installations must follow the

@@ -82,6 +82,10 @@ Each application formerly in `default` has a namespace matching its app name:
 Agent tools distributes installer ConfigMaps to the agent namespaces.
 
 Camply keeps its frontend, API, workers, database, cache, and Prometheus in `camply`.
+ntfy runs in `ntfy` with persistent message storage, public read-only subscriptions at its
+hostname and `camply.rocks/ntfy`, and cluster/Tailscale-only publishing. Its Camply route
+strips `/ntfy` using an Envoy HTTPRouteFilter and returns 404 for all other requests under
+that prefix, ahead of Camply's frontend fallback. The web UI uses the ntfy hostname.
 Shared Gateways stay in `network`; application HTTPRoutes reference them across namespaces.
 Cloudflare's public wildcard DNS record is declared by `cloudflare-dns/public-wildcard`.
 The shared `oauth-pages` HTTPRoute is excluded from ExternalDNS discovery because it
