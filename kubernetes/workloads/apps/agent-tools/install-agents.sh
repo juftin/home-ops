@@ -69,6 +69,16 @@ else
     fi
 fi
 
+if [ -L "${HOME}/.agents/agents.toml" ]; then
+    rm -f "${HOME}/.agents/agents.toml"
+fi
+
+for plugin in astral juftin skill-creator; do
+    if [ -d "${HOME}/.gemini/config/plugins/${plugin}" ]; then
+        touch "${HOME}/.gemini/config/plugins/${plugin}/.dotfiles-managed"
+    fi
+done
+
 if [ -f "${DOTFILES_DIR}/bootstrap/bootstrap.sh" ]; then
     if ! bash "${DOTFILES_DIR}/bootstrap/bootstrap.sh" --agents; then
         echo "Dotfiles agent configuration incomplete or skipped." >&2
