@@ -21,7 +21,8 @@ the Secret exists. Reloader restarts the pod when the password changes.
 
 The [official image](https://paseo.sh/docs/docker) includes Paseo and Git, but no agent CLIs.
 An init container installs Codex (`@openai/codex`), Claude Code (`@anthropic-ai/claude-code`),
-Antigravity (`agy`), and the GitHub CLI (`gh`) into `/home/paseo/.local` before the daemon starts.
+Antigravity (`agy`), the GitHub CLI (`gh`), uv, and Spec Kit (`specify`) into `/home/paseo/.local` before the daemon starts,
+and syncs agent configuration from `juftin/dotfiles`.
 It runs the [shared installer](../kubernetes/workloads/apps/agent-tools/install-agents.sh)
 from the `agent-tools` ConfigMap, also used by OpenClaw. Reloader restarts both deployments
 when this ConfigMap changes; each app retains its own tools and credentials on its own PVC.
@@ -38,6 +39,8 @@ kubectl exec -n paseo deployment/paseo -c app -- codex --version
 kubectl exec -n paseo deployment/paseo -c app -- claude --version
 kubectl exec -n paseo deployment/paseo -c app -- agy --version
 kubectl exec -n paseo deployment/paseo -c app -- gh --version
+kubectl exec -n paseo deployment/paseo -c app -- uv --version
+kubectl exec -n paseo deployment/paseo -c app -- specify --version
 ```
 
 Authenticate each provider once inside the running pod as the non-root `paseo` user:

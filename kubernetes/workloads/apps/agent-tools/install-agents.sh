@@ -3,6 +3,7 @@
 set -euo pipefail
 
 export PATH="${HOME}/.local/bin:${PATH}"
+export UV_TOOL_BIN_DIR="${HOME}/.local/bin"
 mkdir -p "${HOME}/.local/bin"
 TMP_DIR=$(mktemp -d)
 trap 'rm -rf "${TMP_DIR}"' EXIT
@@ -43,7 +44,40 @@ else
     echo "GitHub CLI upgrade failed; using the installed version." >&2
 fi
 
+if command -v uv >/dev/null 2>&1; then
+    if ! uv self update; then
+        echo "uv upgrade failed; using the installed version." >&2
+    fi
+else
+    curl -fsSL https://astral.sh/uv/install.sh -o "${TMP_DIR}/install-uv.sh"
+    UV_INSTALL_DIR="${HOME}/.local/bin" UV_NO_MODIFY_PATH=1 sh "${TMP_DIR}/install-uv.sh"
+fi
+
+if ! uv tool install --upgrade git+https://github.com/juftin/spec-kit.git; then
+    specify --version
+    echo "specify upgrade failed; using the installed version." >&2
+fi
+
+export DOTFILES_DIR="${HOME}/.dotfiles"
+if [ ! -d "${DOTFILES_DIR}" ]; then
+    if ! git clone --depth 1 https://github.com/juftin/dotfiles.git "${DOTFILES_DIR}"; then
+        echo "Dotfiles clone failed; skipping agent configuration." >&2
+    fi
+else
+    if ! git -C "${DOTFILES_DIR}" pull --ff-only; then
+        echo "Dotfiles pull failed; using existing clone." >&2
+    fi
+fi
+
+if [ -f "${DOTFILES_DIR}/bootstrap/bootstrap.sh" ]; then
+    if ! bash "${DOTFILES_DIR}/bootstrap/bootstrap.sh" --agents; then
+        echo "Dotfiles agent configuration incomplete or skipped." >&2
+    fi
+fi
+
 codex --version
 claude --version
 agy --version
 gh --version
+uv --version
+specify --version
