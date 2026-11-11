@@ -18,8 +18,23 @@ write_tool() {
 #!/usr/bin/env bash
 set -euo pipefail
 echo "${0##*/} $*" >> "${MOCK_LOG}"
-if [[ "${1:-}" == update && "${FAIL_UPGRADES:-0}" == 1 ]]; then
+if [[ ("${1:-}" == update || ("${1:-}" == self && "${2:-}" == update)) && "${FAIL_UPGRADES:-0}" == 1 ]]; then
     exit 1
+fi
+if [[ "${1:-}" == tool && "${2:-}" == install ]]; then
+    if [[ "${FAIL_UPGRADES:-0}" == 1 ]]; then
+        exit 1
+    fi
+    tool_bin_dir="${UV_TOOL_BIN_DIR:-${HOME}/.local/bin}"
+    mkdir -p "${tool_bin_dir}"
+    cat > "${tool_bin_dir}/specify" <<'SPECIFY'
+#!/usr/bin/env bash
+set -euo pipefail
+echo "${0##*/} $*" >> "${MOCK_LOG}"
+echo "${0##*/} fixture-version"
+SPECIFY
+    chmod +x "${tool_bin_dir}/specify"
+    exit 0
 fi
 echo "${0##*/} fixture-version"
 TOOL
@@ -43,6 +58,9 @@ case "${command_name}" in
             *antigravity.google/cli/install.sh*)
                 printf '#!/usr/bin/env bash\necho "agy-installer $*" >> "${MOCK_LOG}"\n"${MOCK_BIN}/mock" install-agy "$2"\n' > "${!#}"
                 ;;
+            *astral.sh/uv/install.sh*)
+                printf '#!/usr/bin/env bash\necho "uv-installer $*" >> "${MOCK_LOG}"\n"${MOCK_BIN}/mock" install-uv "${UV_INSTALL_DIR}"\n' > "${!#}"
+                ;;
             *releases/latest*) echo 'https://github.com/cli/cli/releases/tag/v1.2.3' ;;
             *)
                 [[ "${FAIL_GH_DOWNLOAD:-0}" != 1 ]] || exit 1
@@ -56,15 +74,37 @@ case "${command_name}" in
         ;;
     uname) echo "${MOCK_ARCH}" ;;
     mock)
-        [[ "$1" == install-agy ]]
-        write_tool "$2/agy"
+        case "$1" in
+            install-agy) write_tool "$2/agy" ;;
+            install-uv) write_tool "$2/uv" ;;
+            *) exit 1 ;;
+        esac
+        ;;
+    git)
+        echo "git $*" >> "${MOCK_LOG}"
+        [[ "${FAIL_UPGRADES:-0}" != 1 ]] || exit 1
+        case "$1" in
+            clone)
+                target="${!#}"
+                mkdir -p "${target}/bootstrap"
+                cat > "${target}/bootstrap/bootstrap.sh" <<'BOOTSTRAP'
+#!/usr/bin/env bash
+set -euo pipefail
+echo "bootstrap $*" >> "${MOCK_LOG}"
+BOOTSTRAP
+                chmod +x "${target}/bootstrap/bootstrap.sh"
+                ;;
+            -C)
+                ;;
+            *) exit 1 ;;
+        esac
         ;;
     *) exit 1 ;;
 esac
 EOF
 chmod +x "${MOCK_BIN}/mock"
 # Shadow host CLIs used by the missing-tool checks.
-for command_name in npm curl tar uname codex claude gh; do
+for command_name in npm curl tar uname codex claude gh git; do
     ln -s mock "${MOCK_BIN}/${command_name}"
 done
 export PATH="${MOCK_BIN}:/usr/bin:/bin"
@@ -76,16 +116,20 @@ for app_home in paseo node; do
         export MOCK_ARCH=x86_64
     fi
     bash "${INSTALLER}" > "${TEST_DIR}/install.log" 2>&1
-    for tool in codex claude agy gh; do
+    for tool in codex claude agy gh uv specify; do
         test -x "${HOME}/.local/bin/${tool}"
     done
     grep -q -- "--prefix ${HOME}/.local @openai/codex@latest" "${MOCK_LOG}"
     grep -q -- '--allow-scripts=@anthropic-ai/claude-code' "${MOCK_LOG}"
     grep -q -- "--dir ${HOME}/.local/bin" "${MOCK_LOG}"
+    grep -q 'uv-installer' "${MOCK_LOG}"
+    grep -q 'uv tool install --upgrade git+https://github.com/juftin/spec-kit.git' "${MOCK_LOG}"
+    grep -q 'bootstrap --agents' "${MOCK_LOG}"
 
     # A normal second start upgrades the already-installed Antigravity CLI.
     bash "${INSTALLER}" > "${TEST_DIR}/upgrade.log" 2>&1
     grep -q 'agy update' "${MOCK_LOG}"
+    grep -q 'uv self update' "${MOCK_LOG}"
 
     FAIL_GH_DOWNLOAD=1 bash "${INSTALLER}" > "${TEST_DIR}/download-failure.log" 2>&1
     grep -q 'GitHub CLI upgrade failed' "${TEST_DIR}/download-failure.log"
@@ -96,6 +140,8 @@ for app_home in paseo node; do
     grep -q 'Claude Code upgrade failed' "${TEST_DIR}/fallback.log"
     grep -q 'Antigravity upgrade failed' "${TEST_DIR}/fallback.log"
     grep -q 'GitHub CLI upgrade failed' "${TEST_DIR}/fallback.log"
+    grep -q 'uv upgrade failed' "${TEST_DIR}/fallback.log"
+    grep -q 'specify upgrade failed' "${TEST_DIR}/fallback.log"
 done
 grep -q 'gh_1.2.3_linux_amd64.tar.gz' "${MOCK_LOG}"
 grep -q 'gh_1.2.3_linux_arm64.tar.gz' "${MOCK_LOG}"
@@ -110,6 +156,18 @@ export HOME="${TEST_DIR}/node"
 rm "${HOME}/.local/bin/gh"
 if FAIL_UPGRADES=1 bash "${INSTALLER}" > "${TEST_DIR}/missing-gh.log" 2>&1; then
     echo 'Installer accepted a missing GitHub CLI after a failed download' >&2
+    exit 1
+fi
+
+rm "${HOME}/.local/bin/uv"
+if FAIL_UPGRADES=1 bash "${INSTALLER}" > "${TEST_DIR}/missing-uv.log" 2>&1; then
+    echo 'Installer accepted a missing uv after a failed download' >&2
+    exit 1
+fi
+
+rm "${HOME}/.local/bin/specify"
+if FAIL_UPGRADES=1 bash "${INSTALLER}" > "${TEST_DIR}/missing-specify.log" 2>&1; then
+    echo 'Installer accepted a missing specify after a failed download' >&2
     exit 1
 fi
 

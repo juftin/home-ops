@@ -45,7 +45,7 @@ ______________________________________________________________________
 - **[reloader](https://github.com/stakater/Reloader)**: Automatic reloading of Kubernetes resources
   when ConfigMaps or Secrets change.
 - **[Agent tools](kubernetes/workloads/apps/agent-tools/install-agents.sh)**: Shared init installer
-  for Codex, Claude Code, Antigravity, and the GitHub CLI in Paseo, OpenClaw, and Herdr.
+  for Codex, Claude Code, Antigravity, GitHub CLI, uv, and Spec Kit in Paseo, OpenClaw, and Herdr.
 - **[local-path-provisioner](https://github.com/rancher/local-path-provisioner)**: Dynamic
   node-local persistent volume provisioning.
 - **[snapshot-controller](https://github.com/kubernetes-csi/external-snapshotter)**: CSI VolumeSnapshot
