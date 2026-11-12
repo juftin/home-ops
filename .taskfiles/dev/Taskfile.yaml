@@ -1,5 +1,36 @@
 version: '3'
 tasks:
+  app:start:
+    desc: Deploy only APP from a pushed feature branch (BRANCH defaults to the current branch)
+    requires:
+      vars: [APP]
+    env: &appEnv
+      DEV_APP: '{{.APP}}'
+      DEV_BRANCH: '{{.BRANCH | default ""}}'
+      DEV_APP_PATH: '{{.APP_PATH | default ""}}'
+    cmd: bash "{{.ROOT_DIR}}/scripts/dev-argocd-app.sh" start
+    preconditions: &appPreconditions
+      - test -f {{.KUBECONFIG}}
+      - which kubectl git jq
+  app:sync:
+    desc: Push the current branch and refresh only APP
+    requires:
+      vars: [APP]
+    env: *appEnv
+    cmd: bash "{{.ROOT_DIR}}/scripts/dev-argocd-app.sh" sync
+    preconditions: *appPreconditions
+  app:stop:
+    desc: Restore only APP to main, or remove its temporary Application while retaining resources
+    requires:
+      vars: [APP]
+    env: *appEnv
+    cmd: bash "{{.ROOT_DIR}}/scripts/dev-argocd-app.sh" stop
+    preconditions: *appPreconditions
+  app:test:
+    desc: Test single-app branch deployment and cleanup without cluster access
+    cmd: bash "{{.ROOT_DIR}}/scripts/tests/test-dev-argocd-app.sh"
+    preconditions:
+      - which git jq yq
   agents:test:
     desc: Test shared agent installation and cached-version fallback without network access
     cmd: 'bash {{.ROOT_DIR}}/scripts/tests/test-install-agents.sh'

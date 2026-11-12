@@ -49,6 +49,8 @@ jobs:
         run: task dev:validate:test
       - name: Test shared agent installer
         run: task dev:agents:test
+      - name: Test single-app branch deployment
+        run: task dev:app:test
       - name: Validate ArgoCD rendering and Kubernetes schemas
         run: task dev:validate:ci
   argocd-validate-status:
