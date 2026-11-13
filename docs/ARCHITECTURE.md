@@ -245,7 +245,7 @@ No Funnel or Kubernetes API proxy is enabled. See [Tailscale setup](TAILSCALE-SE
 | --------- | ------ | ------------------------------------------------------- |
 | `ntfy`    | `ntfy` | Self-hosted pub-sub push notifications (web, apps, API) |
 
-ntfy is served at `ntfy.${SECRET_DOMAIN}` through Cloudflare Tunnel and the public `envoy-external`
+ntfy is served at `ntfy.camply.rocks` through Cloudflare Tunnel and the public `envoy-external`
 Gateway. No application authentication is configured. The public HTTPRoute allowlists subscription,
 web UI, and attachment reads; all write endpoints are excluded, including GET publish/clear/delete
 aliases. Publishing is available without credentials over the ClusterIP Service

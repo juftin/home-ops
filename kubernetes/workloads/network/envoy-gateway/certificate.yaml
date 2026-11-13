@@ -23,6 +23,7 @@ metadata:
 spec:
   dnsNames:
     - camply.rocks
+    - ntfy.camply.rocks
   duration: 160h
   issuerRef:
     name: letsencrypt-production
