@@ -107,6 +107,10 @@ configMaps:
             service: https://envoy-external.network.svc.cluster.local:443
             originRequest:
               originServerName: camply.rocks
+          - hostname: "ntfy.camply.rocks"
+            service: https://envoy-external.network.svc.cluster.local:443
+            originRequest:
+              originServerName: ntfy.camply.rocks
           - hostname: "*.${SECRET_DOMAIN}"
             originRequest:
               http2Origin: true

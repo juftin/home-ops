@@ -62,6 +62,17 @@ class PublicRouteTest(unittest.TestCase):
                 with self.subTest(path=path):
                     self.assertFalse(routed("GET", path))
 
+    def test_public_hostname(self) -> None:
+        """Keep canonical URLs and the route on the dedicated Camply hostname."""
+        self.assertEqual(list(VALUES["route"]), ["app"])
+        self.assertEqual(VALUES["route"]["app"]["hostnames"], ["ntfy.camply.rocks"])
+        self.assertEqual(VALUES["route"]["app"]["parentRefs"][0]["sectionName"], "ntfy-https")
+        self.assertEqual(
+            VALUES["controllers"]["ntfy"]["containers"]["app"]["env"]["NTFY_BASE_URL"],
+            "https://ntfy.camply.rocks",
+        )
+        self.assertFalse(routed("GET", "/ntfy/homelab/json"))
+
     def test_no_auth_and_private_ingress(self):
         app = VALUES["controllers"]["ntfy"]["containers"]["app"]
         self.assertNotIn("envFrom", app)

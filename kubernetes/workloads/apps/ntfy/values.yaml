@@ -14,7 +14,7 @@ controllers:
           - serve
         env:
           TZ: America/Denver
-          NTFY_BASE_URL: https://ntfy.${SECRET_DOMAIN}
+          NTFY_BASE_URL: https://ntfy.camply.rocks
           NTFY_LISTEN_HTTP: :8080
           NTFY_METRICS_LISTEN_HTTP: :9090
           NTFY_LOG_FORMAT: json
@@ -94,11 +94,11 @@ persistence:
 route:
   app:
     hostnames:
-      - ntfy.${SECRET_DOMAIN}
+      - ntfy.camply.rocks
     parentRefs:
       - name: envoy-external
         namespace: network
-        sectionName: https
+        sectionName: ntfy-https
     # GET alone is insufficient: ntfy also publishes, clears, and deletes via GET.
     # Keep this read allowlist in sync with server/server.go on ntfy upgrades.
     rules:
@@ -110,15 +110,15 @@ route:
           - method: GET
             path:
               type: RegularExpression
-              value: '^/(config\.js|manifest\.webmanifest|app\.html|sw\.js(\.map)?|static/.+|v1/(health|config|account))$'
+              value: '^/(config[.]js|manifest[.]webmanifest|app[.]html|sw[.]js([.]map)?|static/.+|v1/(health|config|account))$'
           - method: GET
             path:
               type: RegularExpression
-              value: '^/file/[-_A-Za-z0-9]{1,64}(\.[A-Za-z0-9]{1,16})?$'
+              value: '^/file/[-_A-Za-z0-9]{1,64}([.][A-Za-z0-9]{1,16})?$'
           - method: HEAD
             path:
               type: RegularExpression
-              value: '^/file/[-_A-Za-z0-9]{1,64}(\.[A-Za-z0-9]{1,16})?$'
+              value: '^/file/[-_A-Za-z0-9]{1,64}([.][A-Za-z0-9]{1,16})?$'
         backendRefs:
           - identifier: app
             port: http

@@ -19,6 +19,18 @@ Authentication uses `CAMPLY_AUTH_MODE: session`. Log in with your configured `CA
 External Secrets synchronizes these values into `camply-home-ops` in the `camply` namespace.
 Reloader automatically restarts the deployments when secrets change in 1Password.
 
+## ntfy Notifications
+
+The chart's shared `env` settings configure both the API and notification workers with
+`CAMPLY_NTFY_SUBSCRIPTION_URL: https://ntfy.camply.rocks` and
+`CAMPLY_NTFY_PUBLISH_URL: http://ntfy.ntfy.svc.cluster.local:8080`.
+Subscribers use the public hostname; Camply publishes directly to the internal Kubernetes Service
+without credentials. Public publishing remains blocked.
+
+In **Profile**, select **ntfy** and the configured application server. Each user's editable topic
+is managed by Camply. Explicit selections of `ntfy.sh` or a custom server use that address for
+both publishing and subscribing. See [Camply's ntfy configuration](https://camply.rocks/docs/operations/CONFIGURATION.html#ntfy-notifications).
+
 ## Architecture and Components
 
 Camply is deployed using the dedicated `camply-web` Helm chart (`oci://ghcr.io/juftin/charts/camply-web`).
