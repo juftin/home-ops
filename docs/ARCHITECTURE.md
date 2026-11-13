@@ -144,8 +144,9 @@ ______________________________________________________________________
 The `agent-tools` app generates installer ConfigMaps from `install-agents.sh` in the
 `paseo`, `openclaw`, and `herdr` namespaces. Each app mounts its ConfigMap
 it read-only in their `install-agents` init containers. The script installs or upgrades Codex,
-Claude Code, Antigravity, and the GitHub CLI under each app's persistent `$HOME/.local` and reuses
-working installed versions if upgrades fail. All three app containers include `$HOME/.local/bin` in
+Claude Code, Antigravity, GitHub CLI, uv, and Spec Kit under each app's persistent `$HOME/.local` and reuses
+working installed versions if upgrades fail. It also syncs shared agent configurations from `juftin/dotfiles`.
+All three app containers include `$HOME/.local/bin` in
 `PATH`. Reloader restarts consumers when the shared ConfigMap changes; the tools and credentials
 remain isolated on each app's own PVC.
 
@@ -155,7 +156,7 @@ headers from the cluster pod network (`10.42.0.0/16`) so HTTPS connections use s
 Relay access is disabled. Node-local PVCs persist `/home/paseo` (state, provider tools, and
 credentials) and `/workspace` (repositories and worktrees); a single replica uses `Recreate`
 to avoid overlapping agents and volume attachment conflicts. An init container installs or upgrades
-Codex, Claude Code, Antigravity, and the GitHub CLI in the persistent home before the daemon starts,
+Codex, Claude Code, Antigravity, GitHub CLI, uv, and Spec Kit in the persistent home before the daemon starts,
 reusing working installed versions if upgrades fail. Authenticate each provider before running tasks; see
 [Paseo setup](PASEO-SETUP.md).
 

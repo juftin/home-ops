@@ -43,7 +43,8 @@ Do not disable device authentication to bypass pairing. See the official
 
 The `install-agents` init container runs the same
 [shared installer](../kubernetes/workloads/apps/agent-tools/install-agents.sh) as Paseo. It installs
-or upgrades Codex, Claude Code, Antigravity (`agy`), and the GitHub CLI (`gh`) on each pod start.
+or upgrades Codex, Claude Code, Antigravity (`agy`), the GitHub CLI (`gh`), uv, and Spec Kit (`specify`) on each pod start,
+and syncs agent configuration from `juftin/dotfiles`.
 Tools live in `/home/node/.local` on the existing home PVC; `/home/node/.local/bin` is in the gateway's
 `PATH`. A failed upgrade reuses a working installed version; a failed first installation blocks startup.
 The script is supplied by the `agent-tools` ConfigMap, whose changes trigger a restart through Reloader.
@@ -56,6 +57,8 @@ kubectl exec -n openclaw deployment/openclaw -c app -- codex --version
 kubectl exec -n openclaw deployment/openclaw -c app -- claude --version
 kubectl exec -n openclaw deployment/openclaw -c app -- agy --version
 kubectl exec -n openclaw deployment/openclaw -c app -- gh --version
+kubectl exec -n openclaw deployment/openclaw -c app -- uv --version
+kubectl exec -n openclaw deployment/openclaw -c app -- specify --version
 ```
 
 Authenticate tools inside the OpenClaw pod before using them. For example:
