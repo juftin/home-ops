@@ -14,7 +14,7 @@ controllers:
           - serve
         env:
           TZ: America/Denver
-          NTFY_BASE_URL: https://ntfy.${SECRET_DOMAIN}
+          NTFY_BASE_URL: https://ntfy.camply.rocks
           NTFY_LISTEN_HTTP: :8080
           NTFY_METRICS_LISTEN_HTTP: :9090
           NTFY_LOG_FORMAT: json
@@ -94,11 +94,11 @@ persistence:
 route:
   app:
     hostnames:
-      - ntfy.${SECRET_DOMAIN}
+      - ntfy.camply.rocks
     parentRefs:
       - name: envoy-external
         namespace: network
-        sectionName: https
+        sectionName: ntfy-https
     # GET alone is insufficient: ntfy also publishes, clears, and deletes via GET.
     # Keep this read allowlist in sync with server/server.go on ntfy upgrades.
     rules:
@@ -122,53 +122,6 @@ route:
         backendRefs:
           - identifier: app
             port: http
-  camply:
-    hostnames:
-      - camply.rocks
-    parentRefs:
-      - name: envoy-external
-        namespace: network
-        sectionName: camply-https
-    # API reads only: the web UI requires a hostname rooted at /.
-    # Envoy prioritizes these regex matches over the rejection prefix below.
-    rules:
-      - matches:
-          - method: GET
-            path:
-              type: RegularExpression
-              value: '^/ntfy/[-_A-Za-z0-9]{1,64}(,[-_A-Za-z0-9]{1,64})*/(json|sse|raw|ws|auth)$'
-          - method: GET
-            path:
-              type: RegularExpression
-              value: '^/ntfy/v1/(health|config|account)$'
-          - method: GET
-            path:
-              type: RegularExpression
-              value: '^/ntfy/file/[-_A-Za-z0-9]{1,64}([.][A-Za-z0-9]{1,16})?$'
-          - method: HEAD
-            path:
-              type: RegularExpression
-              value: '^/ntfy/file/[-_A-Za-z0-9]{1,64}([.][A-Za-z0-9]{1,16})?$'
-        filters:
-          - type: ExtensionRef
-            extensionRef:
-              group: gateway.envoyproxy.io
-              kind: HTTPRouteFilter
-              name: ntfy-strip-prefix
-        backendRefs:
-          - identifier: app
-            port: http
-      # Reserve this path so blocked writes cannot fall through to Camply's / route.
-      - matches:
-          - path:
-              type: PathPrefix
-              value: /ntfy
-        filters:
-          - type: ExtensionRef
-            extensionRef:
-              group: gateway.envoyproxy.io
-              kind: HTTPRouteFilter
-              name: ntfy-not-found
 # Full API access, including publishing, only over the private tailnet.
 ingress:
   tailscale:
