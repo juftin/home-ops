@@ -8,7 +8,7 @@ controllers:
       agentsview-config:
         image:
           repository: ghcr.io/kenn-io/agentsview
-          tag: 0.46.1
+          tag: 0.47.0
         command: [/bin/sh, -ec]
         args:
           - 'mkdir -p -m 700 /data/agentsview; if [ ! -f /data/agentsview/config.toml ]; then cp /config/config.toml /data/agentsview/config.toml; chmod 600 /data/agentsview/config.toml; fi'
@@ -49,7 +49,7 @@ controllers:
       agentsview:
         image:
           repository: ghcr.io/kenn-io/agentsview
-          tag: 0.46.1
+          tag: 0.47.0
         args: ["pg", "push", "--watch", "--interval", "5m"]
         env:
           HOME: /nonexistent
