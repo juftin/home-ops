@@ -226,11 +226,3 @@ persistence:
         agentsview-config:
           - path: /config
             readOnly: true
-route:
-  app:
-    hostnames:
-      - openclaw.${SECRET_DOMAIN}
-    parentRefs:
-      - name: envoy-oauth-admin
-        namespace: network
-        sectionName: https

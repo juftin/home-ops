@@ -1,18 +1,17 @@
-# OIDC Troubleshooting
+# OIDC / Pomerium Troubleshooting
 
-This runbook covers common failure modes for Envoy Gateway OIDC in this repository.
+This runbook covers common failure modes for Pomerium Google SSO in this repository.
 
 ______________________________________________________________________
 
 ## Quick Triage
 
 ```bash
-kubectl get gateway -n network envoy-oauth-admin envoy-oauth-users envoy-oauth-internal --show-labels
-kubectl get securitypolicy -n network envoy-oauth-admin-policy envoy-oauth-users-policy envoy-oauth-internal-policy
-kubectl get securitypolicy -n oauth-pages oauth-pages-public -o yaml
-kubectl get secret -n network google-oauth-client-secret
-kubectl get httproute -n oauth-pages oauth-pages
-kubectl get deployment -n network cloudflare-dns
+kubectl get pomerium -n pomerium global -o yaml
+kubectl get pods,svc,pvc -n pomerium
+kubectl get secret -n pomerium google-idp bootstrap
+kubectl get ingress -A --field-selector spec.ingressClassName=pomerium
+kubectl logs -n pomerium deployment/pomerium --tail=100
 ```
 
 If branch testing is active, always finish with:
@@ -25,24 +24,18 @@ ______________________________________________________________________
 
 ## Symptoms, Checks, and Fixes
 
-## 1) Hostname does not resolve
+## 1) Hostname does not resolve or returns 404
 
 ### Check
 
-```bash
-kubectl get gateway -n network envoy-oauth-admin envoy-oauth-users envoy-oauth-internal --show-labels
-kubectl get deployment -n network cloudflare-dns -o yaml | rg gateway-label-filter
-```
-
-### Expected
-
-- OAuth Gateways include `home-ops.io/cloudflare-dns=true`
-- `cloudflare-dns` includes `--gateway-label-filter=home-ops.io/cloudflare-dns=true`
+- `cloudflare-tunnel` (`kubernetes/workloads/network/cloudflare-tunnel/values.yaml`) has an explicit
+  entry for the app hostname and `oauth.${SECRET_DOMAIN}` **before** `*.${SECRET_DOMAIN}` pointing
+  to `https://pomerium-proxy.pomerium.svc.cluster.local:443` with `originServerName: oauth.${SECRET_DOMAIN}`.
+- `cloudflare-dns` wildcard record `*.${SECRET_DOMAIN}` is synced.
 
 ### Fix
 
-- Add missing label(s) to Gateway metadata in
-  `kubernetes/workloads/network/envoy-gateway/envoy.yaml`
+- Add or fix the hostname entry in `kubernetes/workloads/network/cloudflare-tunnel/values.yaml`
 - Run `task lint && task dev:validate`, push, and reconcile
 
 ______________________________________________________________________
@@ -51,103 +44,59 @@ ______________________________________________________________________
 
 ### Check
 
-- `spec.oidc.redirectURL` in policy matches the Gateway hostname exactly
-- Redirect URI is registered in Google OAuth client
-- `oauth-pages` includes the exact `/oauth2/callback` route
-- `oauth-pages-public` policy does **not** broadly allow the callback route
-- `cloudflare-tunnel` has explicit OAuth host ingress entries before `*.${SECRET_DOMAIN}`:
-  - `oauth.${SECRET_DOMAIN}` -> `envoy-oauth-admin`
-  - `oauth-users.${SECRET_DOMAIN}` -> `envoy-oauth-users`
-
-Policy files:
-
-- `kubernetes/workloads/network/envoy-gateway/oauth-policy.sops.yaml`
-  (contains both `envoy-oauth-admin-policy` for admins and `envoy-oauth-users-policy` for users)
-- `kubernetes/workloads/network/envoy-gateway/oauth-policy-internal.sops.yaml` (internal)
+- `spec.authenticate.url` in `kubernetes/workloads/network/pomerium/pomerium.yaml` is
+  `https://oauth.${SECRET_DOMAIN}`
+- `https://oauth.<domain>/oauth2/callback` is registered in Google Cloud Console
+- `google-idp` Secret in `pomerium` namespace contains valid `client_id` and `client_secret`
+  (not placeholder values)
+- `bootstrap` Secret exists in `pomerium` namespace (`kubectl get job -n pomerium pomerium-gen-secrets`)
 
 ### Fix
 
-- Correct redirect URL/host mismatch
-- Ensure callback handling stays on the OIDC flow:
-  - `oauth-pages` route rule `callback` matches `/oauth2/callback`
-  - `oauth-pages-public` only targets `sectionName: denied` and `sectionName: logged-out`
-- Ensure `cloudflare-tunnel` sends OAuth hostnames to the matching OAuth Gateway services with
-  explicit hostname rules before the wildcard route
-- Re-encrypt SOPS file if edited in plaintext
-- Push and reconcile
+- Run `./scripts/migrate-oauth-to-pomerium.sh` or update `google-idp-secret.sops.yaml` with real
+  credentials, re-encrypt, commit, and push
 
 ______________________________________________________________________
 
-## 3) User authenticates but receives denied page
+## 3) User authenticates but receives 403 Forbidden
 
 ### Check
 
-- User email is present (lowercase) in policy allowlist
-- `email_verified` claim requirement is present and true
+- User email (lowercase) is present in the `&admins` or `&users` PPL policy block in
+  `kubernetes/workloads/network/pomerium/ingresses.sops.yaml`
 
 ```bash
-sops --decrypt kubernetes/workloads/network/envoy-gateway/oauth-policy.sops.yaml | less
+sops --decrypt kubernetes/workloads/network/pomerium/ingresses.sops.yaml | less
 ```
 
 ### Fix
 
-- Add lowercase email to `authorization.rules[].principal.jwt.claims[name=email].values[]`
-- Keep `defaultAction: Deny`
-- Re-encrypt, commit, push
+- Add lowercase email to the appropriate PPL `allow.or` email list (keeping `&admins` in `&users`)
+- Re-encrypt with `sops --encrypt`, commit, and push
 
 ______________________________________________________________________
 
-## 4) `/denied` or `/logged-out` returns 404
+## 4) Protected app returns 502 / connection timed out from Pomerium
 
 ### Check
 
-```bash
-kubectl get httproute -n oauth-pages oauth-pages -o yaml
-```
-
-### Expected
-
-- `parentRefs` include `envoy-oauth-admin`, `envoy-oauth-users`, and `envoy-oauth-internal`
-  (and `envoy-external` if used)
-- route rules include exact `/denied` and `/logged-out`
-- rules rewrite to `/denied.html` and `/logged-out.html`
-- `oauth-pages-public` allows only `sectionName: denied` and `sectionName: logged-out`
+- Target app has a `CiliumNetworkPolicy` permitting ingress from `pomerium-proxy` pods:
+  - `k8s:io.kubernetes.pod.namespace: pomerium`
+  - `app.kubernetes.io/name: pomerium`
+  - `app.kubernetes.io/component: proxy`
+- WebSocket-enabled apps (`paseo`, `herdr`, `hermes-agent`, `openclaw`, `argocd`, `grafana`) have
+  `ingress.pomerium.io/allow_websockets: "true"`
 
 ### Fix
 
-- Update `kubernetes/workloads/apps/oauth-pages/values.yaml`
-- Confirm `kubernetes/workloads/apps/oauth-pages/securitypolicy.yaml` is section-scoped
-- Validate and reconcile
+- Update the app's `networkpolicy.yaml` or `ingresses.sops.yaml` annotation, validate, and reconcile
 
 ______________________________________________________________________
 
-## 5) OAuth Gateway not becoming ready
-
-### Check
-
-```bash
-kubectl get gateway -n network envoy-oauth-admin envoy-oauth-users envoy-oauth-internal -o wide
-kubectl get secret -n network <secret-domain-production-tls-secret>
-```
-
-### Expected
-
-- Gateway has programmed listeners
-- TLS secret exists in `network`
-- LB IP is available and unique
-
-### Fix
-
-- Correct IP collisions, TLS secret reference, or listener config in `envoy.yaml`
-
-______________________________________________________________________
-
-## Emergency Session Invalidation
+## 5) Emergency Session Invalidation
 
 When access must be revoked immediately after allowlist updates:
 
 ```bash
-kubectl rollout restart deployment -n network -l app.kubernetes.io/name=envoy-gateway
+kubectl rollout restart deployment -n pomerium pomerium
 ```
-
-This forces re-authentication instead of waiting for existing session expiry.

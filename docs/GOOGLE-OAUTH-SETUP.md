@@ -1,7 +1,7 @@
-# Google OAuth Setup
+# Google OAuth Setup (Pomerium)
 
-This guide explains how to create Google OAuth credentials for Envoy Gateway OIDC and exactly where
-to store each value in this repository.
+This guide explains how to configure Google OAuth credentials for Pomerium Ingress Controller and
+where each value lives in this repository.
 
 ______________________________________________________________________
 
@@ -11,94 +11,63 @@ From Google Cloud Console, you need:
 
 - OAuth Client ID
 - OAuth Client Secret
-- Authorized redirect URI per OAuth Gateway hostname
+- Authorized redirect URI: `https://oauth.<YOUR_DOMAIN>/oauth2/callback`
 
 ______________________________________________________________________
 
-## 1) Create the OAuth client in Google Cloud
+## 1) Create or reuse the OAuth client in Google Cloud
 
 1. Open <https://console.cloud.google.com/apis/credentials>
-2. Click **Create Credentials** -> **OAuth client ID**
+2. Click **Create Credentials** -> **OAuth client ID** (or edit your existing Web application client)
 3. Choose **Web application**
-4. Add authorized redirect URIs for each OAuth Gateway:
+4. Ensure the authorized redirect URI includes:
    - `https://oauth.<YOUR_DOMAIN>/oauth2/callback`
-   - `https://oauth-users.<YOUR_DOMAIN>/oauth2/callback` (users group gateway)
-   - `https://oauth-internal.<YOUR_DOMAIN>/oauth2/callback` (if using internal gateway)
 5. Save and copy the Client ID + Client Secret
 
 ______________________________________________________________________
 
-## 2) Where to put each value in this repo
+## 2) Migrating from the legacy Envoy OAuth setup
 
-## Client Secret (sensitive)
+If you are upgrading an existing cluster that used `envoy-gateway/oauth-policy.sops.yaml` and
+`envoy-gateway/oauth-client-secret.sops.yaml`, run the migration script locally with `age.key`:
 
-Store in:
+```bash
+./scripts/migrate-oauth-to-pomerium.sh
+```
 
-- `kubernetes/workloads/network/envoy-gateway/oauth-client-secret.sops.yaml`
-
-Field:
-
-- `stringData.client-secret`
-
-This file must stay SOPS-encrypted in Git.
-
-## Client ID (not secret, but still kept in encrypted policy spec here)
-
-Store in:
-
-- `kubernetes/workloads/network/envoy-gateway/oauth-policy.sops.yaml`
-- `kubernetes/workloads/network/envoy-gateway/oauth-policy-internal.sops.yaml` (if used)
-
-`oauth-policy.sops.yaml` contains both external group policies:
-
-- `envoy-oauth-admin-policy` (admins)
-- `envoy-oauth-users-policy` (users; include admin emails in this list too)
-
-There are only two external email lists to maintain: admins and users.
-
-Field:
-
-- `spec.oidc.clientID`
-
-## Redirect/logout URLs
-
-Store in each policy file above:
-
-- `spec.oidc.redirectURL`
-- `spec.oidc.logoutRedirectURL`
-
-These must match the Google OAuth redirect URI hostnames exactly.
+This decrypts the legacy credentials and `Admins` / `Users` email lists from `origin/main` (or
+local disk) and populates encrypted Pomerium files in `kubernetes/workloads/network/pomerium/`.
 
 ______________________________________________________________________
 
-## 3) Update files safely (SOPS workflow)
+## 3) Where values are stored
+
+- **Google IdP credentials**: `kubernetes/workloads/network/pomerium/google-idp-secret.sops.yaml`
+  - `stringData.client_id`
+  - `stringData.client_secret`
+  - Must remain SOPS-encrypted (`ENC[AES256_GCM,...]`).
+- **Pomerium global settings**: `kubernetes/workloads/network/pomerium/pomerium.yaml`
+  - `spec.authenticate.url`: `https://oauth.${SECRET_DOMAIN}`
+  - `spec.certificates`: `network/${SECRET_DOMAIN/./-}-production-tls`
+  - `spec.identityProvider`: `provider: google`, `secret: pomerium/google-idp`
+- **Access groups (`Admins` & `Users`)**: `kubernetes/workloads/network/pomerium/ingresses.sops.yaml`
+  - Defines PPL policies using `&admins` and `&users` YAML anchors
+  - Only `ingress.pomerium.io/policy` annotations are SOPS-encrypted (via `.sops.yaml`)
+
+______________________________________________________________________
+
+## 4) Update files safely (SOPS workflow)
 
 ```bash
 # decrypt
-sops --decrypt kubernetes/workloads/network/envoy-gateway/oauth-policy.sops.yaml > /tmp/oauth-policy.yaml
+sops --decrypt kubernetes/workloads/network/pomerium/google-idp-secret.sops.yaml > /tmp/google-idp.yaml
 
-# edit /tmp/oauth-policy.yaml
+# edit /tmp/google-idp.yaml
 
 # re-encrypt
-sops --encrypt /tmp/oauth-policy.yaml > kubernetes/workloads/network/envoy-gateway/oauth-policy.sops.yaml
-rm /tmp/oauth-policy.yaml
+sops --encrypt /tmp/google-idp.yaml > kubernetes/workloads/network/pomerium/google-idp-secret.sops.yaml
+rm /tmp/google-idp.yaml
 ```
-
-Use the same flow for `oauth-policy.sops.yaml`, `oauth-policy-internal.sops.yaml`, and
-`oauth-client-secret.sops.yaml`.
-
-______________________________________________________________________
-
-## 4) Required related manifests
-
-After updating credentials/policies, verify these references are present:
-
-- `kubernetes/workloads/network/envoy-gateway/kustomization.yaml`
-  - includes `oauth-client-secret.sops.yaml`
-  - includes policy files (`oauth-policy.sops.yaml`, `oauth-policy-internal.sops.yaml`)
-- `kubernetes/workloads/network/envoy-gateway/envoy.yaml`
-  - OAuth Gateways have correct hostnames
-  - OAuth Gateways include `home-ops.io/cloudflare-dns: "true"` label
 
 ______________________________________________________________________
 
@@ -113,8 +82,9 @@ For branch testing:
 
 ```bash
 task dev:start
-kubectl get gateway -n network envoy-oauth-admin envoy-oauth-users envoy-oauth-internal --show-labels
-kubectl get securitypolicy -n network envoy-oauth-admin-policy envoy-oauth-users-policy envoy-oauth-internal-policy
+kubectl get pomerium -n pomerium global
+kubectl get pods,svc,pvc -n pomerium
+kubectl get ingress -A -l app.kubernetes.io/part-of=pomerium-sso
 task dev:stop
 ```
 

@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: pomerium
+  namespace: pomerium
+spec:
+  jobLabel: pomerium
+  namespaceSelector:
+    matchNames:
+      - pomerium
+  podMetricsEndpoints:
+    - port: metrics
+      path: /metrics
+      honorLabels: true
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: proxy
+      app.kubernetes.io/name: pomerium

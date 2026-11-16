@@ -167,14 +167,6 @@ persistence:
         agentsview-config:
           - path: /config
             readOnly: true
-route:
-  app:
-    hostnames:
-      - paseo.${SECRET_DOMAIN}
-    parentRefs:
-      - name: envoy-oauth-admin
-        namespace: network
-        sectionName: https
 ingress:
   tailscale:
     suffix: tailscale

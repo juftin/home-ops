@@ -32,6 +32,9 @@ spec:
         name: letsencrypt-production
       - kind: Secret
         name: kube-prometheus-stack-admission
+      - kind: Secret
+        name: bootstrap
+        namespace: pomerium
       - group: monitoring.coreos.com
         kind: ServiceMonitor
         name: loki

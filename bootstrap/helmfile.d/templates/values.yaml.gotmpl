@@ -205,13 +205,7 @@ repoServer:
           readOnly: true
 server:
   httproute:
-    enabled: true
-    hostnames:
-      - {{ printf "argocd.%s" $argocdSecretDomain | quote }}
-    parentRefs:
-      - name: envoy-oauth-admin
-        namespace: network
-        sectionName: https
+    enabled: false
   extraArgs:
     - --insecure
 controller:

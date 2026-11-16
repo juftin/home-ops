@@ -19,7 +19,8 @@ ______________________________________________________________________
 - **[Renovate](https://renovatebot.com/)**: Automated dependency updates.
 - **[GitHub Actions](https://github.com/features/actions)**: CI/CD workflows for automation.
 - **[Cloudflare](https://www.cloudflare.com/)**: DNS Services.
-- **[Google SSO](https://github.com/envoyproxy/gateway)**: Protect selected endpoints behind Google OAuth2.
+- **[Pomerium](https://www.pomerium.com/)**: Identity-aware proxy and Ingress controller protecting
+  selected endpoints behind Google SSO (`Admins` and `Users` groups).
 
 ## <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f48e/512.gif" alt="🎡" width="20" height="20"> Components
 
@@ -32,7 +33,9 @@ ______________________________________________________________________
 - **[cloudflared](https://github.com/cloudflare/cloudflared)**: Enables Cloudflare secure access to
   routes.
 - **[envoy-gateway](https://github.com/envoyproxy/gateway)**: Kubernetes Gateway API implementation
-  for advanced traffic management, security, and routing.
+  for public (`envoy-external`) and internal (`envoy-internal`) traffic routing.
+- **[pomerium](https://www.pomerium.com/)**: Identity-aware Ingress controller enforcing Google SSO
+  and PPL authorization policies (`Admins` and `Users`).
 - **[sops](https://github.com/getsops/sops)**: Managed secrets for Kubernetes and Terraform which
   are committed to Git.
 - **[external-secrets](https://github.com/external-secrets/external-secrets)**: Integrates external
@@ -88,11 +91,9 @@ and Tailscale examples using the existing chart values.
 - **[Loki](https://grafana.com/oss/loki/)**: Aggregates and stores Kubernetes logs for 7 days.
 - **[Alloy](https://grafana.com/oss/alloy-opentelemetry-collector/)**: DaemonSet log shipper that
   labels pod logs and forwards them to Loki.
-- **[oauth-pages](https://nginx.org/)**: Static access-denied and logout confirmation pages for
-  Envoy Gateway OIDC, including route rewrites from friendly paths to static HTML files.
 
 Application manifests live in `kubernetes/workloads/apps/<app>/`, with a namespace matching
-each app name: `agentsview`, `camply`, `echo`, `herdr`, `hermes-agent`, `lunchmoney`, `oauth-pages`, `openclaw`, and `paseo`.
+each app name: `agentsview`, `camply`, `echo`, `herdr`, `hermes-agent`, `lunchmoney`, `openclaw`, and `paseo`.
 The `agent-tools` Application distributes installer ConfigMaps to agent namespaces.
 Infrastructure lives alongside `apps/` under `kubernetes/workloads/`, grouped by namespace.
 Existing installations must follow the

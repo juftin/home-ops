@@ -13,8 +13,8 @@ ______________________________________________________________________
 - Generated apps create their destination namespace automatically and use server-side apply so Kubernetes-assigned PVC bindings are preserved during sync.
 - GitHub push webhooks reach `webhooks.${SECRET_DOMAIN}/argocd/api/webhook` through the public
   `envoy-external` Gateway and refresh existing Applications. Only exact-path POST requests are
-  routed to `argocd-server`, with the path rewritten to `/api/webhook`; the UI remains on the
-  admin OAuth Gateway. The bootstrap Helm release
+  routed to `argocd-server`, with the path rewritten to `/api/webhook`; the UI is protected by
+  Pomerium (`Admins` group). The bootstrap Helm release
   owns this route and an ExternalSecret sourcing `GITHUB_WEBHOOK_SECRET` from the `argocd`
   1Password item. See [webhook setup](ARGOCD-WEBHOOK-SETUP.md). ApplicationSet directory discovery
   continues to poll Git.
@@ -37,13 +37,12 @@ kubernetes/workloads/
 │   ├── hermes-agent/
 │   ├── lunchmoney/
 │   ├── ntfy/
-│   ├── oauth-pages/
 │   ├── openclaw/
 │   └── paseo/
 ├── cert-manager/cert-manager/
 ├── external-secrets/<app>/
 ├── kube-system/<app>/
-├── network/<app>/
+├── network/<app>/             # includes envoy-gateway, pomerium, cloudflare-tunnel, cloudflare-dns, k8s-gateway
 ├── observability/<app>/
 └── tailscale/tailscale/
 ```
@@ -75,17 +74,16 @@ Each application formerly in `default` has a namespace matching its app name:
 | `hermes-agent` | `hermes-agent` |
 | `lunchmoney`   | `lunchmoney`   |
 | `ntfy`         | `ntfy`         |
-| `oauth-pages`  | `oauth-pages`  |
 | `openclaw`     | `openclaw`     |
 | `paseo`        | `paseo`        |
 
 Agent tools distributes installer ConfigMaps to the agent namespaces.
 
 Camply keeps its frontend, API, workers, database, cache, and Prometheus in `camply`.
-Shared Gateways stay in `network`; application HTTPRoutes reference them across namespaces.
+Shared Gateways (`envoy-external`, `envoy-internal`) stay in `network`; Pomerium runs in `pomerium`
+(deployed via `kubernetes/workloads/network/pomerium/`) and enforces Google SSO and `Admins`/`Users`
+authorization across protected `Ingress` routes.
 Cloudflare's public wildcard DNS record is declared by `cloudflare-dns/public-wildcard`.
-The shared `oauth-pages` HTTPRoute is excluded from ExternalDNS discovery because it
-attaches to both public and internal Gateways, whose DNS targets differ.
 Tailscale configuration is distributed to `paseo` and `lunchmoney`. The built-in `default` namespace has no
 repository-managed apps. For an existing cluster, follow the
 [namespace migration runbook](APP-NAMESPACE-MIGRATION.md) before activating these manifests.
@@ -146,7 +144,7 @@ All three app containers include `$HOME/.local/bin` in
 `PATH`. Reloader restarts consumers when the shared ConfigMap changes; the tools and credentials
 remain isolated on each app's own PVC.
 
-Paseo is served at `paseo.${SECRET_DOMAIN}` through Cloudflare Tunnel and the admin OAuth Gateway.
+Paseo is served at `paseo.${SECRET_DOMAIN}` through Cloudflare Tunnel and Pomerium (`Admins` group).
 The daemon additionally requires a password from the `paseo` 1Password item. It trusts forwarded
 headers from the cluster pod network (`10.42.0.0/16`) so HTTPS connections use secure WebSockets.
 Relay access is disabled. Node-local PVCs persist `/home/paseo` (state, provider tools, and
@@ -156,22 +154,22 @@ Codex, Claude Code, Antigravity, GitHub CLI, uv, and Spec Kit in the persistent 
 reusing working installed versions if upgrades fail. Authenticate each provider before running tasks; see
 [Paseo setup](PASEO-SETUP.md).
 
-Hermes Agent is served at `hermes.${SECRET_DOMAIN}` through Cloudflare Tunnel and the admin OAuth
-Gateway (`envoy-oauth-admin`). The deployment exposes the Web Dashboard (port 9119) and
+Hermes Agent is served at `hermes.${SECRET_DOMAIN}` through Cloudflare Tunnel and Pomerium
+(`Admins` group). The deployment exposes the Web Dashboard (port 9119) and
 OpenAI-compatible Gateway API (port 8642). A node-local PVC persists `/opt/data` (configuration,
 sessions, skills, and memory). A single replica uses `Recreate` to prevent volume attachment
 conflicts. See [Hermes setup](HERMES-SETUP.md).
 
-OpenClaw is served at `openclaw.${SECRET_DOMAIN}` through Cloudflare Tunnel and the admin OAuth
-Gateway. Its HTTP and WebSocket gateway share port 18789; OpenClaw token authentication and
+OpenClaw is served at `openclaw.${SECRET_DOMAIN}` through Cloudflare Tunnel and Pomerium
+(`Admins` group). Its HTTP and WebSocket gateway share port 18789; OpenClaw token authentication and
 browser device pairing remain enabled behind SSO. A node-local PVC persists `/home/node`,
 including configuration, provider credentials, sessions, and workspaces. One non-root replica
 uses `Recreate`. A first-run init container seeds the gateway configuration without overwriting
 subsequent onboarding changes. The shared agent installer makes coding CLIs and `gh` available
 before the gateway starts. See [OpenClaw setup](OPENCLAW-SETUP.md).
 
-Herdr is served at `herdr.${SECRET_DOMAIN}` through Cloudflare Tunnel and the admin OAuth
-Gateway. One container supervises the headless Herdr server and herdr web ui on port 7317,
+Herdr is served at `herdr.${SECRET_DOMAIN}` through Cloudflare Tunnel and Pomerium
+(`Admins` group). One container supervises the headless Herdr server and herdr web ui on port 7317,
 connected over a Unix socket. Pinned Node and Bun images supply the runtimes; an init container
 verifies and installs pinned Herdr and web UI downloads, installs locked UI dependencies, and
 builds the frontend on a pod-local volume. Another init container installs the shared coding
@@ -192,8 +190,9 @@ with root privileges is unavailable; bake system dependencies into an image when
 No Kubernetes token,
 host directories, container-runtime sockets, or host namespaces are exposed.
 
-App-local CiliumNetworkPolicies default-deny ingress and egress. Ingress permits only the admin
-Envoy gateway on each app's service ports; Paseo also permits its specific Tailscale ingress proxy.
+App-local CiliumNetworkPolicies default-deny ingress and egress. Ingress permits only the
+`pomerium-proxy` pods in `pomerium` on each app's service ports; Paseo also permits its specific
+Tailscale ingress proxy.
 Egress permits CoreDNS on TCP/UDP 53 and public HTTP/HTTPS/SSH on TCP 80/443/22. Other cluster
 services (including the other agents), Kubernetes API, nodes, LAN, tailnet, and metadata addresses
 are blocked, with explicit exceptions for DNS and OpenClaw accessing only the Lunch Money
@@ -260,13 +259,12 @@ does not expose. See [ntfy setup](NTFY-SETUP.md).
 
 ## App Access
 
-Workloads configure HTTPRoutes and Tailscale Ingresses in their own
-`values.yaml`, using chart-native resources (such as `camply-web` or `app-template`). Grafana uses the bundled
-Grafana chart's `grafana.route.main` settings, and ArgoCD uses `server.httproute`
-in its Helmfile bootstrap values. Public apps use
-`envoy-external`; OAuth apps choose the admin or users Gateway and have an explicit
-Cloudflare Tunnel rule. Shared OAuth utility pages cover app hosts through a
-wildcard while public-policy exceptions stay scoped to denied/logout sections.
+Public and LAN-only workloads configure HTTPRoutes and Tailscale Ingresses in their own
+`values.yaml`, using chart-native resources (such as `camply-web` or `app-template`).
+Public apps use `envoy-external` and internal LAN apps use `envoy-internal`. OAuth-protected apps
+(`agentsview`, `paseo`, `herdr`, `hermes-agent`, `openclaw`, `argocd`, and `grafana`) are fronted
+by Pomerium `Ingress` objects in `kubernetes/workloads/network/pomerium/ingresses.sops.yaml` and
+explicit Cloudflare Tunnel rules pointing to `pomerium-proxy.pomerium.svc.cluster.local:443`.
 See [App access](APP-ACCESS.md).
 
 ## Agent Session Archive

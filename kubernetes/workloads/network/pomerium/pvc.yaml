@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pomerium-data
+  namespace: pomerium
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: node-local
+  resources:
+    requests:
+      storage: 1Gi
