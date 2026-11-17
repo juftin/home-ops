@@ -5,21 +5,21 @@ metadata:
   annotations:
     config.kubernetes.io/local-config: "true"
 data:
-  admins: ENC[AES256_GCM,data:4R37wohuRWRURmAlRjKbv1iwk0JVaQEFFdtGGJQpZUhoOV440TcVq+0UCnJNxjTwWBRRlNZvmZA=,iv:TwZZdPaGHeFkmKaLVn8wy4e9mX6PlMxvqSRkFggMGBI=,tag:dx/NMfXvdFzS0CUyVQw68w==,type:str]
-  users: ENC[AES256_GCM,data:Jbr3xWtgnvWntZUhQVaDDhFcryVI+TgXx/T0zRF7naJz+MMpiLi0X1eIpFDG07Mp3c5x8d6ikHBSfYBpdWT5yYFYB4J4MxMkHfno+z5JKWh4MwCi4HuwGnEMJX9Ju/1ww2I=,iv:tyNMlrG/cE6cpj+YbxLLN9HQPzE88jS0RDGQ3hwCaI4=,tag:O7Tdi9RmJ/GKQcwi94rWQg==,type:str]
+  admins: ENC[AES256_GCM,data:tUmTCfUy99p0Ug44L5vrh7XiSMa1OgLTCRxd1BGDPOnESaf5vi4JJZZQEDu5txljAbEREsZjuEg1sE0Zz3O3ESa7MLHTRxsnCCpuaVmOopuDVTjhnnZWmCXbIHL2d3RpyQ==,iv:8C1MXb7sJXqVqV7h/FUXmm4R9nuRYmJzNEJQTe7OEh8=,tag:inOyUmkhjwXHOeYoY/Ibvg==,type:str]
+  users: ENC[AES256_GCM,data:LBKdrmmggyqyazVYRcfDqJGD4ymiqFsAk5Vm/zAix9Mqr6WjJJYVdpIY1/uBjrnA0P5wof+V+lox7Ih7hWTd39smqmSYNKM2e7yPR9TMY/l7SaiuBwcXCA5JcG9j+xX8qoSHoyiSxN/URe/MxRo7PUJeTtsT6hqVlsTXmHqMbfXs1jBXoo8oYdtH6RQV96EJ0i9PtG8=,iv:doKHLJooQU9c+89xy0Du11P80Y9rBy3pSD079xBLRxo=,tag:IW0TbL5I5zmcFTD1Wjqc/A==,type:str]
 sops:
   age:
     - enc: |
         -----BEGIN AGE ENCRYPTED FILE-----
-        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBVRHNaVmhKV3FKTW9CWXFI
-        d3NjeHBlQ3cwZEd4cmU5Y3E0SEdBaHJ4K21rCk16c24xd0w5SWdWWE5CT1Zidmxt
-        WHVubDFoR0RUaTN1MDY2c3kzSER4TEEKLS0tIFBOQkhpQllHUkVRSnJlRlJJOWpN
-        R3dqdStvamYveEhxa2FNRndOZUMyNlEKK7BFQAKaVmRPSoyGdKmAgamDGLAjyvOg
-        m8tMXa7bnMfrvFkgyZj4lhfi4Wsh/JfDf3BjTt5XRCKkUQN054yeHg==
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBJOVdlU3MzeUtIS2pHY05W
+        NDRkNjNNRXhDUWYzMFpkYUR1NitHREdUckJRCk1kRWxlMVpKTWhOVCtsWnFWRS9Z
+        UXJBSlZYd3RGUGcvS0FraFNBVHZWYjgKLS0tIGF0NFpWNUtucWNrRmREOUlHcU5E
+        L3FVZWQzZTlvWjJHNVc1UWlkYklPRk0KbC4XHgm2Nv3yIX8Crn4uycu3H4GpiYRY
+        nEJJ/3P2RsIN+I+lfW3tN+HkH+BvJAl99blY9/wDzoncEvsSD0tioA==
         -----END AGE ENCRYPTED FILE-----
       recipient: age1d7ltdyge970mha3gqyenf9mrn8ezg60nexy99vzndvl592q2zcxqkytdwd
   encrypted_regex: ^(data|stringData)$
-  lastmodified: "2026-11-17T04:35:52Z"
-  mac: ENC[AES256_GCM,data:Z+3ecAGk3zcXfagnRYPPnmA8QmWjQ2ht+a5b+Prd3NrTy0s+9lkHQ42rGQVIQ7xvhpe6UTAEPHnbp7jWMHqtpxwxfNNHW/qxQ52Q9vczvvmNMZmv3USueubBSNfdQTS5KvONZTvnb9xhTpxpwjhcjqar+7INKoIvzDFfvnpApDE=,iv:3Aj5lDTnA2kzxkXLuTf9Zu5N/o38VbVrO6RLMZSEDy0=,tag:+YhR1VXGBM5bw/6KkoLuzg==,type:str]
+  lastmodified: "2026-11-17T04:47:08Z"
+  mac: ENC[AES256_GCM,data:JOap1M0ALhGGQ7t5wWrSp0dh0BYRMS0p/Nq4X2eZXgOg3sqToksDujjbNEiVb3zlBAM2teFf5mFz0UdCKk6XgjND8uowPTQwbt3hxmM7ibLO8nqZOnF2DxIGeoKNtHI6xj3msARW7uJqt+E6V0Mmftply2t6cybJglHRiMihBGM=,iv:l/le0MnALdeH0mipsPRmWLjcGV4oi23a67yStAf4Dw4=,tag:Pv1dx6K6vk3r/WEFqPG8yA==,type:str]
   mac_only_encrypted: true
   version: 3.13.3
