@@ -5,6 +5,8 @@ metadata:
   namespace: agentsview
   labels:
     pomerium.io/group: admins
+  annotations:
+    ingress.pomerium.io/preserve_host_header: "true"
 spec:
   ingressClassName: pomerium
   rules:
@@ -31,6 +33,7 @@ metadata:
     pomerium.io/group: admins
   annotations:
     ingress.pomerium.io/allow_websockets: "true"
+    ingress.pomerium.io/preserve_host_header: "true"
 spec:
   ingressClassName: pomerium
   rules:
@@ -57,6 +60,7 @@ metadata:
     pomerium.io/group: admins
   annotations:
     ingress.pomerium.io/allow_websockets: "true"
+    ingress.pomerium.io/preserve_host_header: "true"
 spec:
   ingressClassName: pomerium
   rules:
@@ -83,6 +87,7 @@ metadata:
     pomerium.io/group: admins
   annotations:
     ingress.pomerium.io/allow_websockets: "true"
+    ingress.pomerium.io/preserve_host_header: "true"
 spec:
   ingressClassName: pomerium
   rules:
@@ -116,6 +121,7 @@ metadata:
     pomerium.io/group: admins
   annotations:
     ingress.pomerium.io/allow_websockets: "true"
+    ingress.pomerium.io/preserve_host_header: "true"
 spec:
   ingressClassName: pomerium
   rules:
@@ -142,6 +148,7 @@ metadata:
     pomerium.io/group: admins
   annotations:
     ingress.pomerium.io/allow_websockets: "true"
+    ingress.pomerium.io/preserve_host_header: "true"
 spec:
   ingressClassName: pomerium
   rules:
@@ -168,6 +175,7 @@ metadata:
     pomerium.io/group: users
   annotations:
     ingress.pomerium.io/allow_websockets: "true"
+    ingress.pomerium.io/preserve_host_header: "true"
 spec:
   ingressClassName: pomerium
   rules:

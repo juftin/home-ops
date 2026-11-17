@@ -21,6 +21,7 @@ ______________________________________________________________________
   - `metadata.labels.pomerium.io/group: admins` (or `users`) so Kustomize injects the policy from
     `groups.sops.yaml`
   - `spec.ingressClassName: pomerium`
+  - `ingress.pomerium.io/preserve_host_header: "true"` (if the app checks `Host`/`Origin` headers)
   - `ingress.pomerium.io/allow_websockets: "true"` if the app uses WebSockets
 - [ ] Add explicit hostname entry in `kubernetes/workloads/network/cloudflare-tunnel/values.yaml`
   **before** `*.${SECRET_DOMAIN}` targeting `https://pomerium-proxy.pomerium.svc.cluster.local:443`
