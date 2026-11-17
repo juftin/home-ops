@@ -108,8 +108,9 @@ OAuth-protected apps are fronted by **Pomerium Ingress Controller** (`kubernetes
 See [App access](docs/APP-ACCESS.md) and [Google OAuth Setup](docs/GOOGLE-OAUTH-SETUP.md).
 
 1. Add an `Ingress` entry (`ingressClassName: pomerium`) in
-   `kubernetes/workloads/network/pomerium/ingresses.sops.yaml` referencing the `*admins` or
-   `*users` PPL policy anchor (never commit plaintext email addresses).
+   `kubernetes/workloads/network/pomerium/ingresses.yaml` labeled `pomerium.io/group: admins` or
+   `pomerium.io/group: users` (Kustomize injects the SOPS-encrypted PPL policy from
+   `kubernetes/workloads/network/pomerium/groups.sops.yaml` so plaintext emails never appear in Git).
 2. Add an explicit hostname entry in
    `kubernetes/workloads/network/cloudflare-tunnel/values.yaml` **before** the wildcard
    `*.${SECRET_DOMAIN}` rule pointing to `https://pomerium-proxy.pomerium.svc.cluster.local:443`

@@ -11,7 +11,7 @@ ENVOY_POLICY_REL="kubernetes/workloads/network/envoy-gateway/oauth-policy.sops.y
 ENVOY_SECRET_REL="kubernetes/workloads/network/envoy-gateway/oauth-client-secret.sops.yaml"
 POMERIUM_DIR="${ROOT_DIR}/kubernetes/workloads/network/pomerium"
 POMERIUM_IDP_OUT="${POMERIUM_DIR}/google-idp-secret.sops.yaml"
-POMERIUM_INGRESSES_OUT="${POMERIUM_DIR}/ingresses.sops.yaml"
+POMERIUM_GROUPS_OUT="${POMERIUM_DIR}/groups.sops.yaml"
 
 for cmd in git sops yq; do
     if ! command -v "${cmd}" >/dev/null 2>&1; then
@@ -84,8 +84,8 @@ build_ppl_block() {
     done
 }
 
-ADMIN_PPL="$(build_ppl_block "          " "${ADMIN_EMAILS[@]}")"
-USERS_PPL="$(build_ppl_block "          " "${USER_EMAILS[@]}")"
+ADMIN_PPL="$(build_ppl_block "    " "${ADMIN_EMAILS[@]}")"
+USERS_PPL="$(build_ppl_block "    " "${USER_EMAILS[@]}")"
 
 cat > "${WORKDIR}/google-idp-secret.sops.yaml" <<EOF
 apiVersion: v1
@@ -99,189 +99,21 @@ stringData:
   client_secret: ${CLIENT_SECRET}
 EOF
 
-cat > "${WORKDIR}/ingresses.sops.yaml" <<EOF
+cat > "${WORKDIR}/groups.sops.yaml" <<EOF
 apiVersion: v1
-kind: List
-items:
-  - apiVersion: networking.k8s.io/v1
-    kind: Ingress
-    metadata:
-      name: agentsview
-      namespace: agentsview
-      annotations:
-        ingress.pomerium.io/policy: &admins |
+kind: ConfigMap
+metadata:
+  name: pomerium-groups
+  annotations:
+    config.kubernetes.io/local-config: "true"
+data:
+  admins: |
 ${ADMIN_PPL}
-    spec:
-      ingressClassName: pomerium
-      rules:
-        - host: "agentsview.\${SECRET_DOMAIN}"
-          http:
-            paths:
-              - path: /
-                pathType: Prefix
-                backend:
-                  service:
-                    name: agentsview-app
-                    port:
-                      number: 8080
-      tls:
-        - hosts:
-            - "agentsview.\${SECRET_DOMAIN}"
-  - apiVersion: networking.k8s.io/v1
-    kind: Ingress
-    metadata:
-      name: paseo
-      namespace: paseo
-      annotations:
-        ingress.pomerium.io/allow_websockets: "true"
-        ingress.pomerium.io/policy: *admins
-    spec:
-      ingressClassName: pomerium
-      rules:
-        - host: "paseo.\${SECRET_DOMAIN}"
-          http:
-            paths:
-              - path: /
-                pathType: Prefix
-                backend:
-                  service:
-                    name: paseo
-                    port:
-                      number: 6767
-      tls:
-        - hosts:
-            - "paseo.\${SECRET_DOMAIN}"
-  - apiVersion: networking.k8s.io/v1
-    kind: Ingress
-    metadata:
-      name: herdr
-      namespace: herdr
-      annotations:
-        ingress.pomerium.io/allow_websockets: "true"
-        ingress.pomerium.io/policy: *admins
-    spec:
-      ingressClassName: pomerium
-      rules:
-        - host: "herdr.\${SECRET_DOMAIN}"
-          http:
-            paths:
-              - path: /
-                pathType: Prefix
-                backend:
-                  service:
-                    name: herdr
-                    port:
-                      number: 7317
-      tls:
-        - hosts:
-            - "herdr.\${SECRET_DOMAIN}"
-  - apiVersion: networking.k8s.io/v1
-    kind: Ingress
-    metadata:
-      name: hermes-agent
-      namespace: hermes-agent
-      annotations:
-        ingress.pomerium.io/allow_websockets: "true"
-        ingress.pomerium.io/policy: *admins
-    spec:
-      ingressClassName: pomerium
-      rules:
-        - host: "hermes.\${SECRET_DOMAIN}"
-          http:
-            paths:
-              - path: /v1
-                pathType: Prefix
-                backend:
-                  service:
-                    name: hermes-agent
-                    port:
-                      number: 8642
-              - path: /
-                pathType: Prefix
-                backend:
-                  service:
-                    name: hermes-agent
-                    port:
-                      number: 9119
-      tls:
-        - hosts:
-            - "hermes.\${SECRET_DOMAIN}"
-  - apiVersion: networking.k8s.io/v1
-    kind: Ingress
-    metadata:
-      name: openclaw
-      namespace: openclaw
-      annotations:
-        ingress.pomerium.io/allow_websockets: "true"
-        ingress.pomerium.io/policy: *admins
-    spec:
-      ingressClassName: pomerium
-      rules:
-        - host: "openclaw.\${SECRET_DOMAIN}"
-          http:
-            paths:
-              - path: /
-                pathType: Prefix
-                backend:
-                  service:
-                    name: openclaw
-                    port:
-                      number: 18789
-      tls:
-        - hosts:
-            - "openclaw.\${SECRET_DOMAIN}"
-  - apiVersion: networking.k8s.io/v1
-    kind: Ingress
-    metadata:
-      name: argocd
-      namespace: argocd
-      annotations:
-        ingress.pomerium.io/allow_websockets: "true"
-        ingress.pomerium.io/policy: *admins
-    spec:
-      ingressClassName: pomerium
-      rules:
-        - host: "argocd.\${SECRET_DOMAIN}"
-          http:
-            paths:
-              - path: /
-                pathType: Prefix
-                backend:
-                  service:
-                    name: argocd-server
-                    port:
-                      number: 80
-      tls:
-        - hosts:
-            - "argocd.\${SECRET_DOMAIN}"
-  - apiVersion: networking.k8s.io/v1
-    kind: Ingress
-    metadata:
-      name: grafana
-      namespace: observability
-      annotations:
-        ingress.pomerium.io/allow_websockets: "true"
-        ingress.pomerium.io/policy: &users |
+  users: |
 ${USERS_PPL}
-    spec:
-      ingressClassName: pomerium
-      rules:
-        - host: "grafana.\${SECRET_DOMAIN}"
-          http:
-            paths:
-              - path: /
-                pathType: Prefix
-                backend:
-                  service:
-                    name: kube-prometheus-stack-grafana
-                    port:
-                      number: 80
-      tls:
-        - hosts:
-            - "grafana.\${SECRET_DOMAIN}"
 EOF
 
 sops --config "${ROOT_DIR}/.sops.yaml" --filename-override "kubernetes/workloads/network/pomerium/google-idp-secret.sops.yaml" --encrypt "${WORKDIR}/google-idp-secret.sops.yaml" > "${POMERIUM_IDP_OUT}"
-sops --config "${ROOT_DIR}/.sops.yaml" --filename-override "kubernetes/workloads/network/pomerium/ingresses.sops.yaml" --encrypt "${WORKDIR}/ingresses.sops.yaml" > "${POMERIUM_INGRESSES_OUT}"
+sops --config "${ROOT_DIR}/.sops.yaml" --filename-override "kubernetes/workloads/network/pomerium/groups.sops.yaml" --encrypt "${WORKDIR}/groups.sops.yaml" > "${POMERIUM_GROUPS_OUT}"
 
 echo "Migrated ${#ADMIN_EMAILS[@]} admin(s) and ${#USER_EMAILS[@]} user(s) into ${POMERIUM_DIR}"

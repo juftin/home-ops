@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pomerium-groups
+  annotations:
+    config.kubernetes.io/local-config: "true"
+data:
+  admins: ENC[AES256_GCM,data:4R37wohuRWRURmAlRjKbv1iwk0JVaQEFFdtGGJQpZUhoOV440TcVq+0UCnJNxjTwWBRRlNZvmZA=,iv:TwZZdPaGHeFkmKaLVn8wy4e9mX6PlMxvqSRkFggMGBI=,tag:dx/NMfXvdFzS0CUyVQw68w==,type:str]
+  users: ENC[AES256_GCM,data:Jbr3xWtgnvWntZUhQVaDDhFcryVI+TgXx/T0zRF7naJz+MMpiLi0X1eIpFDG07Mp3c5x8d6ikHBSfYBpdWT5yYFYB4J4MxMkHfno+z5JKWh4MwCi4HuwGnEMJX9Ju/1ww2I=,iv:tyNMlrG/cE6cpj+YbxLLN9HQPzE88jS0RDGQ3hwCaI4=,tag:O7Tdi9RmJ/GKQcwi94rWQg==,type:str]
+sops:
+  age:
+    - enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBVRHNaVmhKV3FKTW9CWXFI
+        d3NjeHBlQ3cwZEd4cmU5Y3E0SEdBaHJ4K21rCk16c24xd0w5SWdWWE5CT1Zidmxt
+        WHVubDFoR0RUaTN1MDY2c3kzSER4TEEKLS0tIFBOQkhpQllHUkVRSnJlRlJJOWpN
+        R3dqdStvamYveEhxa2FNRndOZUMyNlEKK7BFQAKaVmRPSoyGdKmAgamDGLAjyvOg
+        m8tMXa7bnMfrvFkgyZj4lhfi4Wsh/JfDf3BjTt5XRCKkUQN054yeHg==
+        -----END AGE ENCRYPTED FILE-----
+      recipient: age1d7ltdyge970mha3gqyenf9mrn8ezg60nexy99vzndvl592q2zcxqkytdwd
+  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-11-17T04:35:52Z"
+  mac: ENC[AES256_GCM,data:Z+3ecAGk3zcXfagnRYPPnmA8QmWjQ2ht+a5b+Prd3NrTy0s+9lkHQ42rGQVIQ7xvhpe6UTAEPHnbp7jWMHqtpxwxfNNHW/qxQ52Q9vczvvmNMZmv3USueubBSNfdQTS5KvONZTvnb9xhTpxpwjhcjqar+7INKoIvzDFfvnpApDE=,iv:3Aj5lDTnA2kzxkXLuTf9Zu5N/o38VbVrO6RLMZSEDy0=,tag:+YhR1VXGBM5bw/6KkoLuzg==,type:str]
+  mac_only_encrypted: true
+  version: 3.13.3

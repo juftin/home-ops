@@ -50,9 +50,10 @@ ______________________________________________________________________
   - `spec.authenticate.url`: `https://oauth.${SECRET_DOMAIN}`
   - `spec.certificates`: `network/${SECRET_DOMAIN/./-}-production-tls`
   - `spec.identityProvider`: `provider: google`, `secret: pomerium/google-idp`
-- **Access groups (`Admins` & `Users`)**: `kubernetes/workloads/network/pomerium/ingresses.sops.yaml`
-  - Defines PPL policies using `&admins` and `&users` YAML anchors
-  - Only `ingress.pomerium.io/policy` annotations are SOPS-encrypted (via `.sops.yaml`)
+- **Access groups (`Admins` & `Users`)**: `kubernetes/workloads/network/pomerium/groups.sops.yaml`
+  - `local-config` ConfigMap storing `data.admins` and `data.users` (encrypted once under `data`)
+  - Kustomize `replacements` injects each policy into matching `Ingress` resources in
+    `kubernetes/workloads/network/pomerium/ingresses.yaml` (`pomerium.io/group: admins|users`)
 
 ______________________________________________________________________
 

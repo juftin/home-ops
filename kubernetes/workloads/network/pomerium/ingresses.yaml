@@ -1,0 +1,186 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: agentsview
+  namespace: agentsview
+  labels:
+    pomerium.io/group: admins
+spec:
+  ingressClassName: pomerium
+  rules:
+    - host: "agentsview.${SECRET_DOMAIN}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: agentsview-app
+                port:
+                  number: 8080
+  tls:
+    - hosts:
+        - "agentsview.${SECRET_DOMAIN}"
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: paseo
+  namespace: paseo
+  labels:
+    pomerium.io/group: admins
+  annotations:
+    ingress.pomerium.io/allow_websockets: "true"
+spec:
+  ingressClassName: pomerium
+  rules:
+    - host: "paseo.${SECRET_DOMAIN}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: paseo
+                port:
+                  number: 6767
+  tls:
+    - hosts:
+        - "paseo.${SECRET_DOMAIN}"
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: herdr
+  namespace: herdr
+  labels:
+    pomerium.io/group: admins
+  annotations:
+    ingress.pomerium.io/allow_websockets: "true"
+spec:
+  ingressClassName: pomerium
+  rules:
+    - host: "herdr.${SECRET_DOMAIN}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: herdr
+                port:
+                  number: 7317
+  tls:
+    - hosts:
+        - "herdr.${SECRET_DOMAIN}"
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hermes-agent
+  namespace: hermes-agent
+  labels:
+    pomerium.io/group: admins
+  annotations:
+    ingress.pomerium.io/allow_websockets: "true"
+spec:
+  ingressClassName: pomerium
+  rules:
+    - host: "hermes.${SECRET_DOMAIN}"
+      http:
+        paths:
+          - path: /v1
+            pathType: Prefix
+            backend:
+              service:
+                name: hermes-agent
+                port:
+                  number: 8642
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: hermes-agent
+                port:
+                  number: 9119
+  tls:
+    - hosts:
+        - "hermes.${SECRET_DOMAIN}"
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: openclaw
+  namespace: openclaw
+  labels:
+    pomerium.io/group: admins
+  annotations:
+    ingress.pomerium.io/allow_websockets: "true"
+spec:
+  ingressClassName: pomerium
+  rules:
+    - host: "openclaw.${SECRET_DOMAIN}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: openclaw
+                port:
+                  number: 18789
+  tls:
+    - hosts:
+        - "openclaw.${SECRET_DOMAIN}"
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argocd
+  namespace: argocd
+  labels:
+    pomerium.io/group: admins
+  annotations:
+    ingress.pomerium.io/allow_websockets: "true"
+spec:
+  ingressClassName: pomerium
+  rules:
+    - host: "argocd.${SECRET_DOMAIN}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: argocd-server
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - "argocd.${SECRET_DOMAIN}"
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana
+  namespace: observability
+  labels:
+    pomerium.io/group: users
+  annotations:
+    ingress.pomerium.io/allow_websockets: "true"
+spec:
+  ingressClassName: pomerium
+  rules:
+    - host: "grafana.${SECRET_DOMAIN}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kube-prometheus-stack-grafana
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - "grafana.${SECRET_DOMAIN}"

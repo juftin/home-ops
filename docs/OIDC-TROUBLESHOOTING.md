@@ -62,11 +62,11 @@ ______________________________________________________________________
 
 ### Check
 
-- User email (lowercase) is present in the `&admins` or `&users` PPL policy block in
-  `kubernetes/workloads/network/pomerium/ingresses.sops.yaml`
+- User email (lowercase) is present in `data.admins` or `data.users` in
+  `kubernetes/workloads/network/pomerium/groups.sops.yaml`
 
 ```bash
-sops --decrypt kubernetes/workloads/network/pomerium/ingresses.sops.yaml | less
+sops --decrypt kubernetes/workloads/network/pomerium/groups.sops.yaml | less
 ```
 
 ### Fix
@@ -89,7 +89,7 @@ ______________________________________________________________________
 
 ### Fix
 
-- Update the app's `networkpolicy.yaml` or `ingresses.sops.yaml` annotation, validate, and reconcile
+- Update the app's `networkpolicy.yaml` or `ingresses.yaml` annotation, validate, and reconcile
 
 ______________________________________________________________________
 

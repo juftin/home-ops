@@ -6,11 +6,37 @@ resources:
   - ./pomerium.yaml
   - ./podmonitor.yaml
   - ./google-idp-secret.sops.yaml
-  - ./ingresses.sops.yaml
+  - ./groups.sops.yaml
+  - ./ingresses.yaml
 images:
   - name: pomerium/ingress-controller
     # renovate: datasource=docker depName=pomerium/ingress-controller
     newTag: v0.34.1
+replacements:
+  - source:
+      kind: ConfigMap
+      name: pomerium-groups
+      fieldPath: data.admins
+    targets:
+      - select:
+          kind: Ingress
+          labelSelector: pomerium.io/group=admins
+        fieldPaths:
+          - metadata.annotations.[ingress.pomerium.io/policy]
+        options:
+          create: true
+  - source:
+      kind: ConfigMap
+      name: pomerium-groups
+      fieldPath: data.users
+    targets:
+      - select:
+          kind: Ingress
+          labelSelector: pomerium.io/group=users
+        fieldPaths:
+          - metadata.annotations.[ingress.pomerium.io/policy]
+        options:
+          create: true
 patches:
   - target:
       group: apps

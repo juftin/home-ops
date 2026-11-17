@@ -8,10 +8,12 @@ ______________________________________________________________________
 
 Primary files:
 
-- `kubernetes/workloads/network/pomerium/ingresses.sops.yaml`
-  - `kind: List` of Pomerium `Ingress` resources using `&admins` and `&users` YAML anchors in
-    `ingress.pomerium.io/policy` annotations
-  - Encrypted via `.sops.yaml` rule matching `^(ingress\.pomerium\.io/policy)$`
+- `kubernetes/workloads/network/pomerium/groups.sops.yaml`
+  - `local-config` ConfigMap encrypting `data.admins` and `data.users` once via SOPS
+- `kubernetes/workloads/network/pomerium/ingresses.yaml`
+  - Plaintext `Ingress` definitions labeled `pomerium.io/group: admins` or `pomerium.io/group: users`
+  - `kubernetes/workloads/network/pomerium/kustomization.yaml` injects `data.admins` / `data.users`
+    into `ingress.pomerium.io/policy` at render time via Kustomize `replacements`
 
 Related secret:
 
@@ -24,25 +26,22 @@ ______________________________________________________________________
 ## 1) Decrypt
 
 ```bash
-sops --decrypt kubernetes/workloads/network/pomerium/ingresses.sops.yaml > /tmp/ingresses.yaml
+sops --decrypt kubernetes/workloads/network/pomerium/groups.sops.yaml > /tmp/groups.yaml
 ```
 
 ## 2) Edit
 
 - Keep all email addresses lowercase (`email.is: user@example.com`)
 - Maintain two external access tiers:
-  - `Admins` (`agentsview`, `paseo`, `herdr`, `hermes-agent`, `openclaw`, `argocd`)
-  - `Users` (`grafana`; include admin emails in the users list as well)
-- Note: SOPS expands YAML anchors during encryption, so update all `Admins` entries (or restore
-  `&admins` / `*admins` anchors in `/tmp/ingresses.yaml` before re-encrypting) so every admin
-  route stays synchronized.
+  - `data.admins` (`agentsview`, `paseo`, `herdr`, `hermes-agent`, `openclaw`, `argocd`)
+  - `data.users` (`grafana`; include admin emails in the users list as well)
 
 ## 3) Re-encrypt and clean up
 
 ```bash
-sops --filename-override kubernetes/workloads/network/pomerium/ingresses.sops.yaml \
-  --encrypt /tmp/ingresses.yaml > kubernetes/workloads/network/pomerium/ingresses.sops.yaml
-rm /tmp/ingresses.yaml
+sops --filename-override kubernetes/workloads/network/pomerium/groups.sops.yaml \
+  --encrypt /tmp/groups.yaml > kubernetes/workloads/network/pomerium/groups.sops.yaml
+rm /tmp/groups.yaml
 ```
 
 ## 4) Validate and apply via GitOps
@@ -50,7 +49,7 @@ rm /tmp/ingresses.yaml
 ```bash
 task lint
 task dev:validate
-git add kubernetes/workloads/network/pomerium/ingresses.sops.yaml
+git add kubernetes/workloads/network/pomerium/groups.sops.yaml
 git commit -m "🔐 update pomerium allowlist"
 git push
 ```
@@ -68,7 +67,7 @@ ______________________________________________________________________
 
 ## Emergency Revoke Procedure
 
-1. Remove affected email(s) from `ingresses.sops.yaml`, re-encrypt, and push
+1. Remove affected email(s) from `groups.sops.yaml`, re-encrypt, and push
 2. Restart Pomerium to invalidate cached state if needed:
 
 ```bash
@@ -80,7 +79,6 @@ ______________________________________________________________________
 ## Safety Checks Before Merge
 
 - [ ] No plaintext email addresses or secrets committed outside encrypted fields
-- [ ] Policy file still SOPS-encrypted (`ENC[AES256_GCM` present)
-- [ ] All admin `Ingress` items share identical `Admins` allowlists
-- [ ] `Users` allowlist (`grafana`) includes `Admins` emails
+- [ ] `groups.sops.yaml` still SOPS-encrypted (`ENC[AES256_GCM` present under `data`)
+- [ ] `data.users` includes `data.admins` emails
 - [ ] Branch test completed and `task dev:stop` run

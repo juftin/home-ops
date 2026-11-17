@@ -16,12 +16,12 @@ ______________________________________________________________________
 
 ## 2. OAuth-Protected App (Pomerium SSO)
 
-- [ ] Decrypt `kubernetes/workloads/network/pomerium/ingresses.sops.yaml`
-- [ ] Add a `networking.k8s.io/v1` `Ingress` item in the app's namespace with:
+- [ ] Add a `networking.k8s.io/v1` `Ingress` item in `kubernetes/workloads/network/pomerium/ingresses.yaml`
+  in the app's namespace with:
+  - `metadata.labels.pomerium.io/group: admins` (or `users`) so Kustomize injects the policy from
+    `groups.sops.yaml`
   - `spec.ingressClassName: pomerium`
-  - `ingress.pomerium.io/policy` matching `Admins` or `Users` (via YAML anchors `&admins`/`&users` before encryption)
   - `ingress.pomerium.io/allow_websockets: "true"` if the app uses WebSockets
-- [ ] Re-encrypt `ingresses.sops.yaml` with `sops --encrypt` (verify `ENC[AES256_GCM` is present)
 - [ ] Add explicit hostname entry in `kubernetes/workloads/network/cloudflare-tunnel/values.yaml`
   **before** `*.${SECRET_DOMAIN}` targeting `https://pomerium-proxy.pomerium.svc.cluster.local:443`
   with `originServerName: oauth.${SECRET_DOMAIN}`

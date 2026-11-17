@@ -263,7 +263,8 @@ Public and LAN-only workloads configure HTTPRoutes and Tailscale Ingresses in th
 `values.yaml`, using chart-native resources (such as `camply-web` or `app-template`).
 Public apps use `envoy-external` and internal LAN apps use `envoy-internal`. OAuth-protected apps
 (`agentsview`, `paseo`, `herdr`, `hermes-agent`, `openclaw`, `argocd`, and `grafana`) are fronted
-by Pomerium `Ingress` objects in `kubernetes/workloads/network/pomerium/ingresses.sops.yaml` and
+by Pomerium `Ingress` objects in `kubernetes/workloads/network/pomerium/ingresses.yaml` (with
+policies injected from SOPS-encrypted `groups.sops.yaml`) and
 explicit Cloudflare Tunnel rules pointing to `pomerium-proxy.pomerium.svc.cluster.local:443`.
 See [App access](APP-ACCESS.md).
 

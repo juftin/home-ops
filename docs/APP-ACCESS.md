@@ -39,12 +39,14 @@ apiVersions:
 ## Google SSO (Pomerium)
 
 OAuth-protected apps are routed by **Pomerium Ingress Controller** (`ingressClassName: pomerium`)
-rather than per-app `values.yaml` `route:` blocks so the `Admins` and `Users` email lists stay
-DRY (using YAML anchors) and SOPS-encrypted in one place:
+rather than per-app `values.yaml` `route:` blocks so the `Admins` and `Users` lists stay
+encrypted once in [groups.sops.yaml](../kubernetes/workloads/network/pomerium/groups.sops.yaml) and
+injected across routes via Kustomize `replacements`:
 
-1. Add an `Ingress` entry in
-   [Pomerium ingresses](../kubernetes/workloads/network/pomerium/ingresses.sops.yaml) referencing
-   either the `*admins` or `*users` PPL policy anchor (see [Playbook](SECURITYPOLICY-CHANGE-PLAYBOOK.md)).
+1. Add a plaintext `Ingress` entry in
+   [Pomerium ingresses](../kubernetes/workloads/network/pomerium/ingresses.yaml) labeled
+   `pomerium.io/group: admins` or `pomerium.io/group: users` (see
+   [Playbook](SECURITYPOLICY-CHANGE-PLAYBOOK.md) to edit group members).
 2. Add the app hostname to
    [Cloudflare Tunnel](../kubernetes/workloads/network/cloudflare-tunnel/values.yaml) before the
    `*.${SECRET_DOMAIN}` wildcard pointing to
