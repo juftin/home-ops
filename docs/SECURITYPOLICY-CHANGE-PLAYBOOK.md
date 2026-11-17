@@ -40,7 +40,8 @@ sops --decrypt kubernetes/workloads/network/pomerium/ingresses.sops.yaml > /tmp/
 ## 3) Re-encrypt and clean up
 
 ```bash
-sops --encrypt /tmp/ingresses.yaml > kubernetes/workloads/network/pomerium/ingresses.sops.yaml
+sops --filename-override kubernetes/workloads/network/pomerium/ingresses.sops.yaml \
+  --encrypt /tmp/ingresses.yaml > kubernetes/workloads/network/pomerium/ingresses.sops.yaml
 rm /tmp/ingresses.yaml
 ```
 

@@ -65,7 +65,8 @@ sops --decrypt kubernetes/workloads/network/pomerium/google-idp-secret.sops.yaml
 # edit /tmp/google-idp.yaml
 
 # re-encrypt
-sops --encrypt /tmp/google-idp.yaml > kubernetes/workloads/network/pomerium/google-idp-secret.sops.yaml
+sops --filename-override kubernetes/workloads/network/pomerium/google-idp-secret.sops.yaml \
+  --encrypt /tmp/google-idp.yaml > kubernetes/workloads/network/pomerium/google-idp-secret.sops.yaml
 rm /tmp/google-idp.yaml
 ```
 

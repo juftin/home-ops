@@ -281,7 +281,7 @@ ${USERS_PPL}
             - "grafana.\${SECRET_DOMAIN}"
 EOF
 
-sops --config "${ROOT_DIR}/.sops.yaml" --encrypt "${WORKDIR}/google-idp-secret.sops.yaml" > "${POMERIUM_IDP_OUT}"
-sops --config "${ROOT_DIR}/.sops.yaml" --encrypt "${WORKDIR}/ingresses.sops.yaml" > "${POMERIUM_INGRESSES_OUT}"
+sops --config "${ROOT_DIR}/.sops.yaml" --filename-override "kubernetes/workloads/network/pomerium/google-idp-secret.sops.yaml" --encrypt "${WORKDIR}/google-idp-secret.sops.yaml" > "${POMERIUM_IDP_OUT}"
+sops --config "${ROOT_DIR}/.sops.yaml" --filename-override "kubernetes/workloads/network/pomerium/ingresses.sops.yaml" --encrypt "${WORKDIR}/ingresses.sops.yaml" > "${POMERIUM_INGRESSES_OUT}"
 
 echo "Migrated ${#ADMIN_EMAILS[@]} admin(s) and ${#USER_EMAILS[@]} user(s) into ${POMERIUM_DIR}"
