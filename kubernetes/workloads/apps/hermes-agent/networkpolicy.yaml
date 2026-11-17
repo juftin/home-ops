@@ -9,8 +9,9 @@ spec:
   ingress:
     - fromEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: network
-            gateway.envoyproxy.io/owning-gateway-name: envoy-oauth-admin
+            k8s:io.kubernetes.pod.namespace: pomerium
+            app.kubernetes.io/name: pomerium
+            app.kubernetes.io/component: proxy
       toPorts:
         - ports:
             - port: "9119"

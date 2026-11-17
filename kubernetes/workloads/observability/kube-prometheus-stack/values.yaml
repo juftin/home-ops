@@ -40,15 +40,7 @@ grafana:
       isDefault: false
   route:
     main:
-      enabled: true
-      hostnames:
-        - grafana.${SECRET_DOMAIN}
-      parentRefs:
-        - group: gateway.networking.k8s.io
-          kind: Gateway
-          name: envoy-oauth-users
-          namespace: network
-          sectionName: https
+      enabled: false
 alertmanager:
   enabled: true
   alertmanagerSpec:

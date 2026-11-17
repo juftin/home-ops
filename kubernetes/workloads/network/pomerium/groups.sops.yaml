@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pomerium-groups
+  annotations:
+    config.kubernetes.io/local-config: "true"
+data:
+  admins: ENC[AES256_GCM,data:tUmTCfUy99p0Ug44L5vrh7XiSMa1OgLTCRxd1BGDPOnESaf5vi4JJZZQEDu5txljAbEREsZjuEg1sE0Zz3O3ESa7MLHTRxsnCCpuaVmOopuDVTjhnnZWmCXbIHL2d3RpyQ==,iv:8C1MXb7sJXqVqV7h/FUXmm4R9nuRYmJzNEJQTe7OEh8=,tag:inOyUmkhjwXHOeYoY/Ibvg==,type:str]
+  users: ENC[AES256_GCM,data:LBKdrmmggyqyazVYRcfDqJGD4ymiqFsAk5Vm/zAix9Mqr6WjJJYVdpIY1/uBjrnA0P5wof+V+lox7Ih7hWTd39smqmSYNKM2e7yPR9TMY/l7SaiuBwcXCA5JcG9j+xX8qoSHoyiSxN/URe/MxRo7PUJeTtsT6hqVlsTXmHqMbfXs1jBXoo8oYdtH6RQV96EJ0i9PtG8=,iv:doKHLJooQU9c+89xy0Du11P80Y9rBy3pSD079xBLRxo=,tag:IW0TbL5I5zmcFTD1Wjqc/A==,type:str]
+sops:
+  age:
+    - enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBJOVdlU3MzeUtIS2pHY05W
+        NDRkNjNNRXhDUWYzMFpkYUR1NitHREdUckJRCk1kRWxlMVpKTWhOVCtsWnFWRS9Z
+        UXJBSlZYd3RGUGcvS0FraFNBVHZWYjgKLS0tIGF0NFpWNUtucWNrRmREOUlHcU5E
+        L3FVZWQzZTlvWjJHNVc1UWlkYklPRk0KbC4XHgm2Nv3yIX8Crn4uycu3H4GpiYRY
+        nEJJ/3P2RsIN+I+lfW3tN+HkH+BvJAl99blY9/wDzoncEvsSD0tioA==
+        -----END AGE ENCRYPTED FILE-----
+      recipient: age1d7ltdyge970mha3gqyenf9mrn8ezg60nexy99vzndvl592q2zcxqkytdwd
+  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-11-17T04:47:08Z"
+  mac: ENC[AES256_GCM,data:JOap1M0ALhGGQ7t5wWrSp0dh0BYRMS0p/Nq4X2eZXgOg3sqToksDujjbNEiVb3zlBAM2teFf5mFz0UdCKk6XgjND8uowPTQwbt3hxmM7ibLO8nqZOnF2DxIGeoKNtHI6xj3msARW7uJqt+E6V0Mmftply2t6cybJglHRiMihBGM=,iv:l/le0MnALdeH0mipsPRmWLjcGV4oi23a67yStAf4Dw4=,tag:Pv1dx6K6vk3r/WEFqPG8yA==,type:str]
+  mac_only_encrypted: true
+  version: 3.13.3

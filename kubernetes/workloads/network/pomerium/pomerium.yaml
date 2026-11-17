@@ -1,0 +1,23 @@
+apiVersion: ingress.pomerium.io/v1
+kind: Pomerium
+metadata:
+  name: global
+  namespace: pomerium
+spec:
+  authenticate:
+    url: "https://oauth.${SECRET_DOMAIN}"
+  certificates:
+    - "network/${SECRET_DOMAIN/./-}-production-tls"
+  cookie:
+    domain: "${SECRET_DOMAIN}"
+  identityProvider:
+    provider: google
+    secret: pomerium/google-idp
+    scopes:
+      - openid
+      - profile
+      - email
+  secrets: pomerium/bootstrap
+  storage:
+    file:
+      path: /var/lib/pomerium

@@ -226,14 +226,6 @@ persistence:
         agentsview-config:
           - path: /config
             readOnly: true
-route:
-  app:
-    hostnames:
-      - herdr.${SECRET_DOMAIN}
-    parentRefs:
-      - name: envoy-oauth-admin
-        namespace: network
-        sectionName: https
 configMaps:
   agentsview:
     data:

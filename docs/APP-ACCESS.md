@@ -1,12 +1,12 @@
 # App Access
 
-Use the app-template chart's existing `route` and `ingress` settings in the app's
-`values.yaml`. [Paseo](../kubernetes/workloads/apps/paseo/values.yaml) includes
-admin OAuth and Tailscale; [echo](../kubernetes/workloads/apps/echo/values.yaml)
-is the public example; [Lunch Money](../kubernetes/workloads/apps/lunchmoney/values.yaml)
-is the internal Gateway and Tailscale example.
+Public and LAN-only apps use chart-native `route` (Gateway API `HTTPRoute`) and `ingress`
+(Tailscale) settings in each app's `values.yaml`. [echo](../kubernetes/workloads/apps/echo/values.yaml)
+is the public example; [Lunch Money](../kubernetes/workloads/apps/lunchmoney/values.yaml) is the
+internal Gateway and Tailscale example; [Paseo](../kubernetes/workloads/apps/paseo/values.yaml)
+includes Tailscale private access alongside Pomerium SSO.
 
-## Public or OAuth
+## Public or Internal (Envoy Gateway)
 
 For an app with one Service, the chart automatically selects the Service and its
 primary port. Add:
@@ -16,19 +16,17 @@ route:
   app:
     hostnames: ['my-app.${SECRET_DOMAIN}']
     parentRefs:
-      - name: envoy-oauth-admin
+      - name: envoy-external
         namespace: network
         sectionName: https
 ```
 
 Choose the Gateway:
 
-| Gateway             | Access                                                    |
-| ------------------- | --------------------------------------------------------- |
-| `envoy-external`    | Public Cloudflare Tunnel; application authentication only |
-| `envoy-internal`    | Internal LAN Gateway; cluster local DNS via k8s-gateway   |
-| `envoy-oauth-admin` | Google SSO, admins                                        |
-| `envoy-oauth-users` | Google SSO, users                                         |
+| Gateway          | Access                                                  |
+| ---------------- | ------------------------------------------------------- |
+| `envoy-external` | Public Cloudflare Tunnel; application auth only         |
+| `envoy-internal` | Internal LAN Gateway; cluster local DNS via k8s-gateway |
 
 In the app's `kustomization.yaml`, include the API capability in its existing
 `helmCharts` entry so offline Helm rendering emits stable HTTPRoutes:
@@ -38,20 +36,30 @@ apiVersions:
   - gateway.networking.k8s.io/v1/HTTPRoute
 ```
 
-**OAuth has one additional shared edit:** add the app hostname to
-[Cloudflare Tunnel](../kubernetes/workloads/network/cloudflare-tunnel/values.yaml)
-before the public wildcard. Copy an entry for the same group; admins use
-`envoy-oauth-admin` with TLS origin `oauth.${SECRET_DOMAIN}`, users use
-`envoy-oauth-users` with TLS origin `oauth-users.${SECRET_DOMAIN}`. Public apps use
-the existing wildcard without a tunnel edit. OAuth utility pages already cover
-all app hosts through their wildcard; callback protection remains section-scoped.
+## Google SSO (Pomerium)
 
-For multiple ports or paths, specify `route.app.rules`; see
-[Hermes Agent](../kubernetes/workloads/apps/hermes-agent/values.yaml).
+OAuth-protected apps are routed by **Pomerium Ingress Controller** (`ingressClassName: pomerium`)
+rather than per-app `values.yaml` `route:` blocks so the `Admins` and `Users` lists stay
+encrypted once in [groups.sops.yaml](../kubernetes/workloads/network/pomerium/groups.sops.yaml) and
+injected across routes via Kustomize `replacements`:
+
+1. Add a plaintext `Ingress` entry in
+   [Pomerium ingresses](../kubernetes/workloads/network/pomerium/ingresses.yaml) labeled
+   `pomerium.io/group: admins` or `pomerium.io/group: users` (see
+   [Playbook](SECURITYPOLICY-CHANGE-PLAYBOOK.md) to edit group members).
+2. Add the app hostname to
+   [Cloudflare Tunnel](../kubernetes/workloads/network/cloudflare-tunnel/values.yaml) before the
+   `*.${SECRET_DOMAIN}` wildcard pointing to
+   `https://pomerium-proxy.pomerium.svc.cluster.local:443` with
+   `originServerName: oauth.${SECRET_DOMAIN}`.
+3. If the app enforces a `CiliumNetworkPolicy`, allow ingress from `pomerium-proxy` pods in the
+   `pomerium` namespace (`app.kubernetes.io/name: pomerium`, `app.kubernetes.io/component: proxy`).
+
+Public apps on `envoy-external` use the existing wildcard without a tunnel edit.
 
 ## Tailscale
 
-Add this beside `route` in `values.yaml`, changing the hostname, Service and port:
+Add this beside `route` (or standalone) in `values.yaml`, changing the hostname, Service and port:
 
 ```yaml
 ingress:
@@ -67,21 +75,14 @@ ingress:
       - hosts: [my-app]
 ```
 
-This creates `https://my-app.<tailnet-DNS-suffix>`. Keep both blocks for OAuth plus
-private access; use only `ingress` for Tailscale-only access. Tailscale bypasses
-Google SSO, so retain application authentication where needed. See
+This creates `https://my-app.<tailnet-DNS-suffix>`. Keep both a Pomerium `Ingress` and Tailscale
+`ingress` for SSO plus private access; use only `ingress` for Tailscale-only access. Tailscale
+bypasses Pomerium SSO, so retain application authentication where needed. See
 [Tailscale setup](TAILSCALE-SETUP.md) for operator and hostname prerequisites.
 
-Grafana uses its own chart's `grafana.route.main` settings in
-[kube-prometheus-stack values](../kubernetes/workloads/observability/kube-prometheus-stack/values.yaml).
-ArgoCD uses `server.httproute` in its
-[bootstrap values](../bootstrap/helmfile.d/templates/values.yaml.gotmpl); update its
-Helm release with `task argocd:bootstrap` to deploy changes. The chart names its
-HTTPRoute `argocd-server` and uses the existing HTTP Service port when
-`server.insecure` is enabled.
-Shared OAuth utility routes also live in
-[oauth-pages values](../kubernetes/workloads/apps/oauth-pages/values.yaml), including
-their named callback, logout, denied, and logged-out rules.
+`argocd-webhook` (`webhooks.${SECRET_DOMAIN}/argocd/api/webhook`) remains an `HTTPRoute` on
+`envoy-external` in [bootstrap values](../bootstrap/helmfile.d/templates/values.yaml.gotmpl); update
+the bootstrap release with `task argocd:bootstrap` when changing it.
 
 For charts without native route settings, keep ordinary HTTPRoute/Ingress manifests
 beside the app. When moving existing manifests into chart values, remove their

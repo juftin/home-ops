@@ -92,16 +92,17 @@ task dev:start
 kubectl get externalsecret paseo -n paseo
 kubectl get pvc -n paseo
 kubectl rollout status deployment/paseo -n paseo
-kubectl get httproute paseo -n paseo
+kubectl get ingress paseo -n paseo
 ```
 
-Open the Paseo hostname, complete Google login, and supply the daemon password when prompted.
-Verify the UI connects and can stream a provider session over WebSocket. Check `/denied` and
-`/logged-out` on the same hostname. Always finish branch testing with `task dev:stop`, including
-when a check fails.
+Open the Paseo hostname, complete Google login via Pomerium, and supply the daemon password when
+prompted. Verify the UI connects and can stream a provider session over WebSocket. Test
+`/.pomerium/sign_out` on the same hostname. Always finish branch testing with `task dev:stop`,
+including when a check fails.
 
-The Cloudflare Tunnel has an explicit Paseo rule before the public wildcard rule. The HTTPRoute
-attaches only to `envoy-oauth-admin`; no additional Google OAuth redirect URI is needed because
-the existing admin gateway handles the callback. Relay access is disabled, so native or CLI
-clients must also handle gateway authentication to connect through this public hostname. Use the
-Tailscale hostname for direct daemon connections on port 443 with SSL enabled.
+The Cloudflare Tunnel has an explicit Paseo rule before the public wildcard rule, routing to
+`pomerium-proxy.pomerium.svc.cluster.local:443`. Pomerium handles the Google OAuth callback at
+`https://oauth.${SECRET_DOMAIN}/oauth2/callback` and enforces the `Admins` policy. Relay access is
+disabled, so native or CLI clients must also handle SSO authentication to connect through this
+public hostname. Use the Tailscale hostname for direct daemon connections on port 443 with SSL
+enabled.

@@ -180,15 +180,3 @@ persistence:
       app:
         app:
           - path: /tmp
-route:
-  app:
-    hostnames:
-      - agentsview.${SECRET_DOMAIN}
-    parentRefs:
-      - name: envoy-oauth-admin
-        namespace: network
-        sectionName: https
-    rules:
-      - backendRefs:
-          - name: agentsview-app
-            port: 8080

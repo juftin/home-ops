@@ -104,19 +104,20 @@ Use `kubernetes/workloads/apps/echo/` as a working reference. After adding files
 
 **If the app is OAuth-protected**:
 
-Prefer the app-template chart's `route` and `ingress` settings in the app's
-`values.yaml`; see [App access](docs/APP-ACCESS.md). Keep ordinary manifests beside
-apps using other charts.
+OAuth-protected apps are fronted by **Pomerium Ingress Controller** (`kubernetes/workloads/network/pomerium/`).
+See [App access](docs/APP-ACCESS.md) and [Google OAuth Setup](docs/GOOGLE-OAUTH-SETUP.md).
 
-1. Add an explicit hostname entry in
+1. Add an `Ingress` entry (`ingressClassName: pomerium`) in
+   `kubernetes/workloads/network/pomerium/ingresses.yaml` labeled `pomerium.io/group: admins` or
+   `pomerium.io/group: users` (Kustomize injects the SOPS-encrypted PPL policy from
+   `kubernetes/workloads/network/pomerium/groups.sops.yaml` so plaintext emails never appear in Git).
+2. Add an explicit hostname entry in
    `kubernetes/workloads/network/cloudflare-tunnel/values.yaml` **before** the wildcard
-   `*.${SECRET_DOMAIN}` rule. Route by group:
-   - admins: `https://envoy-oauth-admin.<namespace>.svc.cluster.local:443` with `originServerName: oauth.${SECRET_DOMAIN}`
-   - users: `https://envoy-oauth-users.<namespace>.svc.cluster.local:443` with `originServerName: oauth-users.${SECRET_DOMAIN}`
-2. Shared `oauth-pages` uses `*.${SECRET_DOMAIN}` to cover app hosts; no per-app
-   hostname entry is needed for `/denied` or `/logged-out`.
-3. Keep `/oauth2/callback` route handling on `oauth-pages` and do not broaden
-   `oauth-pages-public` to allow callback.
+   `*.${SECRET_DOMAIN}` rule pointing to `https://pomerium-proxy.pomerium.svc.cluster.local:443`
+   with `originServerName: oauth.${SECRET_DOMAIN}`.
+3. If the app uses a `CiliumNetworkPolicy`, allow ingress from `pomerium-proxy` pods
+   (`k8s:io.kubernetes.pod.namespace: pomerium`, `app.kubernetes.io/name: pomerium`,
+   `app.kubernetes.io/component: proxy`).
 
 **For app secrets**: prefer `ExternalSecret` + 1Password over committing a new `.sops.yaml`.
 See [`specs/001-external-secrets-1password/quickstart.md`](specs/001-external-secrets-1password/quickstart.md).
@@ -151,17 +152,11 @@ with the real age key for full decryption.
   `kustomization.yaml` files use `../../../components/sops` under `workloads/apps/<app-name>`
   and `../../components/sops` under `workloads/<namespace>`. Do not copy namespace kustomizations
   from feature branches that used `../../components/common`; that directory does not exist on `main`.
-- **OAuth Gateways must include the Cloudflare DNS label** — `cloudflare-dns` now discovers Gateway
+- **ExternalDNS Gateway discovery** — `cloudflare-dns` discovers Gateway
   resources using `--gateway-label-filter=home-ops.io/cloudflare-dns=true`. If the label is missing
-  from a Gateway, its DNS records will not be created/updated in Cloudflare.
-- **`oauth-pages` requires URL rewrites for friendly paths** — `/denied` and `/logged-out` must be
-  rewritten to `/denied.html` and `/logged-out.html` in
-  `kubernetes/workloads/apps/oauth-pages/values.yaml`; otherwise nginx serves 404.
-- **Keep oauth utility pages publicly reachable** — `kubernetes/workloads/apps/oauth-pages/securitypolicy.yaml`
-  intentionally sets `authorization.defaultAction: Allow` on the `oauth-pages` HTTPRoute so denied/logout
-  pages do not get trapped behind the gateway-level OIDC challenge.
-- **Default auth UX is immediate provider redirect** — do not add or keep a public `/login` route unless
-  explicitly requested for a temporary test; protected paths should immediately initiate OIDC login.
+  from an external Gateway, its DNS records will not be created/updated in Cloudflare.
+- **Default auth UX is immediate provider redirect** — protected Pomerium Ingresses initiate Google
+  SSO immediately via `https://oauth.${SECRET_DOMAIN}/oauth2/callback`.
 - **ServiceAccount tokens from `kubectl create token` go stale** — these JWTs embed the SA's
   current UID. If the SA is deleted and recreated (e.g. after branch testing), any stored token
   becomes invalid. Regenerate with:

@@ -1,92 +1,48 @@
-# Gateway Onboarding Checklist
+# Gateway & Pomerium Route Onboarding Checklist
 
-Use this checklist whenever adding a new Gateway (especially OAuth Gateways).
-
-______________________________________________________________________
-
-## 1. Design Inputs
-
-- [ ] Pick gateway name (`envoy-oauth-admin` or `envoy-oauth-<group>`)
-- [ ] Reserve unique LB IP from MetalLB/Cilium IPAM pool
-- [ ] Pick DNS hostname under `${SECRET_DOMAIN}`
-- [ ] Decide external vs internal DNS target annotation
+Use this checklist whenever onboarding a new Envoy Gateway or Pomerium SSO-protected application.
 
 ______________________________________________________________________
 
-## 2. Mandatory Gateway Manifest Requirements
+## 1. Public or LAN-Only App (Envoy Gateway)
 
-File: `kubernetes/workloads/network/envoy-gateway/envoy.yaml`
-
-- [ ] `metadata.labels.home-ops.io/cloudflare-dns: "true"` (required for Cloudflare DNS sync)
-- [ ] `metadata.labels.home-ops.io/oauth-gateway: "true"` (required for OAuth policy targeting)
-- [ ] `metadata.annotations.external-dns.alpha.kubernetes.io/target` set correctly
-- [ ] `metadata.annotations.lbipam.cilium.io/ips` set to reserved IP
-- [ ] HTTPS listener includes cert ref:
-  `${SECRET_DOMAIN/./-}-production-tls` in namespace `network`
-- [ ] HTTP listener is present for shared HTTPS redirect route
+- [ ] Choose `envoy-external` (public) or `envoy-internal` (LAN-only)
+- [ ] Configure `route.app` in the app's `values.yaml`
+- [ ] Include `gateway.networking.k8s.io/v1/HTTPRoute` under `apiVersions` in the app's `kustomization.yaml`
+- [ ] For custom external domains outside `*.${SECRET_DOMAIN}`, add listener + certificate in
+  `kubernetes/workloads/network/envoy-gateway/` and a rule in `cloudflare-tunnel/values.yaml`
 
 ______________________________________________________________________
 
-## 3. Security Policy and Secret Wiring
+## 2. OAuth-Protected App (Pomerium SSO)
 
-Files:
-
-- `kubernetes/workloads/network/envoy-gateway/oauth-client-secret.sops.yaml`
-
-- `kubernetes/workloads/network/envoy-gateway/oauth-policy*.sops.yaml`
-
-- `kubernetes/workloads/network/envoy-gateway/kustomization.yaml`
-
-- [ ] `SecurityPolicy.spec.targetRefs` points to new Gateway
-
-- [ ] `oidc.redirectURL` and `logoutRedirectURL` match new hostname
-
-- [ ] `jwt.providers` configured for Google issuer/JWKS
-
-- [ ] `authorization.defaultAction: Deny`
-
-- [ ] `email_verified=true` claim present
-
-- [ ] allowlist emails are lowercase
-
-- [ ] SOPS files are encrypted
-
-- [ ] New policy file registered in app `kustomization.yaml`
+- [ ] Add a `networking.k8s.io/v1` `Ingress` item in `kubernetes/workloads/network/pomerium/ingresses.yaml`
+  in the app's namespace with:
+  - `metadata.labels.pomerium.io/group: admins` (or `users`) so Kustomize injects the policy from
+    `groups.sops.yaml`
+  - `spec.ingressClassName: pomerium`
+  - `ingress.pomerium.io/preserve_host_header: "true"` (if the app checks `Host`/`Origin` headers)
+  - `ingress.pomerium.io/allow_websockets: "true"` if the app uses WebSockets
+- [ ] Add explicit hostname entry in `kubernetes/workloads/network/cloudflare-tunnel/values.yaml`
+  **before** `*.${SECRET_DOMAIN}` targeting `https://pomerium-proxy.pomerium.svc.cluster.local:443`
+  with `originServerName: oauth.${SECRET_DOMAIN}`
+- [ ] If the app has a `CiliumNetworkPolicy`, allow ingress from `pomerium-proxy` pods:
+  - `k8s:io.kubernetes.pod.namespace: pomerium`
+  - `app.kubernetes.io/name: pomerium`
+  - `app.kubernetes.io/component: proxy`
 
 ______________________________________________________________________
 
-## 4. Static UX Route Coverage
-
-File: `kubernetes/workloads/apps/oauth-pages/values.yaml`
-
-- [ ] Add new Gateway to `route.app.parentRefs`
-- [ ] Keep `route.app.hostnames: ['*.${SECRET_DOMAIN}']` for shared utility-page coverage
-- [ ] Verify `/denied` and `/logged-out` route to `oauth-pages`
-- [ ] Verify `/denied` -> `/denied.html` and `/logged-out` -> `/logged-out.html` rewrites exist
-- [ ] Keep `/oauth2/callback` as its own route rule (no public allow override)
-
-File: `kubernetes/workloads/apps/oauth-pages/securitypolicy.yaml`
-
-- [ ] `oauth-pages-public` allows only `sectionName: denied` and `sectionName: logged-out`
-
-______________________________________________________________________
-
-## 5. Google OAuth Console
-
-- [ ] Add redirect URI: `https://<oauth-host>/oauth2/callback`
-- [ ] Confirm client ID/secret are current
-
-______________________________________________________________________
-
-## 6. Validation and Branch Test
+## 3. Validation and Branch Test
 
 - [ ] `task lint`
 - [ ] `task dev:validate`
 - [ ] `task dev:start`
-- [ ] `kubectl get gateway -n network <gateway-name>`
+- [ ] `kubectl get pomerium -n pomerium global`
+- [ ] `kubectl get ingress -A --field-selector spec.ingressClassName=pomerium`
 - [ ] Browser test:
-  - [ ] unauthenticated user gets Google redirect
+  - [ ] unauthenticated user redirects to Google login via `https://oauth.<domain>/oauth2/callback`
   - [ ] allowlisted user gets access
-  - [ ] non-allowlisted user lands on `/denied`
-  - [ ] logout lands on `/logged-out`
+  - [ ] non-allowlisted user receives 403 Forbidden
+  - [ ] `https://<app-host>/.pomerium/sign_out` clears session
 - [ ] `task dev:stop` (required)

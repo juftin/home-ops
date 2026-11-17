@@ -53,14 +53,6 @@ spec:
           jqPathExpressions:
             # Charts omit the default catch-all match; keep it out of comparisons.
             - '.spec.rules[] | select(.matches == [{"path":{"type":"PathPrefix","value":"/"}}]) | .matches'
-        - group: gateway.envoyproxy.io
-          kind: SecurityPolicy
-          jqPathExpressions:
-            - .spec.oidc.refreshToken
-            - .spec.oidc.clientSecret.group
-            - .spec.oidc.clientSecret.kind
-            - .spec.authorization.rules[].principal.jwt.claims[].valueType
-            - .spec.jwt.providers[].remoteJWKS.cacheDuration
         - group: apps
           kind: StatefulSet
           name: loki

@@ -1,6 +1,6 @@
 # Post-merge Verification
 
-Use this checklist after ArgoCD, OAuth, or Gateway changes merge to `main`.
+Use this checklist after ArgoCD, Pomerium, or Gateway changes merge to `main`.
 
 ______________________________________________________________________
 
@@ -19,18 +19,20 @@ Expected:
 
 ______________________________________________________________________
 
-## 2. OAuth/Gateway sanity
+## 2. Pomerium / Gateway sanity
 
 ```bash
-kubectl get gateway -n network envoy-oauth-admin envoy-oauth-users envoy-oauth-internal --show-labels
-kubectl get securitypolicy -n network envoy-oauth-admin-policy envoy-oauth-users-policy envoy-oauth-internal-policy
-kubectl get httproute -n oauth-pages oauth-pages
+kubectl get pomerium -n pomerium global
+kubectl get pods,svc,pvc -n pomerium
+kubectl get ingress -A --field-selector spec.ingressClassName=pomerium
+kubectl get gateway -n network envoy-external envoy-internal --show-labels
 ```
 
 Expected:
 
-- DNS label `home-ops.io/cloudflare-dns=true` remains on OAuth gateways.
-- `/denied` and `/logged-out` routes are reachable and rewritten correctly.
+- `Pomerium/global` and `Deployment/pomerium` are healthy and bound to `pomerium-data` PVC.
+- Protected app `Ingress` objects (`agentsview`, `paseo`, `herdr`, `hermes-agent`, `openclaw`, `argocd`, `grafana`) are reconciled by Pomerium.
+- `envoy-external` retains `home-ops.io/cloudflare-dns=true`.
 
 ______________________________________________________________________
 
