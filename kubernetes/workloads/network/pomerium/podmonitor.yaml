@@ -14,10 +14,11 @@ spec:
       honorLabels: true
       metricRelabelings:
         # Pomerium v0.34.1 omits service labels when the controller name contains a space.
+        # In controller-runtime v0.25.2, workqueue metrics set both controller and name.
         # Remove this filter once Pomerium labels both metrics streams correctly.
         - action: drop
           sourceLabels: [__name__, controller, name, service]
-          regex: 'controller_runtime_.*;bootstrap pod/[^;]+;;|workqueue_.*;;bootstrap pod/[^;]+;'
+          regex: 'controller_runtime_.*;bootstrap pod/[^;]+;;|workqueue_.*;[^;]*;bootstrap pod/[^;]+;'
   selector:
     matchLabels:
       app.kubernetes.io/component: proxy
