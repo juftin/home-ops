@@ -71,7 +71,7 @@ and Tailscale examples using the existing chart values.
 - **[Paseo](https://github.com/getpaseo/paseo)**: Self-hosted coding-agent daemon and web UI behind
   admin Google SSO, with private Tailscale access and persistent workspaces. See [setup](docs/PASEO-SETUP.md).
 - **[Herdr](https://github.com/herdrdev/herdr)**: Persistent coding-agent terminals with
-  [herdr web ui](https://github.com/devswha/herdr-web-ui) behind admin Google SSO, with token
+  [Ovis](https://github.com/devswha/ovis) behind admin Google SSO, with token
   authentication, isolated provider tools, and persistent workspaces. See [setup](docs/HERDR-SETUP.md).
 - **[OpenClaw](https://github.com/openclaw/openclaw)**: Personal AI assistant gateway and Control UI
   behind admin Google SSO, with persistent state and shared coding tools. See [setup](docs/OPENCLAW-SETUP.md).

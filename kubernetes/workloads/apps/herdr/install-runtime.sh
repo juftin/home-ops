@@ -3,8 +3,8 @@
 set -euo pipefail
 
 HERDR_VERSION=0.9.5
-WEB_UI_VERSION=0.4.11
-WEB_UI_SHA256=7ab8cb83f42c46522023b017b607ce15d435d4b4ed58ed43c68acd06ad470828
+OVIS_VERSION=0.5.9
+OVIS_SHA256=1e04b21a2aaa58c303b46d0d215bce0702f7c167ad46ae5e1d0c6439ed902d72
 
 case "$(uname -m)" in
     x86_64)
@@ -18,7 +18,7 @@ case "$(uname -m)" in
     *) echo "Unsupported architecture: $(uname -m)" >&2; exit 1 ;;
 esac
 
-mkdir -p /opt/herdr/bin /opt/herdr/web-ui
+mkdir -p /opt/herdr/bin /opt/herdr/ovis
 TMP_DIR=$(mktemp -d)
 trap 'rm -rf "${TMP_DIR}"' EXIT
 curl --fail --silent --show-error --location --retry 3 \
@@ -27,11 +27,11 @@ curl --fail --silent --show-error --location --retry 3 \
 printf '%s  %s\n' "${HERDR_SHA256}" "${TMP_DIR}/herdr" | sha256sum --check
 install -m 0755 "${TMP_DIR}/herdr" /opt/herdr/bin/herdr
 curl --fail --silent --show-error --location --retry 3 \
-    "https://codeload.github.com/devswha/ovis/tar.gz/refs/tags/v${WEB_UI_VERSION}" \
-    -o "${TMP_DIR}/web-ui.tar.gz"
-printf '%s  %s\n' "${WEB_UI_SHA256}" "${TMP_DIR}/web-ui.tar.gz" | sha256sum --check
-tar -xzf "${TMP_DIR}/web-ui.tar.gz" --strip-components=1 -C /opt/herdr/web-ui
-cd /opt/herdr/web-ui
+    "https://codeload.github.com/devswha/ovis/tar.gz/refs/tags/v${OVIS_VERSION}" \
+    -o "${TMP_DIR}/ovis.tar.gz"
+printf '%s  %s\n' "${OVIS_SHA256}" "${TMP_DIR}/ovis.tar.gz" | sha256sum --check
+tar -xzf "${TMP_DIR}/ovis.tar.gz" --strip-components=1 -C /opt/herdr/ovis
+cd /opt/herdr/ovis
 bun install --frozen-lockfile
 bun run build
 herdr --version

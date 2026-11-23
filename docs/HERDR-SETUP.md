@@ -1,7 +1,7 @@
 # Herdr Setup
 
 [Herdr](https://github.com/herdrdev/herdr) runs its headless server alongside
-[herdr web ui](https://github.com/devswha/herdr-web-ui) at `https://herdr.${SECRET_DOMAIN}`.
+[Ovis](https://github.com/devswha/ovis) at `https://herdr.${SECRET_DOMAIN}`.
 Admin Google SSO protects the hostname; the web UI also requires its own token. Agents run
 inside this pod, with repositories in `/workspace`. Existing laptop and Paseo sessions remain
 separate.
@@ -11,36 +11,38 @@ separate.
 Before syncing, create a **Login** item named `herdr` in the 1Password **homelab** vault.
 Set its website to the Herdr hostname and generate a strong password with at least 32 random
 bytes. External Secrets copies the item's `password` field into `herdr-secret` as
-`HERDR_WEB_TOKEN`. The app cannot start until that Secret exists, and its startup script rejects
-an empty token. Reloader restarts the pod when the Secret changes.
+`HERDR_WEB_TOKEN`, which the pod exposes to Ovis as `OVIS_TOKEN`. The app requires
+the Secret and a nonempty token at startup. Reloader restarts the pod when the Secret changes.
 
 Open the hostname, complete Google SSO, and enter the token from 1Password when the UI asks.
-Device pairing remains available. Do not enable `HERDR_WEB_TAILSCALE_SERVE_ONLY`: this
-deployment uses a public HTTPS proxy and does not run `tailscale serve`.
-Envoy forwards the original host, HTTPS scheme, and WebSocket upgrades to port 7317.
+Device pairing remains available. This deployment uses a public HTTPS proxy, so leave
+`OVIS_TAILSCALE_SERVE_ONLY` disabled.
+Pomerium preserves the original host and forwards WebSocket upgrades to port 7317.
 No new Google OAuth callback registration is required.
 
 ## Runtime and Storage
 
-- Herdr is pinned to **v0.9.5**; herdr web ui is pinned to **v0.4.11**.
-- `node:24.22.0-bookworm` provides Node, npm, Git, Bash, and download/build tools.
-  `oven/bun:1.4.2-debian` supplies Bun through a copy-only init container.
-- The runtime installer downloads Herdr and the web UI release archive, verifies their SHA-256
+- Herdr is pinned to **v0.9.5** and Ovis to **v0.5.9**.
+- `node:24.22.1-bookworm` provides Node, npm, Git, Bash, and download/build tools.
+  `oven/bun:1.4.4-debian` supplies Bun through a copy-only init container.
+- The runtime installer downloads Herdr and the Ovis release archive, verifies their SHA-256
   checksums, runs `bun install --frozen-lockfile`, and builds the frontend. Both x86-64 and ARM64
   Herdr downloads are supported. Runtime files and the frontend live on a pod-local `emptyDir`,
   so every new pod needs Internet access to install them. Init logs show installation failures.
-- Kubernetes supervises the foreground Herdr server and web UI together. If either exits,
+- Kubernetes supervises the foreground Herdr and Ovis servers together. If either exits,
   the container restarts. Shutdown signals both processes and allows up to 60 seconds for saving
   state and releasing terminals. Herdr can restore saved layouts and resume supported agents;
   running processes do not survive pod replacement.
 - A 5 GiB `node-local` home PVC persists `/home/herdr`: Herdr configuration, session state,
-  coding tools, provider credentials, transcripts, and web UI device/push state.
+  coding tools, provider credentials, transcripts, and Ovis device and push state.
+  On upgrade, Ovis migrates the legacy `~/.config/herdr-web-ui` directory to `~/.config/ovis`
+  and leaves a symlink at the old path.
   A separate 20 GiB PVC persists `/workspace`. Back up both: storage is tied to its node.
 - The app runs as UID/GID 1000 with no Kubernetes token, host mounts, or elevated privileges.
-  Cilium permits ingress only from the admin Envoy Gateway on TCP 7317. Egress permits cluster
+  Cilium permits ingress only from the Pomerium proxy on TCP 7317. Egress permits cluster
   DNS and public HTTP/HTTPS/SSH; other agents, cluster APIs, LAN, tailnet, and metadata addresses
   are blocked. Remote-PC access over SSH is limited to public addresses by this policy.
-- The web UI runs directly through `server/index.ts`, with automatic updates and anonymous
+- Ovis runs directly through `server/index.ts`, with automatic updates and anonymous
   telemetry disabled. Upgrade through Git: update versions and matching checksums in
   `install-runtime.sh`, or image tags in `values.yaml`, then validate and branch-test.
   The app's source updater cannot update this release archive installation.
@@ -81,8 +83,8 @@ task dev:validate
 task dev:start
 kubectl get externalsecret -n herdr herdr
 kubectl rollout status -n herdr deployment/herdr --timeout=10m
-kubectl get httproute -n herdr herdr
-# Check Google SSO, web UI token authentication, and a live agent terminal in the browser.
+kubectl get ingress -n herdr herdr
+# Check Google SSO, Ovis token authentication, and a live agent terminal in the browser.
 # Verify /denied and /logged-out, and check that saved workspaces survive a pod restart.
 task dev:stop
 ```

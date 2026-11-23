@@ -79,11 +79,11 @@ controllers:
           HOST: 0.0.0.0
           PORT: &port 7317
           HERDR_SOCKET: /home/herdr/.config/herdr/herdr.sock
-          HERDR_WEB_STATE_DIR: /home/herdr/.config/herdr-web-ui
-          HERDR_WEB_HERDR_BIN: /opt/herdr/bin/herdr
-          HERDR_WEB_AUTO_UPDATE: "0"
-          HERDR_WEB_TELEMETRY: "0"
-          HERDR_WEB_TOKEN:
+          OVIS_RUNTIME: herdr
+          OVIS_HERDR_BIN: /opt/herdr/bin/herdr
+          OVIS_AUTO_UPDATE: "0"
+          OVIS_TELEMETRY: "0"
+          OVIS_TOKEN:
             valueFrom:
               secretKeyRef:
                 name: herdr-secret

@@ -169,11 +169,11 @@ subsequent onboarding changes. The shared agent installer makes coding CLIs and 
 before the gateway starts. See [OpenClaw setup](OPENCLAW-SETUP.md).
 
 Herdr is served at `herdr.${SECRET_DOMAIN}` through Cloudflare Tunnel and Pomerium
-(`Admins` group). One container supervises the headless Herdr server and herdr web ui on port 7317,
-connected over a Unix socket. Pinned Node and Bun images supply the runtimes; an init container
-verifies and installs pinned Herdr and web UI downloads, installs locked UI dependencies, and
+(`Admins` group). One container supervises the headless Herdr server and Ovis. Ovis listens on
+port 7317 and connects to Herdr over a Unix socket. Pinned Node and Bun images supply the runtimes. An init container
+verifies and installs pinned Herdr and Ovis downloads, installs locked UI dependencies, and
 builds the frontend on a pod-local volume. Another init container installs the shared coding
-tools. Node-local PVCs persist `/home/herdr` (layout, transcripts, tools, credentials, and web UI
+tools. Node-local PVCs persist `/home/herdr` (layout, transcripts, tools, credentials, and Ovis
 device/push state) and `/workspace` (repositories and worktrees). A single non-root replica uses
 `Recreate`; either process exiting restarts the pair. The UI additionally requires a token from
 the `herdr` 1Password item. Its HTTP health probe checks the Herdr socket as well as the web
