@@ -1,0 +1,69 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: t3code-isolation
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: t3code
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: pomerium
+            app.kubernetes.io/name: pomerium
+            app.kubernetes.io/component: proxy
+      toPorts:
+        - ports:
+            - port: "3773"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: tailscale
+            tailscale.com/parent-resource: t3code-tailscale
+            tailscale.com/parent-resource-ns: t3code
+            tailscale.com/parent-resource-type: ingress
+      toPorts:
+        - ports:
+            - port: "3773"
+              protocol: TCP
+  egress:
+    # Collectors can publish only to the AgentsView database in the cluster.
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: agentsview
+            app.kubernetes.io/instance: agentsview
+            app.kubernetes.io/controller: db
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+    - toEntities: [world]
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+            - port: "22"
+              protocol: TCP
+  egressDeny:
+    - toEntities: [host, remote-node, kube-apiserver]
+    # CIDR rules exclude cluster endpoints; the DNS endpoint rule above is required.
+    - toCIDR:
+        - 10.0.0.0/8
+        - 172.16.0.0/12
+        - 192.168.0.0/16
+        - 169.254.0.0/16
+        - 100.64.0.0/10
+        - fc00::/7
+        - fe80::/10

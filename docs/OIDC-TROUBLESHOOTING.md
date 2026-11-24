@@ -84,7 +84,7 @@ ______________________________________________________________________
   - `k8s:io.kubernetes.pod.namespace: pomerium`
   - `app.kubernetes.io/name: pomerium`
   - `app.kubernetes.io/component: proxy`
-- WebSocket-enabled apps (`paseo`, `herdr`, `hermes-agent`, `openclaw`, `argocd`, `grafana`) have
+- WebSocket-enabled apps (`paseo`, `herdr`, `hermes-agent`, `openclaw`, `t3code`, `argocd`, `grafana`) have
   `ingress.pomerium.io/allow_websockets: "true"`
 
 ### Fix

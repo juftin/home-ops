@@ -20,7 +20,7 @@ URL `https://agentsview.${SECRET_DOMAIN}` and these fields:
 | `AGENTSVIEW_AUTH_TOKEN` | Separate random bearer token for browser/API access        |
 
 ExternalSecrets distribute the database password into `agentsview`, `paseo`,
-`herdr`, `openclaw`, and `hermes-agent`. Only the dashboard receives the bearer
+`herdr`, `openclaw`, `hermes-agent`, and `t3code`. Only the dashboard receives the bearer
 token. Create the item before syncing the apps: missing credentials prevent pods
 from starting. No secret values belong in Git.
 
@@ -42,7 +42,7 @@ consumers.
 
 ## Cluster collectors
 
-Paseo, Herdr, OpenClaw, and Hermes each run an `agentsview` sidecar executing
+Paseo, Herdr, OpenClaw, Hermes, and T3 Code each run an `agentsview` sidecar executing
 `agentsview pg push --watch --interval 5m`. Each keeps a separate 2Gi node-local
 archive PVC and a stable machine display label. Session changes are debounced
 for 30 seconds; the five-minute sweep catches missed filesystem notifications.
@@ -56,11 +56,12 @@ only `/data/agentsview/config.toml` to reseed it from updated chart values. Pres
 of `/data/agentsview`, especially the installation ID and archive. The collector
 has no Kubernetes API token, and no service exposes its local archive.
 
-| Source        | Session roots under `/sources`                    |
-| ------------- | ------------------------------------------------- |
-| Paseo / Herdr | `.claude/projects`, `.codex/sessions`, `.gemini`  |
-| OpenClaw      | Above roots plus `.openclaw`                      |
-| Hermes        | `.hermes/sessions` and sibling `.hermes/state.db` |
+| Source        | Session roots under `/sources`                                                       |
+| ------------- | ------------------------------------------------------------------------------------ |
+| Paseo / Herdr | `.claude/projects`, `.codex/sessions`, `.gemini`                                     |
+| T3 Code       | `.claude/projects`, `.codex/sessions`, `.local/share/opencode`, standalone `.gemini` |
+| OpenClaw      | Above roots plus `.openclaw`                                                         |
+| Hermes        | `.hermes/sessions` and sibling `.hermes/state.db`                                    |
 
 AgentsView can only ingest providers with supported on-disk formats; agent
 terminal output alone is not a session source. Missing provider roots yield no
@@ -70,7 +71,7 @@ Do not clone collector archives between machines: their persistent installation
 IDs distinguish sources even when display names change.
 
 The existing agent isolation policies permit TCP 5432 only to the AgentsView
-database endpoints. Database ingress accepts these four apps, the dashboard, and
+database endpoints. Database ingress accepts these five apps, the dashboard, and
 the operator's proxy for this specific Service. Plain PostgreSQL transport is
 limited to cluster networking and the encrypted Tailscale tunnel. Collectors
 share the database owner credential and must be trusted: this is a personal

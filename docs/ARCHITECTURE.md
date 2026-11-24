@@ -38,7 +38,8 @@ kubernetes/workloads/
 │   ├── lunchmoney/
 │   ├── ntfy/
 │   ├── openclaw/
-│   └── paseo/
+│   ├── paseo/
+│   └── t3code/
 ├── cert-manager/cert-manager/
 ├── external-secrets/<app>/
 ├── kube-system/<app>/
@@ -76,6 +77,7 @@ Each application formerly in `default` has a namespace matching its app name:
 | `ntfy`         | `ntfy`         |
 | `openclaw`     | `openclaw`     |
 | `paseo`        | `paseo`        |
+| `t3code`       | `t3code`       |
 
 Agent tools distributes installer ConfigMaps to the agent namespaces.
 
@@ -84,7 +86,7 @@ Shared Gateways (`envoy-external`, `envoy-internal`) stay in `network`; Pomerium
 (deployed via `kubernetes/workloads/network/pomerium/`) and enforces Google SSO and `Admins`/`Users`
 authorization across protected `Ingress` routes.
 Cloudflare's public wildcard DNS record is declared by `cloudflare-dns/public-wildcard`.
-Tailscale configuration is distributed to `paseo` and `lunchmoney`. The built-in `default` namespace has no
+Tailscale configuration is distributed to `paseo`, `lunchmoney`, and `t3code`. The built-in `default` namespace has no
 repository-managed apps. For an existing cluster, follow the
 [namespace migration runbook](APP-NAMESPACE-MIGRATION.md) before activating these manifests.
 
@@ -127,20 +129,21 @@ ______________________________________________________________________
 
 ## Coding Agents
 
-| Namespace      | App            | Role                                                       |
-| -------------- | -------------- | ---------------------------------------------------------- |
-| `paseo`        | `paseo`        | Coding-agent daemon and bundled web UI                     |
-| `openclaw`     | `openclaw`     | Personal AI assistant gateway and Control UI               |
-| `hermes-agent` | `hermes-agent` | Self-improving AI agent with Gateway API and Web Dashboard |
-| `herdr`        | `herdr`        | Persistent agent terminals and browser/phone web UI        |
-| `agent-tools`  | `agent-tools`  | Shared installer ConfigMap for Paseo, OpenClaw, and Herdr  |
+| Namespace      | App            | Role                                                               |
+| -------------- | -------------- | ------------------------------------------------------------------ |
+| `paseo`        | `paseo`        | Coding-agent daemon and bundled web UI                             |
+| `openclaw`     | `openclaw`     | Personal AI assistant gateway and Control UI                       |
+| `hermes-agent` | `hermes-agent` | Self-improving AI agent with Gateway API and Web Dashboard         |
+| `herdr`        | `herdr`        | Persistent agent terminals and browser/phone web UI                |
+| `t3code`       | `t3code`       | T3 Code coding-agent control plane and bundled web UI              |
+| `agent-tools`  | `agent-tools`  | Shared installer ConfigMap for Paseo, OpenClaw, Herdr, and T3 Code |
 
 The `agent-tools` app generates installer ConfigMaps from `install-agents.sh` in the
-`paseo`, `openclaw`, and `herdr` namespaces. Each app mounts its ConfigMap
-it read-only in their `install-agents` init containers. The script installs or upgrades Codex,
+`paseo`, `openclaw`, `herdr`, and `t3code` namespaces. Each app mounts its ConfigMap
+read-only in its `install-agents` init container. The script installs or upgrades Codex,
 Claude Code, Antigravity, GitHub CLI, uv, and Spec Kit under each app's persistent `$HOME/.local` and reuses
 working installed versions if upgrades fail. It also syncs shared agent configurations from `juftin/dotfiles`.
-All three app containers include `$HOME/.local/bin` in
+All four app containers include `$HOME/.local/bin` in
 `PATH`. Reloader restarts consumers when the shared ConfigMap changes; the tools and credentials
 remain isolated on each app's own PVC.
 
@@ -179,6 +182,15 @@ device/push state) and `/workspace` (repositories and worktrees). A single non-r
 the `herdr` 1Password item. Its HTTP health probe checks the Herdr socket as well as the web
 server. See [Herdr setup](HERDR-SETUP.md).
 
+T3 Code is served at `t3code.${SECRET_DOMAIN}` through Cloudflare Tunnel and Pomerium (`Admins`
+group) and privately via Tailscale at `https://t3code.<tailnet-DNS-suffix>`. It runs the headless
+`t3 serve` server under `tini` on port 3773 using `wodby/t3code` with telemetry disabled and
+pairing-based session authentication. Node-local PVCs persist `/data` (SQLite database, pairing
+state, default managed worktrees, coding tools, credentials, and dotfiles) and `/workspace`
+(repositories and optional configured worktrees). A single non-root replica uses `Recreate`, and
+the shared `agent-tools` init container installs coding CLIs before startup. See
+[T3 Code setup](T3CODE-SETUP.md).
+
 ### Agent isolation
 
 Each agent has its own pod and PVCs. All app and init containers run as non-root, drop all Linux
@@ -191,14 +203,14 @@ No Kubernetes token,
 host directories, container-runtime sockets, or host namespaces are exposed.
 
 App-local CiliumNetworkPolicies default-deny ingress and egress. Ingress permits only the
-`pomerium-proxy` pods in `pomerium` on each app's service ports; Paseo also permits its specific
-Tailscale ingress proxy.
+`pomerium-proxy` pods in `pomerium` on each app's service ports; Paseo and T3 Code also permit
+their specific Tailscale ingress proxies.
 Egress permits CoreDNS on TCP/UDP 53 and public HTTP/HTTPS/SSH on TCP 80/443/22. Other cluster
 services (including the other agents), Kubernetes API, nodes, LAN, tailnet, and metadata addresses
 are blocked, with explicit exceptions for DNS and OpenClaw accessing only the Lunch Money
 application on TCP 8000 (`http://lunchmoney-app.lunchmoney.svc.cluster.local:8000`). Its PostgreSQL,
-Valkey, and scheduler pods remain inaccessible to OpenClaw. Paseo, Hermes, and Herdr have no Lunch Money
-exception. Existing stateful connections can
+Valkey, and scheduler pods remain inaccessible to OpenClaw. Paseo, Hermes, Herdr, and T3 Code have
+no Lunch Money exception. Existing stateful connections can
 receive replies; the ingress exception does not authorize agent-initiated connections to proxies.
 See [Cilium policy semantics](https://docs.cilium.io/en/stable/security/policy/layer3/).
 
@@ -224,7 +236,9 @@ finish branch testing with `task dev:stop`.
 | `lunchmoney` | `lunchmoney` | Lunch Money MCP server, dashboard, PostgreSQL, Valkey, and sync scheduler |
 
 The Tailscale operator exposes Paseo through a private `Ingress` at
-`https://paseo.<tailnet-DNS-suffix>`, forwarding directly to the existing `paseo:6767` service.
+`https://paseo.<tailnet-DNS-suffix>`, forwarding directly to the existing `paseo:6767` service,
+and exposes T3 Code through a private `Ingress` at `https://t3code.<tailnet-DNS-suffix>`,
+forwarding to `t3code:3773`.
 It also exposes Lunch Money through a private `Ingress` at `https://lunchmoney.<tailnet-DNS-suffix>`,
 forwarding to the `lunchmoney:8000` service. Internally on the LAN, Lunch Money is served at
 `lunchmoney.${SECRET_DOMAIN}` via the `envoy-internal` Gateway.
@@ -262,7 +276,7 @@ does not expose. See [ntfy setup](NTFY-SETUP.md).
 Public and LAN-only workloads configure HTTPRoutes and Tailscale Ingresses in their own
 `values.yaml`, using chart-native resources (such as `camply-web` or `app-template`).
 Public apps use `envoy-external` and internal LAN apps use `envoy-internal`. OAuth-protected apps
-(`agentsview`, `paseo`, `herdr`, `hermes-agent`, `openclaw`, `argocd`, and `grafana`) are fronted
+(`agentsview`, `paseo`, `herdr`, `hermes-agent`, `openclaw`, `t3code`, `argocd`, and `grafana`) are fronted
 by Pomerium `Ingress` objects in `kubernetes/workloads/network/pomerium/ingresses.yaml` (with
 policies injected from SOPS-encrypted `groups.sops.yaml`) and
 explicit Cloudflare Tunnel rules pointing to `pomerium-proxy.pomerium.svc.cluster.local:443`.
@@ -272,7 +286,7 @@ See [App access](APP-ACCESS.md).
 
 AgentsView runs in `agentsview` behind admin Google SSO and bearer authentication.
 Its dashboard reads shared PostgreSQL, persisted on a 10Gi node-local PVC.
-Paseo, Herdr, OpenClaw, and Hermes run read-only source collectors with their own
+Paseo, Herdr, OpenClaw, Hermes, and T3 Code run read-only source collectors with their own
 persistent SQLite archives and push incremental updates to the database. Local
 computers and LAN devices run the same collector CLI and connect through the
 Tailscale-only PostgreSQL Service. The database has no public Gateway route.

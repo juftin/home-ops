@@ -31,7 +31,7 @@ kubectl get gateway -n network envoy-external envoy-internal --show-labels
 Expected:
 
 - `Pomerium/global` and `Deployment/pomerium` are healthy and bound to `pomerium-data` PVC.
-- Protected app `Ingress` objects (`agentsview`, `paseo`, `herdr`, `hermes-agent`, `openclaw`, `argocd`, `grafana`) are reconciled by Pomerium.
+- Protected app `Ingress` objects (`agentsview`, `paseo`, `herdr`, `hermes-agent`, `openclaw`, `t3code`, `argocd`, `grafana`) are reconciled by Pomerium.
 - `envoy-external` retains `home-ops.io/cloudflare-dns=true`.
 
 ______________________________________________________________________
