@@ -33,7 +33,7 @@ sops --decrypt kubernetes/workloads/network/pomerium/groups.sops.yaml > /tmp/gro
 
 - Keep all email addresses lowercase (`email.is: user@example.com`)
 - Maintain two external access tiers:
-  - `data.admins` (`agentsview`, `paseo`, `herdr`, `hermes-agent`, `openclaw`, `argocd`)
+  - `data.admins` (`agentsview`, `paseo`, `herdr`, `hermes-agent`, `openclaw`, `t3code`, `argocd`)
   - `data.users` (`grafana`; include admin emails in the users list as well)
 
 ## 3) Re-encrypt and clean up

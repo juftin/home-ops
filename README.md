@@ -48,7 +48,7 @@ ______________________________________________________________________
 - **[reloader](https://github.com/stakater/Reloader)**: Automatic reloading of Kubernetes resources
   when ConfigMaps or Secrets change.
 - **[Agent tools](kubernetes/workloads/apps/agent-tools/install-agents.sh)**: Shared init installer
-  for Codex, Claude Code, Antigravity, GitHub CLI, uv, and Spec Kit in Paseo, OpenClaw, and Herdr.
+  for Codex, Claude Code, Antigravity, GitHub CLI, uv, and Spec Kit in Paseo, OpenClaw, Herdr, and T3 Code.
 - **[local-path-provisioner](https://github.com/rancher/local-path-provisioner)**: Dynamic
   node-local persistent volume provisioning.
 - **[snapshot-controller](https://github.com/kubernetes-csi/external-snapshotter)**: CSI VolumeSnapshot
@@ -77,6 +77,9 @@ and Tailscale examples using the existing chart values.
   behind admin Google SSO, with persistent state and shared coding tools. See [setup](docs/OPENCLAW-SETUP.md).
 - **[Hermes Agent](https://github.com/NousResearch/hermes-agent)**: Self-improving AI agent
   with Gateway API server and Web Dashboard behind admin Google SSO. See [setup](docs/HERMES-SETUP.md).
+- **[T3 Code](https://github.com/pingdotgg/t3code)**: Self-hosted coding-agent control plane and
+  web UI behind admin Google SSO, with private Tailscale access, pairing authentication, shared
+  coding tools, and persistent workspaces. See [setup](docs/T3CODE-SETUP.md).
 - **[Lunch Money](https://github.com/juftin/lunchmoney-app)**: MCP server and financial
   dashboard for Lunch Money with web API, PostgreSQL database, Valkey distributed locking, and
   scheduled synchronization, accessible internally and via Tailscale. See [setup](docs/LUNCHMONEY-SETUP.md).
@@ -93,7 +96,7 @@ and Tailscale examples using the existing chart values.
   labels pod logs and forwards them to Loki.
 
 Application manifests live in `kubernetes/workloads/apps/<app>/`, with a namespace matching
-each app name: `agentsview`, `camply`, `echo`, `herdr`, `hermes-agent`, `lunchmoney`, `openclaw`, and `paseo`.
+each app name: `agentsview`, `camply`, `echo`, `herdr`, `hermes-agent`, `lunchmoney`, `openclaw`, `paseo`, and `t3code`.
 The `agent-tools` Application distributes installer ConfigMaps to agent namespaces.
 Infrastructure lives alongside `apps/` under `kubernetes/workloads/`, grouped by namespace.
 Existing installations must follow the

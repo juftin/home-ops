@@ -46,6 +46,9 @@ spec:
             k8s:io.kubernetes.pod.namespace: hermes-agent
             app.kubernetes.io/instance: hermes-agent
         - matchLabels:
+            k8s:io.kubernetes.pod.namespace: t3code
+            app.kubernetes.io/instance: t3code
+        - matchLabels:
             k8s:io.kubernetes.pod.namespace: tailscale
             tailscale.com/parent-resource: agentsview-db
             tailscale.com/parent-resource-ns: agentsview

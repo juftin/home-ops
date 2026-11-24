@@ -63,7 +63,7 @@ Create an **API Credential** item named `tailscale` in the **homelab** vault wit
 
 Keep `PASEO_PASSWORD` in the existing `paseo` item. The Tailscale app owns the operator credentials
 and a `ClusterExternalSecret` that distributes only `TAILSCALE_DNS_SUFFIX` to consumer namespaces
-as `tailscale-config`. It currently selects `paseo` and `lunchmoney`; add namespace names to its selector to
+as `tailscale-config`. It currently selects `paseo`, `lunchmoney`, and `t3code`; add namespace names to its selector to
 share the configuration with other apps. OAuth credentials remain in the `tailscale` namespace.
 See [ClusterExternalSecret](https://external-secrets.io/latest/api/clusterexternalsecret/).
 

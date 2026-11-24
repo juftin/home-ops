@@ -1,0 +1,217 @@
+controllers:
+  t3code:
+    strategy: Recreate
+    annotations:
+      reloader.stakater.com/auto: "true"
+    initContainers:
+      agentsview-config:
+        image:
+          repository: ghcr.io/kenn-io/agentsview
+          tag: 0.46.1
+        command: [/bin/sh, -ec]
+        args:
+          - 'mkdir -p -m 700 /data/agentsview; if [ ! -f /data/agentsview/config.toml ]; then cp /config/config.toml /data/agentsview/config.toml; chmod 600 /data/agentsview/config.toml; fi'
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+      install-runtime:
+        image: &image
+          repository: docker.io/library/node
+          tag: 24.22.1-bookworm
+        command: [/bin/bash, /opt/t3code-scripts/install-runtime.sh]
+        securityContext: &containerSecurity
+          readOnlyRootFilesystem: false
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+      install-agents:
+        image: *image
+        env:
+          HOME: /home/node
+          NPM_CONFIG_PREFIX: /home/node/.local
+          PATH: &path /opt/t3code:/home/node/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+        command: [/bin/bash, /opt/agent-tools/install-agents.sh]
+        securityContext: *containerSecurity
+    containers:
+      agentsview:
+        image:
+          repository: ghcr.io/kenn-io/agentsview
+          tag: 0.46.1
+        args: ["pg", "push", "--watch", "--interval", "5m"]
+        env:
+          HOME: /nonexistent
+          AGENTSVIEW_DATA_DIR: /data/agentsview
+          AGENTSVIEW_NO_DAEMON: "1"
+          AGENTSVIEW_PG_URL: postgres://agentsview@agentsview-db.agentsview.svc.cluster.local:5432/agentsview?sslmode=disable
+          PGPASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: agentsview-secret
+                key: POSTGRES_PASSWORD
+          CLAUDE_PROJECTS_DIR: /sources/.claude/projects
+          CODEX_SESSIONS_DIR: /sources/.codex/sessions
+          GEMINI_DIR: /sources/.gemini
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+        resources:
+          requests:
+            cpu: 25m
+            memory: 128Mi
+          limits:
+            memory: 1Gi
+      app:
+        image: *image
+        command: [/bin/bash, /opt/t3code-scripts/start.sh]
+        workingDir: /workspace
+        env:
+          HOME: /home/node
+          NPM_CONFIG_PREFIX: /home/node/.local
+          PATH: *path
+          SHELL: /bin/bash
+          T3CODE_HOME: /home/node/.t3
+          T3CODE_HOST: 0.0.0.0
+          T3CODE_PORT: &port 3773
+          T3CODE_TELEMETRY_ENABLED: "false"
+        envFrom:
+          - secretRef:
+              name: tailscale-config
+        probes:
+          startup:
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /.well-known/t3/environment
+                port: *port
+              periodSeconds: 5
+              timeoutSeconds: 5
+              failureThreshold: 30
+          liveness: &probes
+            enabled: true
+            custom: true
+            spec:
+              httpGet:
+                path: /.well-known/t3/environment
+                port: *port
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 3
+          readiness: *probes
+        securityContext: *containerSecurity
+        resources:
+          requests:
+            cpu: 100m
+            memory: 512Mi
+          limits:
+            memory: 4Gi
+defaultPodOptions:
+  terminationGracePeriodSeconds: 60
+  automountServiceAccountToken: false
+  enableServiceLinks: false
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+    fsGroupChangePolicy: OnRootMismatch
+service:
+  app:
+    ports:
+      http:
+        port: *port
+persistence:
+  runtime:
+    type: emptyDir
+    advancedMounts:
+      t3code:
+        app:
+          - path: /opt/t3code
+        install-runtime:
+          - path: /opt/t3code
+  scripts:
+    type: configMap
+    name: t3code-scripts
+    advancedMounts:
+      t3code:
+        app:
+          - path: /opt/t3code-scripts
+            readOnly: true
+        install-runtime:
+          - path: /opt/t3code-scripts
+            readOnly: true
+  agent-tools:
+    type: configMap
+    name: agent-tools
+    advancedMounts:
+      t3code:
+        install-agents:
+          - path: /opt/agent-tools
+            readOnly: true
+  tmp:
+    type: emptyDir
+    globalMounts:
+      - path: /tmp
+  home:
+    storageClass: node-local
+    accessMode: ReadWriteOnce
+    size: 10Gi
+    advancedMounts:
+      t3code:
+        app:
+          - path: /home/node
+        install-agents:
+          - path: /home/node
+        agentsview:
+          - path: /sources
+            readOnly: true
+  workspace:
+    storageClass: node-local
+    accessMode: ReadWriteOnce
+    size: 20Gi
+    advancedMounts:
+      t3code:
+        app:
+          - path: /workspace
+        install-agents:
+          - path: /workspace
+  agentsview-data:
+    storageClass: node-local
+    accessMode: ReadWriteOnce
+    size: 2Gi
+    advancedMounts:
+      t3code:
+        agentsview-config:
+          - path: /data
+        agentsview:
+          - path: /data
+  agentsview-config:
+    type: configMap
+    identifier: agentsview
+    advancedMounts:
+      t3code:
+        agentsview-config:
+          - path: /config
+            readOnly: true
+ingress:
+  tailscale:
+    suffix: tailscale
+    className: tailscale
+    defaultBackend:
+      service:
+        name: t3code
+        port:
+          number: *port
+    tls:
+      - hosts:
+          - t3code
+configMaps:
+  agentsview:
+    data:
+      config.toml: |-
+        local_machine_name = "t3code"
+        [pg]
+        allow_insecure = true

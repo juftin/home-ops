@@ -142,6 +142,33 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
+  name: t3code
+  namespace: t3code
+  labels:
+    pomerium.io/group: admins
+  annotations:
+    ingress.pomerium.io/allow_websockets: "true"
+    ingress.pomerium.io/preserve_host_header: "true"
+spec:
+  ingressClassName: pomerium
+  rules:
+    - host: "t3code.${SECRET_DOMAIN}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: t3code
+                port:
+                  number: 3773
+  tls:
+    - hosts:
+        - "t3code.${SECRET_DOMAIN}"
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
   name: argocd
   namespace: argocd
   labels:
