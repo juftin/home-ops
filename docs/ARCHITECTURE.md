@@ -142,7 +142,7 @@ The `agent-tools` app generates installer ConfigMaps from `install-agents.sh` in
 `paseo`, `openclaw`, `herdr`, and `t3code` namespaces. Each app mounts its ConfigMap
 read-only in its `install-agents` init container. The script installs or upgrades Codex,
 Claude Code, Antigravity, GitHub CLI, uv, and Spec Kit under each app's persistent `$HOME/.local` and reuses
-working installed versions if upgrades fail. It also syncs shared agent configurations from `juftin/dotfiles`.
+working installed versions if upgrades fail. It also syncs shared agent configurations from `jufty-bot/dotfiles`.
 All four app containers include `$HOME/.local/bin` in
 `PATH`. Reloader restarts consumers when the shared ConfigMap changes; the tools and credentials
 remain isolated on each app's own PVC.

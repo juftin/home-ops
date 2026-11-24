@@ -86,7 +86,7 @@ Because the pod runs unprivileged without user namespaces:
 The `install-agents` init container runs the shared
 [agent-tools installer](../kubernetes/workloads/apps/agent-tools/install-agents.sh), installing or
 upgrading Codex, Claude Code, Antigravity (`agy`), GitHub CLI (`gh`), `uv`, and Spec Kit
-(`specify`) under `/home/node/.local` and syncing agent configuration from `juftin/dotfiles`.
+(`specify`) under `/home/node/.local` and syncing agent configuration from `jufty-bot/dotfiles`.
 
 Check installation logs and versions:
 

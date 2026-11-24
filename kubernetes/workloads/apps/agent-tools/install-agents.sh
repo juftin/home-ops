@@ -59,13 +59,15 @@ if ! uv tool install --upgrade git+https://github.com/juftin/spec-kit.git; then
 fi
 
 export DOTFILES_DIR="${HOME}/.dotfiles"
+DOTFILES_URL="https://github.com/jufty-bot/dotfiles.git"
 if [ ! -d "${DOTFILES_DIR}" ]; then
-    if ! git clone --depth 1 https://github.com/juftin/dotfiles.git "${DOTFILES_DIR}"; then
+    if ! git clone --depth 1 "${DOTFILES_URL}" "${DOTFILES_DIR}"; then
         echo "Dotfiles clone failed; skipping agent configuration." >&2
     fi
 else
-    if ! git -C "${DOTFILES_DIR}" pull --ff-only; then
-        echo "Dotfiles pull failed; using existing clone." >&2
+    if ! git -C "${DOTFILES_DIR}" remote set-url origin "${DOTFILES_URL}" ||
+        ! git -C "${DOTFILES_DIR}" pull --ff-only; then
+        echo "Dotfiles sync failed; using existing clone." >&2
     fi
 fi
 
