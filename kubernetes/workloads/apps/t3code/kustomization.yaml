@@ -16,5 +16,6 @@ configMapGenerator:
   - name: t3code-scripts
     files:
       - install-runtime.sh
+      - start.sh
 generatorOptions:
   disableNameSuffixHash: true

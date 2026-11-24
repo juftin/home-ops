@@ -21,6 +21,7 @@ TMP_DIR=$(mktemp -d)
 trap 'rm -rf "${TMP_DIR}"' EXIT
 
 curl --fail --silent --show-error --location --retry 3 \
+    --connect-timeout 15 --max-time 300 \
     "https://github.com/pingdotgg/t3code/releases/download/v${T3CODE_VERSION}/${ARCHIVE}" \
     -o "${TMP_DIR}/${ARCHIVE}"
 printf '%s  %s\n' "${T3CODE_SHA256}" "${TMP_DIR}/${ARCHIVE}" | sha256sum --check

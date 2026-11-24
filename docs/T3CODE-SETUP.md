@@ -50,13 +50,17 @@ passwords.
   the self-contained binary and web UI assets onto a pod-local `emptyDir` at `/opt/t3code`. Every
   new pod needs Internet access to install the runtime. Upgrade through Git by updating
   `T3CODE_VERSION` and the matching SHA-256 checksums in `install-runtime.sh`.
-- The app container runs `/opt/t3code/t3 serve` with `workingDir: /workspace`, listening on
-  `0.0.0.0:3773` with `T3CODE_HOME=/home/t3code/.t3` and `T3CODE_TELEMETRY_ENABLED=false`.
-- A 10 GiB `node-local` home PVC persists `/home/t3code`: T3 Code's SQLite database, pairing
-  state, default managed worktrees (`/home/t3code/.t3/worktrees`), coding tools
-  (`/home/t3code/.local`), provider credentials, and dotfiles.
+- The app container runs `/opt/t3code/t3 serve` via `start.sh` with `workingDir: /workspace`,
+  listening on `0.0.0.0:3773` with `T3CODE_HOME=/home/node/.t3` and
+  `T3CODE_TELEMETRY_ENABLED=false`. `start.sh` redacts the startup administrative pairing
+  token/URL/QR block from stdout so Alloy/Loki never retain live pairing credentials (generate
+  one-time pairing links on demand with `t3 auth pairing create`).
+- A 10 GiB `node-local` home PVC persists `/home/node` (matching UID 1000's `/etc/passwd` home so
+  OpenSSH and Git over SSH persist `.ssh` cleanly): T3 Code's SQLite database, pairing state,
+  default managed worktrees (`/home/node/.t3/worktrees`), coding tools (`/home/node/.local`),
+  provider credentials, and dotfiles.
 - A 20 GiB `node-local` workspace PVC persists `/workspace` for Git repositories. To store T3 Code
-  managed Git worktrees on this larger volume instead of `/home/t3code/.t3/worktrees`, set
+  managed Git worktrees on this larger volume instead of `/home/node/.t3/worktrees`, set
   **Worktrees directory** to `/workspace/worktrees` in T3 Code Settings.
 - A 2 GiB `node-local` PVC persists the AgentsView collector archive. Back up persistent volumes:
   node-local storage is tied to its node and is not replicated.
@@ -75,14 +79,14 @@ Because the pod runs unprivileged without user namespaces:
   **Full access** (T3 Code's default for new threads), relying on the pod and Cilium network policy
   as the isolation boundary.
 - **Built-in browser**: T3 Code's optional built-in browser requires Chromium system libraries and
-  user namespaces that are intentionally omitted from the minimal `node:24-bookworm` base image.
+  user namespaces that are intentionally omitted from the `node:24.22.1-bookworm` base image.
 
 ## Coding Tools and Provider Setup
 
 The `install-agents` init container runs the shared
 [agent-tools installer](../kubernetes/workloads/apps/agent-tools/install-agents.sh), installing or
 upgrading Codex, Claude Code, Antigravity (`agy`), GitHub CLI (`gh`), `uv`, and Spec Kit
-(`specify`) under `/home/t3code/.local` and syncing agent configuration from `juftin/dotfiles`.
+(`specify`) under `/home/node/.local` and syncing agent configuration from `juftin/dotfiles`.
 
 Check installation logs and versions:
 
@@ -107,11 +111,11 @@ kubectl exec -it -n t3code deployment/t3code -c app -- gh auth login
 ```
 
 T3 Code isolates its Antigravity provider profile under
-`/home/t3code/.t3/userdata/providers/antigravity` and ignores `GEMINI_HOME`, so authenticate
+`/home/node/.t3/userdata/providers/antigravity` and ignores `GEMINI_HOME`, so authenticate
 Antigravity in **Settings → Providers** rather than `kubectl exec ... -- agy` (which signs in only
-the standalone CLI under `/home/t3code/.gemini`). The AgentsView collector reads
-`/home/t3code/.claude/projects`, `/home/t3code/.codex/sessions`, and standalone
-`/home/t3code/.gemini` sessions; T3 Code's isolated Antigravity sessions are outside that path.
+the standalone CLI under `/home/node/.gemini`). The AgentsView collector reads
+`/home/node/.claude/projects`, `/home/node/.codex/sessions`, and standalone
+`/home/node/.gemini` sessions; T3 Code's isolated Antigravity sessions are outside that path.
 
 Clone repositories into `/workspace` and open them as projects in T3 Code.
 

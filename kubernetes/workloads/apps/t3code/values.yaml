@@ -19,10 +19,6 @@ controllers:
         image: &image
           repository: docker.io/library/node
           tag: 24.22.1-bookworm
-        env: &runtimeEnv
-          HOME: /home/t3code
-          NPM_CONFIG_PREFIX: /home/t3code/.local
-          PATH: &path /opt/t3code:/home/t3code/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
         command: [/bin/bash, /opt/t3code-scripts/install-runtime.sh]
         securityContext: &containerSecurity
           readOnlyRootFilesystem: false
@@ -30,7 +26,10 @@ controllers:
           capabilities: {drop: ["ALL"]}
       install-agents:
         image: *image
-        env: *runtimeEnv
+        env:
+          HOME: /home/node
+          NPM_CONFIG_PREFIX: /home/node/.local
+          PATH: &path /opt/t3code:/home/node/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
         command: [/bin/bash, /opt/agent-tools/install-agents.sh]
         securityContext: *containerSecurity
     containers:
@@ -64,14 +63,14 @@ controllers:
             memory: 1Gi
       app:
         image: *image
-        command: [/opt/t3code/t3, serve]
+        command: [/bin/bash, /opt/t3code-scripts/start.sh]
         workingDir: /workspace
         env:
-          HOME: /home/t3code
-          NPM_CONFIG_PREFIX: /home/t3code/.local
+          HOME: /home/node
+          NPM_CONFIG_PREFIX: /home/node/.local
           PATH: *path
           SHELL: /bin/bash
-          T3CODE_HOME: /home/t3code/.t3
+          T3CODE_HOME: /home/node/.t3
           T3CODE_HOST: 0.0.0.0
           T3CODE_PORT: &port 3773
           T3CODE_TELEMETRY_ENABLED: "false"
@@ -133,13 +132,14 @@ persistence:
           - path: /opt/t3code
         install-runtime:
           - path: /opt/t3code
-        install-agents:
-          - path: /opt/t3code
   scripts:
     type: configMap
     name: t3code-scripts
     advancedMounts:
       t3code:
+        app:
+          - path: /opt/t3code-scripts
+            readOnly: true
         install-runtime:
           - path: /opt/t3code-scripts
             readOnly: true
@@ -162,11 +162,9 @@ persistence:
     advancedMounts:
       t3code:
         app:
-          - path: /home/t3code
-        install-runtime:
-          - path: /home/t3code
+          - path: /home/node
         install-agents:
-          - path: /home/t3code
+          - path: /home/node
         agentsview:
           - path: /sources
             readOnly: true
@@ -177,8 +175,6 @@ persistence:
     advancedMounts:
       t3code:
         app:
-          - path: /workspace
-        install-runtime:
           - path: /workspace
         install-agents:
           - path: /workspace
