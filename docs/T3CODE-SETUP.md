@@ -18,10 +18,11 @@ the AgentsView collector sidecar) and the Tailscale `ClusterExternalSecret` (`ta
 To sign in from a browser via Pomerium (`https://t3code.${SECRET_DOMAIN}`), first open
 `https://t3code.${SECRET_DOMAIN}` and complete Google SSO so a Pomerium session cookie exists
 (an OAuth redirect drops `#token=...` URL fragments). Then generate a one-time pairing link
-(valid for 5 minutes):
+(valid for 5 minutes), replacing `<domain>` with your `SECRET_DOMAIN`:
 
 ```bash
-kubectl exec -n t3code deployment/t3code -c app -- t3-pairing-link browser
+kubectl exec -n t3code deployment/t3code -c app -- \
+  t3 auth pairing create --label browser --base-url "https://t3code.<domain>"
 ```
 
 Open the printed URL in the signed-in browser so T3 Code exchanges the pairing token for a
@@ -41,17 +42,22 @@ passwords.
 
 ## Runtime and Storage
 
-- The deployment uses `docker.io/wodby/t3code:0.1.11-r0`, a multi-architecture Debian/Node image
-  containing the SHA-256 verified official T3 Code release binary, `tini`, Git, `ripgrep`, `jq`,
-  OpenCode, and built-in browser runtime libraries.
-- The container starts `/usr/bin/tini -- t3 serve` directly with `workingDir: /workspace`,
-  listening on `0.0.0.0:3773` with `T3CODE_TELEMETRY_ENABLED=false`.
-- A 10 GiB `node-local` home PVC persists `/data` (`HOME`): T3 Code's SQLite database, pairing
-  state, default managed worktrees (`/data/.t3/worktrees`), coding tools (`/data/.local`),
-  provider credentials, and dotfiles.
+- T3 Code is pinned to official release **v0.1.11** from
+  [pingdotgg/t3code](https://github.com/pingdotgg/t3code/releases).
+- `docker.io/library/node:24.22.1-bookworm` provides Node, npm, Git, Bash, and curl/tar tools.
+- The `install-runtime` init container downloads the official `t3-0.1.11-linux-<arch>.tar.gz`
+  archive (supporting both x86-64 and ARM64), verifies its pinned SHA-256 checksum, and unpacks
+  the self-contained binary and web UI assets onto a pod-local `emptyDir` at `/opt/t3code`. Every
+  new pod needs Internet access to install the runtime. Upgrade through Git by updating
+  `T3CODE_VERSION` and the matching SHA-256 checksums in `install-runtime.sh`.
+- The app container runs `/opt/t3code/t3 serve` with `workingDir: /workspace`, listening on
+  `0.0.0.0:3773` with `T3CODE_HOME=/home/t3code/.t3` and `T3CODE_TELEMETRY_ENABLED=false`.
+- A 10 GiB `node-local` home PVC persists `/home/t3code`: T3 Code's SQLite database, pairing
+  state, default managed worktrees (`/home/t3code/.t3/worktrees`), coding tools
+  (`/home/t3code/.local`), provider credentials, and dotfiles.
 - A 20 GiB `node-local` workspace PVC persists `/workspace` for Git repositories. To store T3 Code
-  managed Git worktrees on this larger volume instead of `/data/.t3/worktrees`, set **Worktrees
-  directory** to `/workspace/worktrees` in T3 Code Settings.
+  managed Git worktrees on this larger volume instead of `/home/t3code/.t3/worktrees`, set
+  **Worktrees directory** to `/workspace/worktrees` in T3 Code Settings.
 - A 2 GiB `node-local` PVC persists the AgentsView collector archive. Back up persistent volumes:
   node-local storage is tied to its node and is not replicated.
 - A single non-root replica (UID/GID 1000) uses `Recreate` to avoid SQLite and PVC conflicts, with
@@ -68,21 +74,20 @@ Because the pod runs unprivileged without user namespaces:
 - **Codex**: Codex's Supervised and Auto sandboxes require unprivileged user namespaces. Use
   **Full access** (T3 Code's default for new threads), relying on the pod and Cilium network policy
   as the isolation boundary.
-- **Built-in browser**: Chrome's sandbox also needs user namespaces. Leave it disabled unless you
-  explicitly accept running without Chrome's sandbox (`T3CODE_SERVER_BROWSER_SANDBOX=0`).
+- **Built-in browser**: T3 Code's optional built-in browser requires Chromium system libraries and
+  user namespaces that are intentionally omitted from the minimal `node:24-bookworm` base image.
 
 ## Coding Tools and Provider Setup
 
 The `install-agents` init container runs the shared
 [agent-tools installer](../kubernetes/workloads/apps/agent-tools/install-agents.sh), installing or
 upgrading Codex, Claude Code, Antigravity (`agy`), GitHub CLI (`gh`), `uv`, and Spec Kit
-(`specify`) under `/data/.local` and syncing agent configuration from `juftin/dotfiles`. Because
-`/data/.local/bin` is first in `PATH`, tools on the persistent volume take precedence over those
-baked into the image. OpenCode (`opencode`) is also available from the base image.
+(`specify`) under `/home/t3code/.local` and syncing agent configuration from `juftin/dotfiles`.
 
 Check installation logs and versions:
 
 ```bash
+kubectl logs -n t3code deployment/t3code -c install-runtime
 kubectl logs -n t3code deployment/t3code -c install-agents
 kubectl exec -n t3code deployment/t3code -c app -- t3 --version
 kubectl exec -n t3code deployment/t3code -c app -- codex --version
@@ -101,12 +106,12 @@ kubectl exec -it -n t3code deployment/t3code -c app -- claude
 kubectl exec -it -n t3code deployment/t3code -c app -- gh auth login
 ```
 
-T3 Code isolates its Antigravity provider profile under `/data/.t3/userdata/providers/antigravity`
-and ignores `GEMINI_HOME`, so authenticate Antigravity in **Settings → Providers** rather than
-`kubectl exec ... -- agy` (which signs in only the standalone CLI under `/data/.gemini`). The
-AgentsView collector reads `/data/.claude/projects`, `/data/.codex/sessions`,
-`/data/.local/share/opencode`, and standalone `/data/.gemini` sessions; T3 Code's isolated
-Antigravity sessions are outside that path.
+T3 Code isolates its Antigravity provider profile under
+`/home/t3code/.t3/userdata/providers/antigravity` and ignores `GEMINI_HOME`, so authenticate
+Antigravity in **Settings → Providers** rather than `kubectl exec ... -- agy` (which signs in only
+the standalone CLI under `/home/t3code/.gemini`). The AgentsView collector reads
+`/home/t3code/.claude/projects`, `/home/t3code/.codex/sessions`, and standalone
+`/home/t3code/.gemini` sessions; T3 Code's isolated Antigravity sessions are outside that path.
 
 Clone repositories into `/workspace` and open them as projects in T3 Code.
 

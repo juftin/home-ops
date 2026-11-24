@@ -33,12 +33,6 @@
       overrideDepName: "{{packageName}}",
     },
     {
-      description: "Track wodby/t3code revision tags",
-      matchDatasources: ["docker"],
-      matchPackageNames: ["docker.io/wodby/t3code", "wodby/t3code"],
-      versioning: "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-r(?<revision>\\d+)$",
-    },
-    {
       description: "Auto-merge GitHub Actions",
       matchManagers: ["github-actions"],
       automerge: true,

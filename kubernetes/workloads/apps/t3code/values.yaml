@@ -15,19 +15,24 @@ controllers:
           readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           capabilities: {drop: ["ALL"]}
-      install-agents:
+      install-runtime:
         image: &image
-          repository: docker.io/wodby/t3code
-          tag: 0.1.11-r0
-        env:
-          HOME: /data
-          NPM_CONFIG_PREFIX: /data/.local
-          PATH: &path /data/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-        command: [/bin/bash, /opt/agent-tools/install-agents.sh]
-        securityContext:
+          repository: docker.io/library/node
+          tag: 24.22.1-bookworm
+        env: &runtimeEnv
+          HOME: /home/t3code
+          NPM_CONFIG_PREFIX: /home/t3code/.local
+          PATH: &path /opt/t3code:/home/t3code/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+        command: [/bin/bash, /opt/t3code-scripts/install-runtime.sh]
+        securityContext: &containerSecurity
           readOnlyRootFilesystem: false
           allowPrivilegeEscalation: false
           capabilities: {drop: ["ALL"]}
+      install-agents:
+        image: *image
+        env: *runtimeEnv
+        command: [/bin/bash, /opt/agent-tools/install-agents.sh]
+        securityContext: *containerSecurity
     containers:
       agentsview:
         image:
@@ -47,7 +52,6 @@ controllers:
           CLAUDE_PROJECTS_DIR: /sources/.claude/projects
           CODEX_SESSIONS_DIR: /sources/.codex/sessions
           GEMINI_DIR: /sources/.gemini
-          OPENCODE_DIR: /sources/.local/share/opencode
         securityContext:
           readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
@@ -60,17 +64,17 @@ controllers:
             memory: 1Gi
       app:
         image: *image
-        command: [/usr/bin/tini, --, t3, serve]
+        command: [/opt/t3code/t3, serve]
         workingDir: /workspace
         env:
-          HOME: /data
-          NPM_CONFIG_PREFIX: /data/.local
+          HOME: /home/t3code
+          NPM_CONFIG_PREFIX: /home/t3code/.local
           PATH: *path
           SHELL: /bin/bash
+          T3CODE_HOME: /home/t3code/.t3
           T3CODE_HOST: 0.0.0.0
           T3CODE_PORT: &port 3773
           T3CODE_TELEMETRY_ENABLED: "false"
-          PUBLIC_URL: https://t3code.${SECRET_DOMAIN}
         envFrom:
           - secretRef:
               name: tailscale-config
@@ -96,10 +100,7 @@ controllers:
               timeoutSeconds: 5
               failureThreshold: 3
           readiness: *probes
-        securityContext:
-          readOnlyRootFilesystem: false
-          allowPrivilegeEscalation: false
-          capabilities: {drop: ["ALL"]}
+        securityContext: *containerSecurity
         resources:
           requests:
             cpu: 100m
@@ -124,6 +125,24 @@ service:
       http:
         port: *port
 persistence:
+  runtime:
+    type: emptyDir
+    advancedMounts:
+      t3code:
+        app:
+          - path: /opt/t3code
+        install-runtime:
+          - path: /opt/t3code
+        install-agents:
+          - path: /opt/t3code
+  scripts:
+    type: configMap
+    name: t3code-scripts
+    advancedMounts:
+      t3code:
+        install-runtime:
+          - path: /opt/t3code-scripts
+            readOnly: true
   agent-tools:
     type: configMap
     name: agent-tools
@@ -143,9 +162,11 @@ persistence:
     advancedMounts:
       t3code:
         app:
-          - path: /data
+          - path: /home/t3code
+        install-runtime:
+          - path: /home/t3code
         install-agents:
-          - path: /data
+          - path: /home/t3code
         agentsview:
           - path: /sources
             readOnly: true
@@ -156,6 +177,8 @@ persistence:
     advancedMounts:
       t3code:
         app:
+          - path: /workspace
+        install-runtime:
           - path: /workspace
         install-agents:
           - path: /workspace

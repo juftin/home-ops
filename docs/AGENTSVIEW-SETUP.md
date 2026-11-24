@@ -56,12 +56,12 @@ only `/data/agentsview/config.toml` to reseed it from updated chart values. Pres
 of `/data/agentsview`, especially the installation ID and archive. The collector
 has no Kubernetes API token, and no service exposes its local archive.
 
-| Source        | Session roots under `/sources`                                                       |
-| ------------- | ------------------------------------------------------------------------------------ |
-| Paseo / Herdr | `.claude/projects`, `.codex/sessions`, `.gemini`                                     |
-| T3 Code       | `.claude/projects`, `.codex/sessions`, `.local/share/opencode`, standalone `.gemini` |
-| OpenClaw      | Above roots plus `.openclaw`                                                         |
-| Hermes        | `.hermes/sessions` and sibling `.hermes/state.db`                                    |
+| Source        | Session roots under `/sources`                              |
+| ------------- | ----------------------------------------------------------- |
+| Paseo / Herdr | `.claude/projects`, `.codex/sessions`, `.gemini`            |
+| T3 Code       | `.claude/projects`, `.codex/sessions`, standalone `.gemini` |
+| OpenClaw      | Above roots plus `.openclaw`                                |
+| Hermes        | `.hermes/sessions` and sibling `.hermes/state.db`           |
 
 AgentsView can only ingest providers with supported on-disk formats; agent
 terminal output alone is not a session source. Missing provider roots yield no

@@ -183,12 +183,13 @@ the `herdr` 1Password item. Its HTTP health probe checks the Herdr socket as wel
 server. See [Herdr setup](HERDR-SETUP.md).
 
 T3 Code is served at `t3code.${SECRET_DOMAIN}` through Cloudflare Tunnel and Pomerium (`Admins`
-group) and privately via Tailscale at `https://t3code.<tailnet-DNS-suffix>`. It runs the headless
-`t3 serve` server under `tini` on port 3773 using `wodby/t3code` with telemetry disabled and
-pairing-based session authentication. Node-local PVCs persist `/data` (SQLite database, pairing
-state, default managed worktrees, coding tools, credentials, and dotfiles) and `/workspace`
-(repositories and optional configured worktrees). A single non-root replica uses `Recreate`, and
-the shared `agent-tools` init container installs coding CLIs before startup. See
+group) and privately via Tailscale at `https://t3code.<tailnet-DNS-suffix>`. An init container
+verifies and unpacks the pinned official `pingdotgg/t3code` release onto a pod-local volume on
+`node:24.22.1-bookworm`, and the app container runs `t3 serve` on port 3773 with telemetry
+disabled and pairing-based session authentication. Node-local PVCs persist `/home/t3code` (SQLite
+database, pairing state, default managed worktrees, coding tools, credentials, and dotfiles) and
+`/workspace` (repositories and optional configured worktrees). A single non-root replica uses
+`Recreate`, and the shared `agent-tools` init container installs coding CLIs before startup. See
 [T3 Code setup](T3CODE-SETUP.md).
 
 ### Agent isolation

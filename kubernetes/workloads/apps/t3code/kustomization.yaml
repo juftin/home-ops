@@ -12,3 +12,9 @@ helmCharts:
 resources:
   - ./agentsview-externalsecret.yaml
   - ./networkpolicy.yaml
+configMapGenerator:
+  - name: t3code-scripts
+    files:
+      - install-runtime.sh
+generatorOptions:
+  disableNameSuffixHash: true
