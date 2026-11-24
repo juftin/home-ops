@@ -51,7 +51,7 @@ No new Google OAuth callback registration is required.
 
 The `install-agents` init container runs the shared `agent-tools` installer, installing or
 upgrading Codex, Claude Code, Antigravity, `gh`, uv, and Spec Kit (`specify`) under `/home/herdr/.local`,
-and syncing agent configuration from `juftin/dotfiles`. Each pod start
+and syncing agent configuration from `jufty-bot/dotfiles`. Each pod start
 attempts upgrades; failed upgrades reuse working installed versions, while failed first
 installs prevent startup. Herdr has its own credentials, separate from the other apps.
 

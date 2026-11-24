@@ -124,12 +124,15 @@ for app_home in paseo node; do
     grep -q -- "--dir ${HOME}/.local/bin" "${MOCK_LOG}"
     grep -q 'uv-installer' "${MOCK_LOG}"
     grep -q 'uv tool install --upgrade git+https://github.com/juftin/spec-kit.git' "${MOCK_LOG}"
+    grep -Fxq "git clone --depth 1 https://github.com/jufty-bot/dotfiles.git ${HOME}/.dotfiles" "${MOCK_LOG}"
     grep -q 'bootstrap --agents' "${MOCK_LOG}"
 
     # A normal second start upgrades the already-installed Antigravity CLI.
     bash "${INSTALLER}" > "${TEST_DIR}/upgrade.log" 2>&1
     grep -q 'agy update' "${MOCK_LOG}"
     grep -q 'uv self update' "${MOCK_LOG}"
+    grep -Fxq "git -C ${HOME}/.dotfiles remote set-url origin https://github.com/jufty-bot/dotfiles.git" "${MOCK_LOG}"
+    grep -Fxq "git -C ${HOME}/.dotfiles pull --ff-only" "${MOCK_LOG}"
 
     FAIL_GH_DOWNLOAD=1 bash "${INSTALLER}" > "${TEST_DIR}/download-failure.log" 2>&1
     grep -q 'GitHub CLI upgrade failed' "${TEST_DIR}/download-failure.log"
