@@ -1,0 +1,75 @@
+fullnameOverride: renovate
+cronjob:
+  schedule: '*/30 * * * *'
+  timeZone: Etc/UTC
+  # Enable after the dry run and Actions cutover in docs/RENOVATE-SETUP.md.
+  suspend: true
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 300
+  # Installation tokens expire after one hour; finish before then.
+  activeDeadlineSeconds: 3300
+  jobBackoffLimit: 1
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  preCommand: |
+    set -euo pipefail
+    RENOVATE_TOKEN="$(node /etc/renovate/github-app-token.cjs)"
+    export RENOVATE_TOKEN
+image:
+  tag: 44.164.7
+  useFull: true
+renovate:
+  existingConfigFile: /etc/renovate/config.js
+  persistence:
+    cache:
+      enabled: true
+      storageClass: node-local
+      storageSize: 5Gi
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: [ALL]
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 12021
+  runAsGroup: 0
+  fsGroup: 12021
+  seccompProfile:
+    type: RuntimeDefault
+serviceAccount:
+  create: false
+  name: renovate
+env:
+  LOG_LEVEL: info
+  GITHUB_REPOSITORY: juftin/renovate
+  GITHUB_REPOSITORY_OWNER: juftin
+  RENOVATE_CONFIG_PRESET: github>juftin/renovate
+  RENOVATE_COMMIT_STYLE: conventional
+  RENOVATE_BASE_DIR: /tmp/renovate
+  RENOVATE_CACHE_DIR: /tmp/renovate/cache
+  RENOVATE_REPOSITORY_CACHE: enabled
+  # Reuse checkouts with git fetch instead of cloning on every run.
+  RENOVATE_PERSIST_REPO_DATA: 'true'
+  # Recommended by the Helm chart; currently an experimental Renovate option.
+  RENOVATE_X_SQLITE_PACKAGE_CACHE: 'true'
+extraVolumes:
+  - name: runner
+    configMap:
+      name: renovate-runner
+  - name: github-app
+    secret:
+      secretName: renovate-secret
+      defaultMode: 0440
+extraVolumeMounts:
+  - name: runner
+    mountPath: /etc/renovate
+    readOnly: true
+  - name: github-app
+    mountPath: /var/run/renovate/github-app
+    readOnly: true
+resources:
+  requests:
+    cpu: 100m
+    memory: 512Mi
+  limits:
+    memory: 2Gi
