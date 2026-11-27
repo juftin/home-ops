@@ -102,7 +102,7 @@ controllers:
         securityContext: *containerSecurity
         resources:
           requests:
-            cpu: 100m
+            cpu: 1000m
             memory: 1Gi
           limits:
             memory: 16Gi
