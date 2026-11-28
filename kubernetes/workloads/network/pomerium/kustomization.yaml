@@ -1,7 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - https://github.com/pomerium/ingress-controller/config/default?ref=v0.34.1
+  - https://github.com/pomerium/ingress-controller/config/default?ref=v0.34.2
   - ./pvc.yaml
   - ./pomerium.yaml
   - ./podmonitor.yaml
@@ -11,7 +11,7 @@ resources:
 images:
   - name: pomerium/ingress-controller
     # renovate: datasource=docker depName=pomerium/ingress-controller
-    newTag: v0.34.1
+    newTag: v0.34.2
 replacements:
   - source:
       kind: ConfigMap
