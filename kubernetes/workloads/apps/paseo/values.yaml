@@ -18,7 +18,7 @@ controllers:
       install-agents:
         image: &image
           repository: ghcr.io/getpaseo/paseo
-          tag: 0.17.3
+          tag: 0.18.1
         env:
           HOME: /home/paseo
           PATH: &path /home/paseo/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
